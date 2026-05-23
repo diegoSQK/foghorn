@@ -37,7 +37,7 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: *nothing yet — Phase 1 scaffolding is the first ship.*
+Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 1.1 — repo skeleton + CI gate (May 2026), see [SHIPPED.md](SHIPPED.md#repo-skeleton-and-ci-gate-phase-11-may-2026).
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -55,9 +55,9 @@ When a roadmap item ships, the agent that lands it appends the as-shipped narrat
 
 Stand up the monorepo skeleton, the CI gate, and the minimal data model so subsequent phases can ship features instead of plumbing.
 
-#### 1.1 Repo skeleton + CI gate (P1)
+#### 1.1 Repo skeleton + CI gate (P1) ✅
 
-Create `backend/` and `frontend/` packages. Backend: `pyproject.toml` with `fastapi`, `httpx`, `beautifulsoup4`, `apscheduler`, `pydantic`, `sqlalchemy` (or `sqlite3` directly — implementer's call, document the choice), `pytest`, `ruff`, `mypy`. Frontend: `npx create-next-app@latest` with TypeScript + Tailwind + App Router. Add a root `Makefile` exposing `make gate` that runs both `ruff/mypy/pytest` and `npm run typecheck/lint/build`. Set up GitHub Actions to run `make gate` on every PR. Add `backend/README.md` skeleton (data model + API surface placeholders to be filled in 1.2+).
+Shipped May 2026 — see [Repo skeleton + CI gate](SHIPPED.md#repo-skeleton-and-ci-gate-phase-11-may-2026). Storage choice landed as stdlib `sqlite3` (not an ORM). Note: `create-next-app@latest` now resolves to Next.js 16, not 15 — doc references to "Next.js 15" want a PM-thread reconcile.
 
 #### 1.2 Data model + ingest scaffolding (P1)
 
