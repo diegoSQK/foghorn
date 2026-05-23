@@ -1,6 +1,6 @@
-# {{PROJECT_NAME}} — Agent Onboarding
+# foghorn — Agent Onboarding
 
-You are working on {{PROJECT_NAME}}, [one-sentence project description]. The team is small: one user, a PM thread for strategy and doc maintenance, coding agents that pick up work from GitHub Issues or from ad-hoc dogfooding, and zero or more domain-agent roles described below. The "Roles and iteration loops" section below describes who does what and how work moves through the system; read that first if you're new to the repo. "Where things live" lists the canonical docs.
+You are working on foghorn, a Bay Area local music & jazz show aggregator that scrapes venue calendars and surfaces shows filtered by region, performer, and a personal friend-watchlist. The team is small: one user, a PM thread for strategy and doc maintenance, coding agents that pick up work from GitHub Issues or from ad-hoc dogfooding, and zero or more domain-agent roles described below. The "Roles and iteration loops" section below describes who does what and how work moves through the system; read that first if you're new to the repo. "Where things live" lists the canonical docs.
 
 ## Roles and iteration loops
 
@@ -35,9 +35,7 @@ Coding agents may work in isolated git worktrees off `main`, or directly in the 
 
 ### Domain agent(s)
 
-*Optional. If your project has one or more agent roles that use the running system as a tool to help end-users — e.g. a financial advisor for a finance app, a tutor for a learning platform, a sales assistant for a CRM — describe them here. Each should get a brief description, a Loop, and Conventions. Delete this section entirely if your project doesn't have any.*
-
-*If your domain agent has write access via its tooling, include a confirmation-discipline convention: writes that materially change persisted user state should require explicit user confirmation before being applied. A user talking to a domain agent should always know when their state is changing, not discover it after the fact. Per-role operating instructions (system prompt, tool surface, examples) should live in a dedicated file under `docs/` — e.g. `docs/<role_name>/SYSTEM_PROMPT.md` — that the role's runtime reads.*
+None at present. foghorn's surface is the website itself — users browse the show calendar directly rather than talking to an agent. If a "show concierge" role ever makes sense (e.g. "what's happening Friday night in the Mission that one of my watchlist names is playing?"), it'll get its own section here with system-prompt + tool surface in `docs/<role_name>/`.
 
 ## Where things live
 
@@ -48,53 +46,60 @@ Coding agents may work in isolated git worktrees off `main`, or directly in the 
 - `docs/PM_THREAD_BOOTSTRAP.md` — bootstrap procedure for a fresh PM thread starting cold. Reading list, live-system sanity check, project-specific strategic context.
 - `docs/SETUP.md` — environment configuration: repo + GitHub PAT + label creation + filling in template placeholders. One-time setup reference.
 - `docs/EXAMPLES.md` — worked examples (issue ticket, SHIPPED entry, PROJECT_PLAN phase) drawn from a real project, with annotations on shape.
+- `backend/README.md` *(planned)* — authoritative reference for the backend's data model (shows, venues, performers), scraper interface, ingest pipeline, and API surface. Added in Phase 1 scaffolding.
 - **GitHub Issues** — the work-item tracker. Issues are queued/claimed/closed via labels and state. The issue body is the ticket spec; the PR closes the issue on merge via `Closes #N`. See the **GitHub Issue Labels** section below for the label set.
-- *Project-specific architectural-reference docs: typically a `backend/README.md` or equivalent that's the authoritative reference for the API surface, data model, and other deep technical details. Add others as needed.*
 
 ## Project Shape
 
-*TODO: Describe the monorepo layout, package structure, primary languages and frameworks. Example: "Two-package monorepo: `backend/` is FastAPI + SQLite, Python 3.11+; `frontend/` is Next.js 15 + React 19 + TypeScript + Tailwind."*
+Two-package monorepo, both intended to live in the repo root:
+
+- `backend/` — Python 3.11+. FastAPI for the HTTP surface, SQLite for storage (Postgres deferred until hosting is decided), per-venue scrapers in `backend/scrapers/<venue_slug>.py`. Scraping primarily with `httpx` + `beautifulsoup4`; reserve `playwright` for venues that require it (JS-rendered calendars). Daily scrape scheduled via a small in-process scheduler (APScheduler) when the backend is the long-running process; switch to cron / systemd timer if/when we add a separate worker.
+- `frontend/` — Next.js 15 + React 19 + TypeScript + Tailwind. Server components fetch from the backend API; client components for filtering / search interactivity. No database / auth in the frontend itself.
+
+Neither package is realized yet — see PROJECT_PLAN Phase 1 for scaffolding.
 
 ## Current State
 
-*TODO: Brief summary of what's shipped and what the app currently does. Update as major milestones land. This section is for orientation, not a comprehensive feature list — point at PROJECT_PLAN.md and SHIPPED.md for the detailed view.*
+Greenfield. Repo bootstrapped from `diegoSQK/agent-team-template` (May 2026). No code shipped yet. Phase 1 scaffolding (backend skeleton, frontend skeleton, CI gate) is the next thing to land; the four-jazz-venue end-to-end milestone follows in Phase 2.
 
 ## Commands
 
-*TODO: How to run, test, lint, type-check. The full gate that coding agents run before commits. Project-specific — fill in.*
-
-Example backend gate:
+Backend gate (run from `backend/`):
 
 ```bash
-# Replace with your actual commands
-ruff check . --no-cache
+ruff check .
 mypy src
-pytest -p no:cacheprovider
+pytest
 ```
 
-Example frontend gate:
+Frontend gate (run from `frontend/`):
 
 ```bash
-# Replace with your actual commands
 npm run typecheck
 npm run lint
+npm run build  # surfaces type / config issues that lint misses
 ```
+
+Phase 1 scaffolding ticket pins exact versions and adds these commands to a `Makefile` at the repo root so `make gate` runs both.
 
 ## Architecture Debugging Map
 
-*TODO: When something's wrong, what order to inspect files in. Example:*
+When a show is wrong (missing, duplicated, mis-attributed, wrong time), inspect in this order:
 
-*1. The relevant connector / data source*
-*2. The ingestion service*
-*3. The storage / repository layer*
-*4. The display / view service*
-*5. The frontend rendering page*
-
-*Fill in with your actual layers.*
+1. **The venue scraper** — `backend/scrapers/<venue_slug>.py`. Run it standalone (`python -m backend.scrapers.<venue>`) and inspect its raw output. 90% of show-data issues originate here (venue changed their markup, calendar paginated, performer name embedded in a non-obvious element).
+2. **The ingest pipeline** — `backend/ingest/pipeline.py`. Where scraper output is normalized (timezone, performer-name canonicalization) and deduped against existing rows. Wrong-time / duplicate issues that survive (1) live here.
+3. **The repository / storage layer** — `backend/repo/shows.py`. Persists normalized shows. Schema-shape problems and "missing because never written" issues live here.
+4. **The API view layer** — `backend/api/shows.py`. Filters (date range, region, performer search) applied here. "Show exists in DB but doesn't appear in API response" issues live here.
+5. **The frontend page** — `frontend/app/page.tsx` (and sub-routes for filter views). Rendering / formatting / display-timezone issues live here.
 
 ## Conventions
 
-*TODO: Project-specific patterns. Examples: monetary precision rules, source-agnostic display, immutable data structures, error handling shape. Add as patterns emerge.*
+- **Show identity.** Natural key is `(venue_id, local_start_datetime, headliner_canonical)`. Deduping uses this; scraper re-runs are idempotent.
+- **Time handling.** All show times stored as UTC in the DB with the venue's `IANA tz` (`America/Los_Angeles` for all current venues, but the column exists for future flexibility). Display always renders in the user's local timezone, defaulting to `America/Los_Angeles`.
+- **Performer names — display vs. search.** Store both: `display_name` is the venue's original string ("Joshua Redman Quartet"); `canonical_name` is the lowercased / accent-stripped / punctuation-removed form used for free-text and watchlist matching ("joshua redman quartet"). Never overwrite the display string; never search the display string.
+- **Scraper output is typed.** Each scraper returns `list[ScrapedShow]`, a frozen Pydantic model with required fields (venue_slug, headliner_raw, support_raw, start_local, doors_local?, ticket_url?, price_text?). Optional fields are explicit `None`, not missing.
+- **Scrapers are independently runnable.** `python -m backend.scrapers.<venue>` prints structured output and exits. No DB write side effects in the scraper module itself — that's the ingest pipeline's job.
+- **Source-of-truth lineage.** Every persisted show row carries `source_url` and `scraped_at`. If anyone asks "why does foghorn say this," the answer is one click away.
 
 ## GitHub Issue Labels
 
@@ -117,7 +122,7 @@ Issues in this repo are triaged along two label dimensions plus a coordination s
 
 - `claimed` — a coding agent has started implementation. Don't pick up issues already labeled `claimed` unless the user has explicitly told you to take over (see the Coding agents section above for the full claim flow). Ad-hoc dogfooding PRs skip this label since there's no issue to claim.
 
-The complete current set is whatever `gh label list` returns; the categories above are stable. New labels added on demand follow the same `dimension:value` shape (`priority:p0`, `type:phase`, etc.) for parseability — e.g. `area:backend`, `status:blocked`.
+The complete current set is whatever `gh label list` returns; the categories above are stable. New labels added on demand follow the same `dimension:value` shape (`priority:p0`, `type:phase`, etc.) for parseability — e.g. `area:backend`, `area:scraper`, `status:blocked`.
 
 ## Git Hygiene
 
@@ -127,4 +132,12 @@ The complete current set is whatever `gh label list` returns; the categories abo
 
 ## Deferred Workstream
 
-*TODO: Things that are explicitly out of scope or deferred. Update as decisions accumulate.*
+Explicitly deferred to keep early phases focused:
+
+- **Travel-time ETAs from home/work/studio.** Deferred to a later phase. Decision on map provider (Google / Mapbox / ORS / coarse neighborhood lookup) deferred with it.
+- **Hosting / deployment.** Phases 1–N run locally. Decision on Vercel + Python host vs. single VPS deferred until the app is usable enough to deploy.
+- **Multi-user accounts.** Watchlist is local / single-user-shaped in early phases. Real accounts wait until the app goes public.
+- **Alerts / notifications** (email or push when a watchlist performer is announced). Deferred until the watchlist proves valuable in the manual-check shape.
+- **Postgres / non-SQLite storage.** SQLite is fine through Phases 1–N at single-user scale. Migrate when hosting requires it.
+- **LLM-assisted scraping.** Hand-rolled parsers for the seed venues first; LLM-assisted extraction (with hand-tuned overrides) added in a later phase to scale venue count without per-venue parser work.
+- **Mobile app.** Web-first. Native app only if the web experience has obvious mobile-specific friction that responsive design can't solve.
