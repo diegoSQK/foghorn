@@ -8,6 +8,20 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Late filter now starts at 9pm — no time-of-day gap (May 2026)
+
+Small follow-up to Phase 3.1's time-of-day chips. As shipped, `Late` was
+`start_local_time >= 22:00` and `Early` was `< 21:00`, leaving a dead band:
+shows starting 9:00–9:59pm matched *neither* chip (≈10% of the calendar). Per
+user request, `Late` now starts at **21:00**, so Early (`< 21:00`) and Late
+(`>= 21:00`) are exact complements — every show is one or the other.
+
+One-line change to the `repo/shows.py` time-of-day clause (22:00 → 21:00), the
+chip relabeled `Late (10pm+)` → `Late (9pm+)`, and the `test_time_of_day_late`
+expectation updated (now matches the 21:30 set too) with a new partition test
+asserting `early + late == all`. Deviates from #19's ticketed gap, intentionally
+— the gap was more confusing than useful in practice.
+
 ## Free-text performer search (Phase 3.3, May 2026)
 
 Type a name, find every upcoming show with that performer on the bill. Closes

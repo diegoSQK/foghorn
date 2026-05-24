@@ -140,8 +140,15 @@ def test_time_of_day_early(client: TestClient) -> None:
 
 
 def test_time_of_day_late(client: TestClient) -> None:
-    # start_local_time >= 22:00.
-    assert _names(_june(client, time_of_day="late")) == ["Night Owls"]
+    # start_local_time >= 21:00 — Late Trio (21:30) + Night Owls (22:30).
+    assert _names(_june(client, time_of_day="late")) == ["Late Trio", "Night Owls"]
+
+
+def test_early_and_late_partition_all_shows(client: TestClient) -> None:
+    # No gap: every show is either early or late (Late is now 9pm+).
+    early = _names(_june(client, time_of_day="early"))
+    late = _names(_june(client, time_of_day="late"))
+    assert len(early) + len(late) == len(_june(client))
 
 
 def test_filters_stack(client: TestClient) -> None:

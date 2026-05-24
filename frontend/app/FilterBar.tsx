@@ -124,7 +124,7 @@ export default function FilterBar({ venues }: { venues: VenueOption[] }) {
             navigate({ time_of_day: time === "late" ? null : "late" })
           }
         >
-          Late (10pm+)
+          Late (9pm+)
         </button>
       </div>
 

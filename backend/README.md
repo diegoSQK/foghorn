@@ -129,7 +129,7 @@ Upcoming shows, ordered by `start_utc`. Query params (all optional):
 - `to` — ISO date, inclusive (default: today + 30 days).
 - `venues` — comma-separated venue slugs (e.g. `bird_and_beckett,keys_jazz_bistro`); omitted = all venues. Unknown slugs simply don't match.
 - `venue` — legacy single slug; prefer `venues=`.
-- `time_of_day` — `early` (`start_local_time` < 21:00) or `late` (>= 22:00); anything else ignored.
+- `time_of_day` — `early` (`start_local_time` < 21:00) or `late` (>= 21:00); exact complements, no gap. Anything else ignored.
 - `performer_query` — free-text performer name; canonicalized server-side (same `canonicalize()` as ingest, so "Joshua Redman" matches "joshua redman quartet"), then substring-matched against any performer (headliner or support) on the bill. Empty after canonicalization (e.g. punctuation only) = no filter.
 - `region` — `SF` / `East Bay` / `Peninsula` / `South Bay`; matches the venue's `region`. Unknown values ignored (not a 400). All current venues are SF.
 - `neighborhood` — matches the venue's `neighborhood`, case-insensitive exact (e.g. `North Beach`).
