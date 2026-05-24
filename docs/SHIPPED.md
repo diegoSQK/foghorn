@@ -8,6 +8,54 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Mr. Tipple's scraper via the Tribe Events API (May 2026)
+
+Second of the three Phase 2.2 sibling scrapers (closes #7). Adds Mr. Tipple's
+Recording Studio (39 Fell St, Hayes Valley) behind the registry the 2.1 pilot
+established — a third distinct data-source pattern.
+
+**Domain fix.** The #7 ticket and the Phase 1.2 seed both had the site as
+`mrtipples.com`, which is **NXDOMAIN**. The live site is `mrtipplessf.com`
+(found by probing variants after the seeded domain failed to resolve). The
+seed's `website_url` and `calendar_url` for `mr_tipples` are corrected here.
+*Same lesson as the SFJAZZ re-pilot: probe before trusting a seeded URL.*
+
+**Data source: The Events Calendar (Tribe) REST API.** Mr. Tipple's is
+WordPress running the Tribe "The Events Calendar" plugin, which exposes a clean
+JSON API at `/wp-json/tribe/events/v1/events` — richer than the iCal feeds used
+elsewhere. Each event carries `title`, `start_date` (venue-local
+`YYYY-MM-DD HH:MM:SS`), `timezone`, the event `url`, a `website` (the OpenTable
+reservation link), and `cost`. So this scraper fills `ticket_url` (OpenTable)
+and `price_text` (`cost`, e.g. "$15 – $30") that Bird & Beckett's calendar
+couldn't. `source_url` is the Tribe event permalink.
+
+**Parsing (`scrapers/mr_tipples.py`).** Same fetch/parse split as B&B.
+`fetch_events(today, window_days, client=)` pages the REST API across the next
+~90 days via `next_rest_url` (and stops if Tribe 404s past the last page); the
+`client` is injectable for mock-transport tests. `parse_events` is pure: it
+HTML-unescapes Tribe's entity-laden text (`&#8217;`, `&amp;`), keeps times as
+naive venue-local (ingest re-applies the tz), and skips `all_day` entries,
+`hide_from_listings` events, and **closure markers** the venue posts as calendar
+entries ("Closed", "Closed for Private Event"). No recurrence expansion needed
+(Tribe returns concrete instances) and no music/non-music filter (it's a pure
+jazz room) beyond the closure filter.
+
+Tests (6, in `scrapers/test_mr_tipples.py`): a saved API-response fixture
+(`fixtures/mr_tipples_2026_05.json`) drives `parse_events` deterministically
+(entity decoding, accents, ticket/price mapping, free-event nulls, and the
+all-day / hidden / closed exclusions); two `httpx.MockTransport` tests cover
+pagination and the 404-past-last-page stop. Live: `make scrape` ingested 106
+shows, idempotent on re-run.
+
+**Gotcha.** Mr. Tipple's runs early + late sets, which appear as same-title
+events at different start times — distinct natural keys, so both persist (this
+is correct: they're separate performances).
+
+**Concurrency note.** Built alongside #5 (Keys Jazz Bistro), which another agent
+is developing in the shared working tree. Both register a scraper in
+`scrapers/__init__.py` `REGISTERED_SCRAPERS`, so whichever PR merges second will
+need a one-line conflict reconcile on that dict.
+
 ## Phase 2.1 end-to-end pilot via Bird and Beckett (May 2026)
 
 The first venue end-to-end: scrape → ingest → `GET /api/shows` → a rendered

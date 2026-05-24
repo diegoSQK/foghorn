@@ -37,7 +37,7 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 2.1 — first scraper end-to-end, the Bird & Beckett pilot (May 2026), see [SHIPPED.md](SHIPPED.md#phase-21-end-to-end-pilot-via-bird-and-beckett-may-2026).
+Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 2.2c — Mr. Tipple's scraper (May 2026), see [SHIPPED.md](SHIPPED.md#mr-tipples-scraper-via-the-tribe-events-api-may-2026).
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -75,7 +75,7 @@ Shipped May 2026 — see [Phase 2.1 end-to-end pilot via Bird and Beckett](SHIPP
 
 `keys_jazz_bistro.py` (#5), `bird_and_beckett.py` (#6), `mr_tipples.py` (#7). Each its own issue, claimable independently against the same `ScrapedShow` interface + registry.
 
-✅ **Bird & Beckett (#6) shipped May 2026** as the Phase 2.1 pilot — see the SHIPPED link above. Keys Jazz Bistro (#5) and Mr. Tipple's (#7) remain; they build on the registry / ingest / API / frontend infra that pilot landed. (Their tickets say "depends on #4 / SFJAZZ" — now moot, since #4 was dropped and the infra is on `main`; a PM pass should re-point those.) Frontend interleaves all venues' shows by date once they land.
+✅ **Bird & Beckett (#6)** shipped May 2026 as the Phase 2.1 pilot (Google Calendar `.ics`) — see the SHIPPED link above. ✅ **Mr. Tipple's (#7)** shipped May 2026 via its Tribe Events REST API — see [Mr. Tipple's scraper via the Tribe Events API](SHIPPED.md#mr-tipples-scraper-via-the-tribe-events-api-may-2026). **Keys Jazz Bistro (#5) remains** (the last sibling; collapse this 2.2 block to a single ✅ line when it ships). The "depends on #4 / SFJAZZ" references are moot — #4 was dropped and the infra is on `main`; a PM pass should re-point them. Frontend interleaves all venues' shows by date.
 
 #### 2.3 Daily refresh scheduler (P1)
 

@@ -171,6 +171,14 @@ skipping all-day entries, and applying a conservative non-music exclusion
 heuristic (errs toward inclusion). Datetimes are normalized to naive venue-local
 time; ingest re-applies the tz.
 
+**A second pattern (see `mr_tipples`).** When a venue's site runs a known events
+platform, target its API over its HTML. Mr. Tipple's is WordPress + The Events
+Calendar (Tribe), so the scraper pages its JSON REST API
+(`/wp-json/tribe/events/v1/events`), which yields `ticket_url` (the OpenTable
+reservation link) and `price_text` (`cost`) on top of the basics. Same
+fetch/parse split; the `httpx.Client` is injectable so pagination is
+mock-transport-testable.
+
 **Adding a venue:** implement `scrapers/<slug>.py` with `scrape()`, register it
 in `REGISTERED_SCRAPERS`, set the venue's `calendar_url` in the seed, and add a
 fixture-driven parser test.
