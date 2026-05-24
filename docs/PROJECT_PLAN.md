@@ -37,7 +37,7 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 1.1 — repo skeleton + CI gate (May 2026), see [SHIPPED.md](SHIPPED.md#repo-skeleton-and-ci-gate-phase-11-may-2026).
+Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 1.2 — data model + ingest scaffolding (May 2026), see [SHIPPED.md](SHIPPED.md#data-model-and-ingest-scaffolding-phase-12-may-2026).
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -59,9 +59,9 @@ Stand up the monorepo skeleton, the CI gate, and the minimal data model so subse
 
 Shipped May 2026 — see [Repo skeleton + CI gate](SHIPPED.md#repo-skeleton-and-ci-gate-phase-11-may-2026). Storage choice landed as stdlib `sqlite3` (not an ORM). Note: `create-next-app@latest` now resolves to Next.js 16, not 15 — doc references to "Next.js 15" want a PM-thread reconcile.
 
-#### 1.2 Data model + ingest scaffolding (P1)
+#### 1.2 Data model + ingest scaffolding (P1) ✅
 
-Define the SQLite schema: `venues`, `shows`, `performers`, `show_performers` (many-to-many for headliner + support acts). Implement the repository layer (`backend/repo/shows.py`, `backend/repo/venues.py`) with create / upsert / query primitives. Implement the ingest pipeline skeleton (`backend/ingest/pipeline.py`): takes a `list[ScrapedShow]`, normalizes performer names, dedupes against existing rows, persists. Seed `venues` with the four Phase 2 jazz venues (SFJAZZ, Keys Jazz Bistro, Bird & Beckett, Mr. Tipple's) including `name`, `slug`, `neighborhood`, `address`, `tz`. No actual scraping yet — that's Phase 2.
+Shipped May 2026 — see [Data model + ingest scaffolding](SHIPPED.md#data-model-and-ingest-scaffolding-phase-12-may-2026). SQLite schema (venues/performers/shows/show_performers), conn-injected typed repo layer, `ingest_scraped_shows` with unicode-aware canonicalization + tz→UTC, and the four-venue seed. No scraping yet — Phase 2.1 wires the first scraper into this.
 
 ### Phase 2 — Four jazz venues end-to-end
 

@@ -8,6 +8,88 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Data model and ingest scaffolding (Phase 1.2, May 2026)
+
+The data-model spine every Phase 2.x scraper plugs into: the SQLite schema, the
+typed repository layer, the ingest pipeline, and the four-venue seed. No
+scraping yet — that's Phase 2. Closes #3.
+
+**Schema** (`repo/schema.py`, bootstrapped via `CREATE TABLE IF NOT EXISTS` on
+every `db.connect()`). Four tables: `venues`, `performers`, `shows`,
+`show_performers` (the headliner+support join, with `role` and `position`).
+No migrations framework — the schema is pre-feature and additive-only for now;
+AGENTS.md's "add migrations when evolution gets painful" still holds.
+
+**Natural key, split across two columns.** AGENTS.md specifies the show natural
+key as `(venue_id, local_start_datetime, headliner_canonical)`. The schema
+stores the local datetime as two columns it already needs for display and
+filtering — `start_local_date` (`YYYY-MM-DD`) and `start_local_time` (`HH:MM`)
+— so the UNIQUE constraint is `(venue_id, start_local_date, start_local_time,
+headliner_canonical)`. Same identity, no redundant combined column. `shows.upsert`
+keys on this: re-running a scraper refreshes `scraped_at`/`ticket_url`/`price_text`
+(plus `start_utc`/`doors`/`source_url`) and rewrites the bill, never duplicating.
+The bill is replaced wholesale (DELETE + re-INSERT of `show_performers`) so a
+re-scrape that drops or reorders support acts converges instead of accumulating
+stale links.
+
+**Why both `start_utc` and `start_local_*` are stored.** `start_utc` (always
+normalized to `+00:00`) is the single sortable instant for `ORDER BY` across
+venues and any future multi-tz world; the local date/time are what the venue
+published and what the natural key dedups on. Deriving one from the other on
+every read would be lossy and tz-fragile, so both are persisted. The ingest
+pipeline applies the venue's IANA tz (via stdlib `zoneinfo`) to the scraper's
+*naive* local datetime to compute `start_utc` — e.g. 8pm `America/Los_Angeles`
+on 2026-06-01 → `2026-06-02T03:00:00+00:00` (PDT, UTC-7).
+
+**Canonicalization** (`ingest.pipeline.canonicalize`). NFKD-decompose, drop
+combining marks (`é`→`e`), lowercase, replace every non-alphanumeric char with a
+space, collapse whitespace. Punctuation becomes a *separator*, not deleted, so
+`"Earth, Wind & Fire"` → `"earth wind fire"` (not `"earthwind fire"`). Uses
+`str.isalnum()` so it's unicode-aware rather than ASCII-only. Performers are
+stored with both `display_name` (verbatim, never overwritten on conflict) and
+`canonical_name` (unique) per the AGENTS.md display-vs-search split; the
+watchlist (Phase 4) and free-text search (Phase 3.3) match on canonical.
+
+**Repo layer is conn-injected, returns Pydantic.** Every repo function takes a
+`sqlite3.Connection` as its first arg (no global/singleton connection), which
+makes tests trivial (a per-test tmp-file DB fixture in `conftest.py`) and keeps
+the Postgres-swap seam clean. `repo/db.py` centralizes connection setup
+(`Row` factory, `PRAGMA foreign_keys = ON`, schema bootstrap) and the default
+DB path (`FOGHORN_DB_PATH` env override). `shows.list` shadows the builtin to
+read as `shows.list(conn, filters)`; annotations use `builtins.list` to dodge
+the shadow.
+
+**Models** (`foghorn/models.py`). All cross-layer shapes live in one module so
+repo/ingest/scrapers/api agree without importing each other: `Venue`,
+`Performer`, `ShowPerformer`, `Show`, `ScrapedShow` (frozen — the scraper
+contract), `ShowFilters`, `IngestResult`. `Region`/`Role` are `Literal`s so
+seeds and ingest are validated at construction rather than writing typos.
+`IngestResult.errors` is a `list[str]` (one message per failed show) rather than
+a bare count, so Phase 2.1's `make scrape` and 2.3's scrape-health endpoint can
+surface *what* failed.
+
+**Seed.** `repo/seed_venues.py` upserts the four jazz venues; idempotent via
+upsert-on-slug (so the "seed only if empty" guard is unnecessary — re-running
+converges either way). Each `calendar_url` is a `TBD` placeholder set by the
+per-venue Phase 2.x scraper ticket. The "seed on app startup" hook lands with
+the FastAPI app in Phase 2.1; for now `seed()` is callable directly /
+`python -m foghorn.repo.seed_venues`.
+
+Tests (32, all green under mypy `strict`): `test_canonicalize.py` (accents,
+punctuation-as-separator, idempotence), `test_repo_venues.py` and
+`test_repo_shows.py` (upsert idempotency, bill replacement, every `list` filter
+combination + `start_utc` ordering), `test_seed_venues.py` (four venues,
+idempotent), and `test_ingest_pipeline.py` (the new/duplicate/same-headliner-
+different-time count matrix, tz→UTC math, display-name preservation, performer
+reuse across shows, and per-show error isolation via a bad-tz venue). A shared
+`conn`/`venue` fixture pair in `tests/conftest.py` gives each test a fresh DB.
+
+**API-surface note for scraper authors:** filling in `backend/README.md` §
+Data Model documented the schema, the natural-key dedup, and the
+`ingest_scraped_shows(conn, venue, scraped) -> IngestResult` entry point a
+Phase 2.x scraper hands its output to. § Storage gained the connection-handling
+and repo-primitive details.
+
 ## Repo skeleton and CI gate (Phase 1.1, May 2026)
 
 First code to land in foghorn — the two-package monorepo skeleton, the
