@@ -8,6 +8,54 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Free-text performer search (Phase 3.3, May 2026)
+
+Type a name, find every upcoming show with that performer on the bill. Closes
+#20. Almost entirely wiring — the matching was built in Phase 1.2 and just
+hadn't been exposed.
+
+**Reused 1.2's matching, didn't reinvent it.** `?performer_query=` on
+`GET /api/shows` canonicalizes the input with the *same* `canonicalize()` the
+ingest pipeline uses, then sets `ShowFilters.performer_canonical_substring` —
+the field, repo clause (`shows.list`), and normalization all shipped in 1.2.
+So "Joshua Redman" finds "joshua redman quartet" (substring after canon), the
+existing `EXISTS` join matches **headliner or support**, and accent/case fall
+out for free (NFKD strip). Phase 4's watchlist will call `shows.list` the same
+way — no parallel matching implementation to drift.
+
+**Canonicalize on input.** The query is normalized server-side before matching,
+so the client sends raw text and the API does the right thing. A query that's
+empty after canonicalization (whitespace or punctuation only) is treated as
+**no filter**, not "match nothing" — verified against `""`, `"   "`, and
+`"!!!"`.
+
+**Search box (`PerformerSearch.tsx`).** Its own client component — composed into
+`FilterBar` with one import + one JSX line — deliberately, to keep the merge
+surface with #21 (region filter) to a single "keep both" line, same playbook as
+the Phase 2.2 sibling scrapers. It holds the input in local `useState`
+(transient typing), debounces a `?performer_query=` push ~300ms after the user
+pauses (merging with the other params, not clobbering them), seeds its initial
+value from `useSearchParams()`, resyncs when the URL changes externally (Clear
+filters / back button), and has a clear `×`. New backend tests live in a
+dedicated `tests/api/test_shows_performer_filter.py` (not the shared endpoint
+test) for the same anti-conflict reason.
+
+**No new edge cases.** 1.2's matching held up — headliner+support coverage and
+accent-insensitivity worked first try; nothing needed fixing. Substring (not
+token/FTS) means a reordered query like "redman joshua" won't match "joshua
+redman quartet"; that's the documented v0.2.0 tradeoff, FTS5 deferred until it
+bites (the watchlist is the likely forcing function).
+
+Tests: 7 in `test_shows_performer_filter.py` (headliner/support match, no-match
+empty, empty/whitespace/punctuation = no filter, accent-insensitive, stacks
+with venue + date window). 87 green under mypy `strict`. Verified live against
+the real DB: "lateano" → 4 Vince Lateano shows, "quartet" → 46, and
+`?performer_query=quartet&venues=mr_tipples` correctly stacks.
+
+**Frontend test gap (still open, per 3.1):** no component-test framework, so
+`PerformerSearch`'s debounce/clear/resync is verified by build + live exercise,
+not an automated test. Same future ticket 3.1 flagged.
+
 ## Date and venue filters, URL-driven framework (Phase 3.1, May 2026)
 
 The first Phase 3 ticket and the one that sets the pattern: the calendar is now

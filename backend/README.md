@@ -130,6 +130,7 @@ Upcoming shows, ordered by `start_utc`. Query params (all optional):
 - `venues` — comma-separated venue slugs (e.g. `bird_and_beckett,keys_jazz_bistro`); omitted = all venues. Unknown slugs simply don't match.
 - `venue` — legacy single slug; prefer `venues=`.
 - `time_of_day` — `early` (`start_local_time` < 21:00) or `late` (>= 22:00); anything else ignored.
+- `performer_query` — free-text performer name; canonicalized server-side (same `canonicalize()` as ingest, so "Joshua Redman" matches "joshua redman quartet"), then substring-matched against any performer (headliner or support) on the bill. Empty after canonicalization (e.g. punctuation only) = no filter.
 
 Date filters compare against `start_local_date`. Response is a JSON array of:
 

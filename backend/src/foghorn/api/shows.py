@@ -15,6 +15,7 @@ from typing import Literal
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
+from foghorn.ingest.pipeline import canonicalize
 from foghorn.models import Show, ShowFilters, Venue
 from foghorn.repo import db
 from foghorn.repo import shows as shows_repo
@@ -104,6 +105,7 @@ def build_show_views(
     from_date: str,
     to_date: str,
     time_of_day: Literal["early", "late"] | None = None,
+    performer_canonical_substring: str | None = None,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
     it's unit-testable against a connection without going through HTTP."""
@@ -112,6 +114,7 @@ def build_show_views(
         from_date=from_date,
         to_date=to_date,
         time_of_day=time_of_day,
+        performer_canonical_substring=performer_canonical_substring,
     )
     shows = shows_repo.list(conn, filters)
     venues_by_id = {v.id: v for v in venues_repo.list_all(conn)}
@@ -135,6 +138,9 @@ def list_shows(
     time_of_day: str | None = Query(
         default=None, description="early | late (filters by start time)"
     ),
+    performer_query: str | None = Query(
+        default=None, description="free-text performer name (canonicalized)"
+    ),
 ) -> list[ShowView]:
     today = dt.date.today()
     from_date = from_ or today.isoformat()
@@ -147,6 +153,11 @@ def list_shows(
     elif time_of_day == "late":
         tod = "late"
 
+    # Canonicalize the query the same way performers are stored (Phase 1.2), so
+    # "Joshua Redman" matches "joshua redman quartet". A query that's empty
+    # after canonicalization (e.g. only punctuation) means "no filter".
+    performer_substring = canonicalize(performer_query) if performer_query else ""
+
     conn = db.connect()
     try:
         return build_show_views(
@@ -155,6 +166,7 @@ def list_shows(
             from_date=from_date,
             to_date=to_date,
             time_of_day=tod,
+            performer_canonical_substring=performer_substring or None,
         )
     finally:
         conn.close()

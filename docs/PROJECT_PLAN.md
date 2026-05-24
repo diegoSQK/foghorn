@@ -91,9 +91,9 @@ Shipped May 2026 — see [Date and venue filters, URL-driven framework](SHIPPED.
 
 Tag each venue with `neighborhood` (already in the seed) and `region` (`SF`, `East Bay`, `Peninsula`, `South Bay`; all current venues are SF so the column exists but doesn't differentiate yet). Frontend exposes region as a top-level toggle; neighborhood as a secondary filter when a region is selected. Backend: `?region=&neighborhood=` query params filter by venue's column.
 
-#### 3.3 Free-text performer search (P1)
+#### 3.3 Free-text performer search (P1) ✅
 
-Backend: `GET /api/shows?performer_query=joshua+redman` — wires the existing `ShowFilters.performer_canonical_substring` from Phase 1.2 through the API (matching logic already exists). Substring match on `canonical_name` to start; consider SQLite FTS5 later if relevance becomes an issue. Frontend: prominent search box at the top of the page; debounced input updates URL search params. **Phase 4 reuses this matching logic for the watchlist** — keep it as a repo function rather than duplicating in the API layer.
+Shipped May 2026 — see [Free-text performer search](SHIPPED.md#free-text-performer-search-phase-33-may-2026). `GET /api/shows?performer_query=` canonicalizes the input and reuses Phase 1.2's `performer_canonical_substring` (matches headliner or support; no parallel matching impl, so Phase 4's watchlist reuses it). Frontend: a prominent debounced (~300ms) search box (`PerformerSearch.tsx`) wired into the URL-driven framework. Substring match for now; FTS5 deferred until relevance demands it.
 
 ### Phase 4 — Watchlist
 

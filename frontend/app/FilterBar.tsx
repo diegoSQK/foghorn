@@ -9,6 +9,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import PerformerSearch from "./PerformerSearch";
 import { addDaysISO, thisWeekend, todayISO } from "./lib/dates";
 
 type VenueOption = { slug: string; name: string };
@@ -72,6 +73,7 @@ export default function FilterBar({ venues }: { venues: VenueOption[] }) {
 
   return (
     <section className="mb-8 flex flex-col gap-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+      <PerformerSearch />
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
