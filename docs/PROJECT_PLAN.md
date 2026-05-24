@@ -29,15 +29,16 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 ## Key risks and mitigations
 
 - **Venue site fragility.** Venues change their markup without warning; scrapers break silently. *Mitigation:* every scraper is independently runnable, returns typed output, and writes a `scraped_at` + `source_url` per show; the ingest pipeline logs per-venue counts so a venue that "suddenly has zero shows" is immediately visible. Phase 2.3 ships a scrape-health check surface.
-- **Performer-name matching is fuzzy.** "Joshua Redman Quartet" vs. "Joshua Redman" vs. "Redman, Joshua" — the watchlist needs to match meaningfully without false positives. *Mitigation:* store `display_name` (original) + `canonical_name` (normalized) separately; start with normalized substring match, escalate to token-based matching if false negatives become a problem.
+- **Performer-name matching is fuzzy.** "Joshua Redman Quartet" vs. "Joshua Redman" vs. "Redman, Joshua" — the watchlist needs to match meaningfully without false positives. *Mitigation:* store `display_name` (original) + `canonical_name` (normalized) separately; substring → token-bag (shipped in 4.1, shared between watchlist + search); FTS5/trigram escalation deferred until typo tolerance bites.
 - **Anti-scraping pushback.** Daily polite scraping is unlikely to draw fire, but venues running aggressive WAFs (Cloudflare bot challenges, JS-rendered calendars) can require `playwright` or block outright. *Realized risk:* SFJAZZ blocks every plain HTTP client behind a Cloudflare managed challenge — deferred to the Deferred / still-outstanding list, Phase 2.1 pivoted to Bird & Beckett's `.ics` feed. *Mitigation going forward:* keep the per-venue parser interface flexible enough that a venue can swap from `httpx`+`bs4` to `playwright` (or to a `.ics` parser, RSS, JSON-LD, etc.) without touching the ingest layer; document blocked venues here with the failure mode.
+- **Aggregator-ingest constraints (new finding, May 2026 spike).** The two clean global aggregator APIs (Songkick, Bandsintown) are both ToS-bars-scraping *and* coverage-skewed away from small jazz rooms; DoTheBay is engineering-easy but ToS-blocked without permission. **Aggregator ingest cannot replace per-venue scraping** for foghorn's wheelhouse — only narrowly augment it (Bay Improviser is the one viable additive source). The real scaling lever remains Phase 6 (LLM-assisted per-venue scraping), not aggregators. See [aggregator spike SHIPPED entry](SHIPPED.md#aggregator-evaluation-spike-may-2026) and [`spikes/aggregator-evaluation/RECOMMENDATION.md`](spikes/aggregator-evaluation/RECOMMENDATION.md).
 - **Scope creep into "the everything music app".** Travel ETAs, alerts, multi-user accounts, an iOS app — all defensible adds, all distractions from the jazz-venues MVP. *Mitigation:* `Deferred Workstream` in `AGENTS.md` is the explicit holding pen; new feature ideas land there until the current phase ships.
 
 ---
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md); version cut-points live in [CHANGELOG.md](CHANGELOG.md). Recently shipped: Phase 2.3 — daily refresh scheduler + scrape-health endpoint (May 2026), see [SHIPPED.md](SHIPPED.md#daily-refresh-scheduler-and-scrape-health-endpoint-phase-23-may-2026). **v0.1.0** cut 2026-05-24 — see [CHANGELOG.md](CHANGELOG.md#v010--2026-05-24).
+Full chronological history lives in [SHIPPED.md](SHIPPED.md); version cut-points live in [CHANGELOG.md](CHANGELOG.md). Recently shipped: Phase 4.2 — watchlist digest endpoint (May 2026), see [SHIPPED.md](SHIPPED.md#watchlist-digest-endpoint-phase-42-may-2026). **v0.2.0** cut 2026-05-24 — see [CHANGELOG.md](CHANGELOG.md#v020--2026-05-24). (Previous: **v0.1.0** see [CHANGELOG.md](CHANGELOG.md#v010--2026-05-24).)
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -45,7 +46,11 @@ When a roadmap item ships, the agent that lands it appends the as-shipped narrat
 
 ## In flight
 
-*Nothing in flight. Phase 2 just shipped (v0.1.0); Phase 3 (filtering & search) is the next coherent block. PM thread to queue 3.1 / 3.2 / 3.3 tickets as a follow-on to the release cut.*
+*Nothing in flight. Phase 3 + Phase 4 just shipped (v0.2.0). Phase 5 (venue expansion — rock/indie + East Bay) is the next coherent block.*
+
+### Pending strategic decisions
+
+- **Aggregator-ingest discovery posture.** The aggregator-evaluation spike ([SHIPPED entry](SHIPPED.md#aggregator-evaluation-spike-may-2026), [RECOMMENDATION memo](spikes/aggregator-evaluation/RECOMMENDATION.md)) recommends adding **Bay Improviser** as one new ingest source to augment Phase 5. Filing the ticket is on hold pending a product decision: do we auto-accept aggregator-discovered venues (broad coverage, messier data, interacts with the Phase 3.2 region/neighborhood facets), maintain a curated allow-list (clean data, loses the long-tail discovery value), or quarantine-with-flag (auto-accept but default-hide from main UI, opt-in via a separate "creative music long tail" toggle)? PM thread in conversation with Diego. Once settled, Bay Improviser ingest likely lands alongside Phase 5 — see ["Suggested sequencing"](#suggested-sequencing-for-future-releases) below.
 
 ---
 
@@ -81,7 +86,7 @@ Shipped May 2026 — see [Daily refresh scheduler and scrape-health endpoint](SH
 
 ### Phase 3 — Filtering & search
 
-Make the calendar useful for "what should I do this Friday." All three dimensions shipped (the coherent block after v0.1.0, heading toward the v0.2.0 cut): 3.1 established the URL-driven filter framework (date + venue + time-of-day) the other two inherit, 3.3 added performer search, and 3.2 added region + neighborhood (single-region for now, fills out as Phase 5 adds non-SF venues).
+All three dimensions shipped — the calendar is now usable for "what should I do this Friday." **Phase 3 is complete and rolled into `v0.2.0`** ([CHANGELOG](CHANGELOG.md#v020--2026-05-24)).
 
 #### 3.1 Date-range + venue filters + URL-driven filter framework (P1) ✅
 
@@ -97,7 +102,7 @@ Shipped May 2026 — see [Free-text performer search](SHIPPED.md#free-text-perfo
 
 ### Phase 4 — Watchlist
 
-The friend-tracking surface — the headline feature for the primary user. The first user-facing read of the performer-tagging layer the data model already supports.
+The friend-tracking surface — the headline feature for the primary user. **Phase 4 is complete and rolled into `v0.2.0`** ([CHANGELOG](CHANGELOG.md#v020--2026-05-24)).
 
 #### 4.1 Watchlist data model + UI (P1) ✅
 
@@ -105,11 +110,11 @@ Shipped May 2026 — see [Watchlist data model, UI, and token-based matching](SH
 
 #### 4.2 Watchlist digest (P2) ✅
 
-Shipped May 2026 — see [Watchlist digest endpoint](SHIPPED.md#watchlist-digest-endpoint-phase-42-may-2026). `GET /api/watchlist/digest?days=14&limit=20` returns the next-N upcoming watchlist matches (each row + `watchlist_matches`), reusing the `?watchlist=true` filter. Read-only; email/push delivery stays deferred. **Phase 4 complete → with Phase 3, this is the v0.2.0 cut point** (PM-thread ritual).
+Shipped May 2026 — see [Watchlist digest endpoint](SHIPPED.md#watchlist-digest-endpoint-phase-42-may-2026). `GET /api/watchlist/digest?days=14&limit=20` returns the next-N upcoming watchlist matches (each row + `watchlist_matches`), reusing the `?watchlist=true` filter. Read-only; email/push delivery stays deferred.
 
 ### Phase 5 — Venue expansion
 
-Add the rock / indie venues so foghorn covers both Diego's jazz-leaning use case and the broader Bay indie scene.
+Add the rock / indie venues so foghorn covers both Diego's jazz-leaning use case and the broader Bay indie scene. Likely also pulls in **Phase 7.1** (venue-default genre) since genre filtering becomes meaningful with cross-genre diversity, and potentially **Bay Improviser ingest** once the discovery-posture decision is settled (see In flight → "Pending strategic decisions").
 
 #### 5.1 Rock / indie venue batch (P2)
 
@@ -121,7 +126,7 @@ Cornerstone Berkeley, Starline Social Club, The New Parish, Yoshi's (jazz). Same
 
 ### Phase 6 — LLM-assisted scraping (deferred until Phase 5 is real)
 
-Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a venue's page and uses an LLM to extract `ScrapedShow` records, with per-venue overrides where the LLM is unreliable. Lets us add long-tail venues without per-venue parser work. Cost / reliability characteristics measured against the hand-rolled baseline.
+Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a venue's page and uses an LLM to extract `ScrapedShow` records, with per-venue overrides where the LLM is unreliable. Lets us add long-tail venues without per-venue parser work. Cost / reliability characteristics measured against the hand-rolled baseline. **Note from the aggregator-evaluation spike (May 2026):** this remains the real scaling lever — aggregator ingest does *not* short-cut Phase 6 the way that spike hoped to test.
 
 ### Phase 7 — Metadata & tagging (cross-cutting workstream)
 
@@ -150,11 +155,13 @@ Performer-level genre / instrumentation / mood inferred by an LLM from the bill 
 ## Deferred / still-outstanding
 
 - **SFJAZZ scraper.** Originally the Phase 2.1 pilot. The calendar sits behind a Cloudflare managed challenge that 403s every plain HTTP client (polite `foghorn-scraper` UA and a browser UA both); the sitemap host in `robots.txt` 404s. Cloudflare-bypass was explicitly out of scope for the original ticket. **Unblock condition:** willingness to take on per-venue Playwright (headless browser) complexity, or discovery of a cleaner SFJAZZ data feed (sitemap, third-party calendar, public API). File a fresh ticket when unblocked; the dropped original is [#4](https://github.com/diegoSQK/foghorn/issues/4).
+- **DoTheBay ingest.** Spike-validated (May 2026) as engineering-ready (open JSON API, no anti-bot, ~87 music venues / 239 shows per sample week) but blocked by ToS — not a ticket, a permission/feed conversation with DoStuff/Noise Pop. **Unblock condition:** a permission or licensed feed arrangement.
 - **Travel-time ETAs** from home/work/studio addresses. Original requirement; deferred until the core calendar is solid. Map-provider decision (Google / Mapbox / ORS / coarse neighborhood table) deferred with it. **Unblock condition:** the core calendar is in regular use and "how long will it take to get there" is actually the friction point.
 - **Hosting / deployment.** Runs locally through Phases 1–5 minimum. **Unblock condition:** ready to share with friends, or want to view from a phone away from the laptop. Decision between Vercel + Python host vs. single VPS deferred to that point.
 - **Multi-user accounts.** Watchlist + user tags are single-tenant for now. **Unblock condition:** the app goes public.
-- **Alerts / notifications.** Email or push when a watchlist performer is announced or imminent. **Unblock condition:** watchlist proves valuable as a manual surface and the daily-check pattern feels like friction.
+- **Alerts / notifications.** Email or push when a watchlist performer is announced or imminent. 4.2's digest endpoint produces the data; delivery itself is the deferred part. **Unblock condition:** watchlist proves valuable as a manual surface and the daily-check pattern feels like friction.
 - **Postgres.** SQLite suffices at single-user scale through Phase 5. **Unblock condition:** hosting platform demands it, or the dataset / query patterns outgrow SQLite.
+- **CORS tighten.** Currently `allow_origins=["*"]` for local-first dev convenience; `FOGHORN_CORS_ORIGINS` tightens. **Unblock condition:** the hosting decision lands and the app is reachable from the public internet.
 
 ---
 
@@ -162,12 +169,12 @@ Performer-level genre / instrumentation / mood inferred by an LLM from the bill 
 
 1. **Phase 1** — scaffolding. Foundation; nothing depends on it being done well, but everything depends on it being done at all. ✅
 2. **Phase 2** — three jazz venues end-to-end. The first "this is useful" milestone. ✅ Cut as **v0.1.0** on 2026-05-24.
-3. **Phase 3 + Phase 4** — filtering & search + watchlist. The "find + follow" surface; likely **v0.2.0** cut.
-4. **Phase 5** — venue expansion (rock/indie + East Bay). Breadth without changing the model. Pulls in **Phase 7.1** (venue-default genre) as venue diversity makes the filter meaningful. Cut `v0.3.0` when the venue set feels comprehensive enough for personal use.
+3. **Phase 3 + Phase 4** — filtering & search + watchlist. The "find + follow" surface. ✅ Cut as **v0.2.0** on 2026-05-24.
+4. **Phase 5** — venue expansion (rock/indie + East Bay). Breadth without changing the model. Likely pulls in **Phase 7.1** (venue-default genre) as venue diversity makes the filter meaningful, and **Bay Improviser ingest** if the discovery-posture decision (see In flight) lands in time. Cut `v0.3.0` when the venue set feels comprehensive enough for personal use.
 5. **Phase 7.3** (user tags) — likely after Phase 4 lands, when the single-user per-show metadata pattern is proven.
 6. **Phase 6** — LLM-assisted scraping. Scaling lever, picked up once breadth is the bottleneck.
 7. **Phase 7.4** (LLM-inferred metadata) — pairs with Phase 6 since the LLM infra overlaps.
-8. **Deferred items revisited.** SFJAZZ, Travel ETAs, hosting, accounts — addressed when their unblock conditions are met, not on a fixed schedule.
+8. **Deferred items revisited.** SFJAZZ, DoTheBay (permission-gated), Travel ETAs, hosting, accounts — addressed when their unblock conditions are met, not on a fixed schedule.
 
 ---
 
