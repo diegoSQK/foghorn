@@ -81,23 +81,23 @@ Shipped May 2026 — see [Daily refresh scheduler and scrape-health endpoint](SH
 
 ### Phase 3 — Filtering & search
 
-Make the calendar useful for "what should I do this Friday." Next coherent block after v0.1.0; PM thread to queue 3.1 / 3.2 / 3.3 tickets.
+Make the calendar useful for "what should I do this Friday." Next coherent block after v0.1.0; PM thread to queue 3.1 / 3.2 / 3.3 tickets. 3.1 establishes the URL-driven filter framework the other two inherit; 3.3 lands first for user value (performer search is meaningful with current data); 3.2 ships region + neighborhood (single-region for now, fills out as Phase 5 adds non-SF venues).
 
-#### 3.1 Date-range and venue filters (P1)
+#### 3.1 Date-range + venue filters + URL-driven filter framework (P1)
 
-Frontend: date range picker (default = next 14 days), venue checkboxes, "tonight / this weekend / next 7 days" quick selectors. Backend: `GET /api/shows?from=&to=&venues=` query params (the `from`/`to` already exist; `venues=` multi-value is new).
+Frontend: date range picker (default = next 14 days), venue checkboxes, and quick-selector chips: date-based (`Tonight` / `This weekend` / `Next 7 days`) **plus time-of-day chips (`Early` = before 9pm / `Late` = 10pm onward)** computed from `start_local_time`. Backend: `GET /api/shows?from=&to=&venues=...` (the `from`/`to` already exist; `venues=` multi-value is new). Filters live in URL search params and the server component re-fetches on navigation; shareable URLs, App Router-native, future-friendly for `/watchlist`. The filter framework here is what 3.2 and 3.3 extend.
 
 #### 3.2 Region / neighborhood filter (P1)
 
-Tag each venue with `neighborhood` (already in the seed) and `region` (`SF`, `East Bay`, `Peninsula`, `South Bay`; all current venues are SF so the column exists but doesn't differentiate yet). Frontend exposes region as a top-level toggle; neighborhood as a secondary filter when a region is selected.
+Tag each venue with `neighborhood` (already in the seed) and `region` (`SF`, `East Bay`, `Peninsula`, `South Bay`; all current venues are SF so the column exists but doesn't differentiate yet). Frontend exposes region as a top-level toggle; neighborhood as a secondary filter when a region is selected. Backend: `?region=&neighborhood=` query params filter by venue's column.
 
 #### 3.3 Free-text performer search (P1)
 
-Backend: `GET /api/shows?performer_query=joshua+redman` — matches against `canonical_name` of any performer on the bill (headliner or support). Substring match to start; consider postgres FTS or sqlite FTS5 later if relevance becomes an issue. Frontend: search box prominent at the top of the page.
+Backend: `GET /api/shows?performer_query=joshua+redman` — wires the existing `ShowFilters.performer_canonical_substring` from Phase 1.2 through the API (matching logic already exists). Substring match on `canonical_name` to start; consider SQLite FTS5 later if relevance becomes an issue. Frontend: prominent search box at the top of the page; debounced input updates URL search params. **Phase 4 reuses this matching logic for the watchlist** — keep it as a repo function rather than duplicating in the API layer.
 
 ### Phase 4 — Watchlist
 
-The friend-tracking surface — the headline feature for the primary user.
+The friend-tracking surface — the headline feature for the primary user. The first user-facing read of the performer-tagging layer the data model already supports.
 
 #### 4.1 Watchlist data model + UI (P1)
 
@@ -123,6 +123,28 @@ Cornerstone Berkeley, Starline Social Club, The New Parish, Yoshi's (jazz). Same
 
 Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a venue's page and uses an LLM to extract `ScrapedShow` records, with per-venue overrides where the LLM is unreliable. Lets us add long-tail venues without per-venue parser work. Cost / reliability characteristics measured against the hand-rolled baseline.
 
+### Phase 7 — Metadata & tagging (cross-cutting workstream)
+
+Extend the foundational tagging skeleton (performers, region, neighborhood — all shipped in Phases 1–3) into a unified metadata / faceting layer. Each sub-item ships when its prerequisite conditions hold; sequencing is interleaved with Phases 4–6 rather than strictly after them.
+
+What's already in place that this builds on: performers are first-class entities in the schema (Phase 1.2), and the `show_performers` join captures headliner + support roles. Region + neighborhood are venue-level tags filterable via Phase 3.2. Phase 4's watchlist is the first user-facing surface that *reads* the performer-tagging layer for filtering. The sub-items below are the natural extensions of that pattern.
+
+#### 7.1 Venue-default genre (P2)
+
+Add `venues.genre` (or a `venue_genres` join if a venue books multiple genres meaningfully — e.g. a club that splits indie + electronic). Backend: filter by genre on `GET /api/shows`. Frontend: genre chip alongside region. **Unblock condition:** Phase 5 has added enough venue diversity that the filter has more than one option (right now all three are jazz). Concretely, file alongside or right after Phase 5.1.
+
+#### 7.2 Per-show genre override (P2)
+
+When a show goes off-venue-genre (a Coltrane tribute booked at a rock club). Schema: `shows.genre_override` text column. Hand-curated initially; scraper-extracted where the venue's source provides genre tags. **Unblock condition:** 7.1 lands and an off-genre show actually surfaces in dogfooding.
+
+#### 7.3 User-defined tags (P2)
+
+Personal annotations on shows (`must-see`, `skip`, `saw last year`, `Diego's crew is on the bill`). Schema: `user_tags(user_id, show_id, tag)`, single-user shape consistent with Phase 4's watchlist. UI: per-show "add tag" affordance; tags surface as chips; filterable like other facets. **Unblock condition:** Phase 4 watchlist has proven out the single-user per-show metadata pattern. Likely the second user-facing tagging surface after the watchlist.
+
+#### 7.4 LLM-inferred metadata (P2, depends on Phase 6)
+
+Performer-level genre / instrumentation / mood inferred by an LLM from the bill + venue + any extracted text. Hand-curated genre tags (7.1–7.2) and the deterministic scraping baseline are the validation reference. Same doctrine as Phase 6 LLM-assisted scraping: defer until the deterministic version proves out, then layer this on as a scaling lever.
+
 ---
 
 ## Deferred / still-outstanding
@@ -130,7 +152,7 @@ Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a v
 - **SFJAZZ scraper.** Originally the Phase 2.1 pilot. The calendar sits behind a Cloudflare managed challenge that 403s every plain HTTP client (polite `foghorn-scraper` UA and a browser UA both); the sitemap host in `robots.txt` 404s. Cloudflare-bypass was explicitly out of scope for the original ticket. **Unblock condition:** willingness to take on per-venue Playwright (headless browser) complexity, or discovery of a cleaner SFJAZZ data feed (sitemap, third-party calendar, public API). File a fresh ticket when unblocked; the dropped original is [#4](https://github.com/diegoSQK/foghorn/issues/4).
 - **Travel-time ETAs** from home/work/studio addresses. Original requirement; deferred until the core calendar is solid. Map-provider decision (Google / Mapbox / ORS / coarse neighborhood table) deferred with it. **Unblock condition:** the core calendar is in regular use and "how long will it take to get there" is actually the friction point.
 - **Hosting / deployment.** Runs locally through Phases 1–5 minimum. **Unblock condition:** ready to share with friends, or want to view from a phone away from the laptop. Decision between Vercel + Python host vs. single VPS deferred to that point.
-- **Multi-user accounts.** Watchlist is single-tenant for now. **Unblock condition:** the app goes public (Phase 9+).
+- **Multi-user accounts.** Watchlist + user tags are single-tenant for now. **Unblock condition:** the app goes public.
 - **Alerts / notifications.** Email or push when a watchlist performer is announced or imminent. **Unblock condition:** watchlist proves valuable as a manual surface and the daily-check pattern feels like friction.
 - **Postgres.** SQLite suffices at single-user scale through Phase 5. **Unblock condition:** hosting platform demands it, or the dataset / query patterns outgrow SQLite.
 
@@ -140,11 +162,12 @@ Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a v
 
 1. **Phase 1** — scaffolding. Foundation; nothing depends on it being done well, but everything depends on it being done at all. ✅
 2. **Phase 2** — three jazz venues end-to-end. The first "this is useful" milestone. ✅ Cut as **v0.1.0** on 2026-05-24.
-3. **Phase 3** — filtering & search. Turns the raw calendar into something you'd actually open on a Friday afternoon. Next up.
-4. **Phase 4** — watchlist. Headline feature for the primary use case. Likely `v0.2.0` cut here (with or without Phase 3 rolled in, depending on whether Phase 3 ships as its own coherent sub-arc).
-5. **Phase 5** — venue expansion. Breadth without changing the model. Cut `v0.3.0` when the venue set feels comprehensive enough for personal use.
+3. **Phase 3 + Phase 4** — filtering & search + watchlist. The "find + follow" surface; likely **v0.2.0** cut.
+4. **Phase 5** — venue expansion (rock/indie + East Bay). Breadth without changing the model. Pulls in **Phase 7.1** (venue-default genre) as venue diversity makes the filter meaningful. Cut `v0.3.0` when the venue set feels comprehensive enough for personal use.
+5. **Phase 7.3** (user tags) — likely after Phase 4 lands, when the single-user per-show metadata pattern is proven.
 6. **Phase 6** — LLM-assisted scraping. Scaling lever, picked up once breadth is the bottleneck.
-7. **Deferred items revisited.** SFJAZZ, Travel ETAs, hosting, accounts — addressed when their unblock conditions are met, not on a fixed schedule.
+7. **Phase 7.4** (LLM-inferred metadata) — pairs with Phase 6 since the LLM infra overlaps.
+8. **Deferred items revisited.** SFJAZZ, Travel ETAs, hosting, accounts — addressed when their unblock conditions are met, not on a fixed schedule.
 
 ---
 
