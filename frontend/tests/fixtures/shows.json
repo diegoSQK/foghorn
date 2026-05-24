@@ -1,0 +1,50 @@
+[
+  {
+    "venue": {
+      "slug": "bird_and_beckett",
+      "name": "Bird & Beckett Books and Records",
+      "neighborhood": "Glen Park",
+      "region": "SF"
+    },
+    "start_local_date": "2026-06-05",
+    "start_local_time": "19:30",
+    "doors_local_time": null,
+    "headliner": { "display": "David Parker Sextet", "canonical": "david parker sextet" },
+    "support": [],
+    "ticket_url": null,
+    "price_text": null,
+    "source_url": "https://example.com/show/1"
+  },
+  {
+    "venue": {
+      "slug": "keys_jazz_bistro",
+      "name": "Keys Jazz Bistro",
+      "neighborhood": "North Beach",
+      "region": "SF"
+    },
+    "start_local_date": "2026-06-05",
+    "start_local_time": "21:00",
+    "doors_local_time": null,
+    "headliner": { "display": "Keys Quartet", "canonical": "keys quartet" },
+    "support": [{ "display": "Opener X", "canonical": "opener x" }],
+    "ticket_url": "https://example.com/tickets/2",
+    "price_text": null,
+    "source_url": "https://example.com/show/2"
+  },
+  {
+    "venue": {
+      "slug": "mr_tipples",
+      "name": "Mr. Tipple's Recording Studio",
+      "neighborhood": "Hayes Valley",
+      "region": "SF"
+    },
+    "start_local_date": "2026-06-06",
+    "start_local_time": "22:30",
+    "doors_local_time": null,
+    "headliner": { "display": "Late Night Trio", "canonical": "late night trio" },
+    "support": [],
+    "ticket_url": null,
+    "price_text": null,
+    "source_url": "https://example.com/show/3"
+  }
+]

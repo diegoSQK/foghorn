@@ -84,8 +84,60 @@ cases incl. reorder, partial-token-false, accents), `repo/test_repo_watchlist.py
 (`?watchlist=true` matches, empty→[], stacks), and 3.3's
 `test_shows_performer_filter.py` updated for token behavior. Live-verified the
 full UI: empty CTA → add → `/watchlist` shows token-matched shows + chips + nav
-count, and the exact-performer `✓` state on `/`. **Frontend test gap unchanged**
-(no component framework yet — still a future ticket).
+count, and the exact-performer `✓` state on `/`.
+
+**Frontend e2e:** the Playwright framework (#30) landed in parallel and is
+merged in here; its five specs are kept green against this PR's UI changes (the
+new nav + the `+`/`✓` buttons). The watchlist UI doesn't have its *own* specs
+yet — a natural follow-up now that the framework exists.
+
+## Frontend e2e test framework — Playwright (May 2026)
+
+Stands up the frontend component-test framework that 3.1 / 3.2 / 3.3 each
+flagged as missing (the frontend had only `tsc` / ESLint / `next build` — no
+way to assert click-through behavior). Closes #28; resolves the open flag in
+those three SHIPPED entries. Five smoke specs prove the framework; subsequent
+UI tickets add specs as they touch the surface (the framework is the
+deliverable, not coverage).
+
+- **Playwright, not React Testing Library.** The gap that kept getting flagged
+  is *interaction* behavior — debounce, chip/toggle states, URL updates on
+  click — across a mostly-server-component app with a few client islands
+  (`FilterBar`, `PerformerSearch`, `LocationFilter`). Playwright drives a real
+  Chromium against a production build, so it covers the SSR + hydration +
+  interaction loop RTL-with-jsdom can miss. Chromium only for now (Firefox /
+  WebKit deferred).
+
+- **Mock the backend with a real process, not `page.route()`.** The ticket
+  suggested `page.route()` interception, but `app/page.tsx` is an async
+  *server* component — it fetches `/api/shows` and `/api/venues` from the Next
+  server process, which `page.route()` (browser-only) can't intercept. Instead
+  a ~30-line Node mock (`frontend/tests/mock-api/server.mjs`) serves fixture
+  JSON, and the app is built with `NEXT_PUBLIC_API_BASE_URL` pointed at it (via
+  `playwright.config.ts`'s `webServer` env). Same intent as the recommendation
+  — isolated, fast, no Python / DB — implemented to match the app's SSR shape.
+  Specs assert UI/URL state, not backend filtering (that's the pytest suite's
+  job), so the mock returns a static list regardless of query params.
+
+- **Built production app, port 3100.** `webServer` runs `npm run build && npm
+  run start` (what the gate already validates; closer to prod than `dev`) on
+  3100, so a developer's `npm run dev` on 3000 can keep running alongside.
+
+- **Opt-in target, separate CI job — not in `make gate`.** Playwright is
+  slower and needs a browser binary, so it's `make frontend-test` (installs
+  Chromium if missing, then runs the specs), plus a `frontend-test` job in
+  `gate.yml` parallel to `gate` (both required). `make gate` is unchanged and
+  still ~13s: the specs + `playwright.config.ts` are excluded from the app's
+  `tsconfig` and `eslint` config, so the fast gate never compiles or lints them
+  — Playwright type-checks and runs them itself.
+
+The five specs (`frontend/tests/`): the `Tonight` quick-chip date range, the
+debounced performer search → URL, the SF region chip toggle + disabled "(soon)"
+regions, and a deep-linked filter URL reflected in the controls. The
+watchlist-button spec the ticket mentioned was skipped — Phase 4.1 hadn't
+landed on `main` when this shipped (it was in flight in a sibling worktree);
+the next UI ticket adds it. How to write a spec, the fixture/mock pattern, and
+how to run locally are documented in `frontend/tests/README.md`.
 
 ## Late filter now starts at 9pm — no time-of-day gap (May 2026)
 
