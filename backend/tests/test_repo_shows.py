@@ -150,9 +150,9 @@ def test_list_filters(conn: sqlite3.Connection) -> None:
     )
     assert [s.headliner_canonical for s in windowed] == ["brad mehldau"]
 
-    # performer substring (canonical)
+    # performer token match (canonical)
     redman = shows_repo.list(
-        conn, ShowFilters(performer_canonical_substring="redman")
+        conn, ShowFilters(performer_query_canonical="redman")
     )
     assert [s.headliner_canonical for s in redman] == ["joshua redman"]
 
@@ -163,7 +163,7 @@ def test_list_substring_matches_support_acts(conn: sqlite3.Connection) -> None:
         conn, venue, date="2026-06-01", headliner="Headliner", support=["Esperanza Spalding"]
     )
     matched = shows_repo.list(
-        conn, ShowFilters(performer_canonical_substring="esperanza")
+        conn, ShowFilters(performer_query_canonical="esperanza")
     )
     assert len(matched) == 1
 
