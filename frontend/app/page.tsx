@@ -91,12 +91,14 @@ export default async function Home({
   const to = first(sp.to) ?? addDaysISO(today, DEFAULT_WINDOW_DAYS);
   const venues = first(sp.venues);
   const timeOfDay = first(sp.time_of_day);
+  const performerQuery = first(sp.performer_query);
 
   const query = new URLSearchParams({ from, to });
   if (venues) query.set("venues", venues);
   if (timeOfDay === "early" || timeOfDay === "late") {
     query.set("time_of_day", timeOfDay);
   }
+  if (performerQuery) query.set("performer_query", performerQuery);
 
   const [shows, allVenues] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
@@ -125,8 +127,9 @@ export default async function Home({
 
           {shows.length === 0 ? (
             <p className="text-zinc-500 dark:text-zinc-400">
-              No shows match these filters. Try widening the date range or
-              clearing filters.
+              {performerQuery
+                ? `No shows matching “${performerQuery}” in this window. Try widening the date range or clearing other filters.`
+                : "No shows match these filters. Try widening the date range or clearing filters."}
             </p>
           ) : (
             <div className="flex flex-col gap-8">
