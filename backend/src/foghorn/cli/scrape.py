@@ -1,59 +1,34 @@
 """`make scrape`: run every registered scraper through the ingest pipeline.
 
-Seeds venues (idempotent), then for each entry in ``REGISTERED_SCRAPERS``
-scrapes, ingests, and prints per-venue ``created / updated / errors`` counts.
-A scraper that raises is reported and skipped so one broken venue doesn't take
-down the run. Exit code is the total number of per-show ingest errors plus
-scraper-level failures, so CI/cron can detect trouble.
+Delegates to ``scheduler.runner.run_scrape`` — the same unit of work the nightly
+scheduler runs — so a manual refresh records a ``scrape_runs`` row and shows up
+in ``GET /api/health/scrape`` exactly like a scheduled one. Prints the per-venue
+``created / updated / errors`` breakdown; exits non-zero if any venue errored.
 """
 
 from __future__ import annotations
 
-import sqlite3
 import sys
 
-from foghorn.ingest.pipeline import ingest_scraped_shows
 from foghorn.repo import db
-from foghorn.repo import venues as venues_repo
-from foghorn.repo.seed_venues import seed
-from foghorn.scrapers import REGISTERED_SCRAPERS
-
-
-def run_all(conn: sqlite3.Connection) -> int:
-    """Scrape + ingest every registered venue. Returns a failure count
-    (per-show ingest errors + scrapers that raised)."""
-    seed(conn)
-    failures = 0
-    for slug, scrape in REGISTERED_SCRAPERS.items():
-        venue = venues_repo.get_by_slug(conn, slug)
-        if venue is None:
-            print(f"{slug}: no seeded venue — skipping")
-            failures += 1
-            continue
-        try:
-            scraped = scrape()
-        except Exception as exc:
-            print(f"{slug}: scrape failed: {exc}")
-            failures += 1
-            continue
-        result = ingest_scraped_shows(conn, venue, scraped)
-        print(
-            f"{slug}: scraped={len(scraped)} "
-            f"created={result.created} updated={result.updated} "
-            f"errors={len(result.errors)}"
-        )
-        for message in result.errors:
-            print(f"    ! {message}")
-        failures += len(result.errors)
-    return failures
+from foghorn.scheduler.runner import run_scrape
 
 
 def main() -> None:
     conn = db.connect()
     try:
-        failures = run_all(conn)
+        run = run_scrape(conn)
     finally:
         conn.close()
+    failures = 0
+    for venue in run.venues:
+        print(
+            f"{venue.venue_slug}: created={venue.created} "
+            f"updated={venue.updated} errors={len(venue.errors)}"
+        )
+        for message in venue.errors:
+            print(f"    ! {message}")
+        failures += len(venue.errors)
     sys.exit(1 if failures else 0)
 
 

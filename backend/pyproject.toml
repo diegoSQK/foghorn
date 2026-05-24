@@ -55,9 +55,10 @@ packages = ["foghorn"]
 strict = true
 warn_unused_configs = true
 
-# recurring-ical-events ships no py.typed marker (icalendar, httpx, and bs4 do).
+# recurring-ical-events and apscheduler ship no py.typed marker (icalendar,
+# httpx, and bs4 do).
 [[tool.mypy.overrides]]
-module = ["recurring_ical_events.*"]
+module = ["recurring_ical_events.*", "apscheduler.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
