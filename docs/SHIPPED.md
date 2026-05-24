@@ -8,6 +8,27 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Aggregator evaluation spike (May 2026)
+
+Time-boxed research spike ([#29](https://github.com/diegoSQK/foghorn/issues/29))
+evaluating whether third-party **aggregators** could feed foghorn's ingest
+pipeline and short-cut the per-venue-scraper grind ahead of a Phase 5+ re-scope.
+Five candidates scored against a fixed 8-point rubric (data shape, coverage,
+genre, freshness, dedup, access, ToS, verdict). Output is memos only — no
+production code, no `PROJECT_PLAN.md` change (the re-scope is the PM thread's
+follow-on). Per-candidate detail: [`docs/spikes/aggregator-evaluation/`](spikes/aggregator-evaluation/);
+synthesis + the open question: [`RECOMMENDATION.md`](spikes/aggregator-evaluation/RECOMMENDATION.md).
+
+Headline findings:
+
+- **One "in": Bay Improviser** ([memo](spikes/aggregator-evaluation/bay-improviser.md)) — the only source that's genuinely ingestible *and* on-target for the jazz/new-creative wheelhouse: robots-permissive HTML calendar with per-event iCal/gCal structured fields, surfacing dozens of DIY/creative rooms per-venue scrapers will never reach. Caveat: community-entered free text, so it needs venue-name aliasing + UTC→local conversion + a **fuzzy secondary dedup pass** (exact natural-key dedup won't catch its free-text headliner blobs / one-off improv-ensemble names).
+- **Strongest signal — aggregator ingest does NOT replace per-venue scraping; it can only narrowly augment it.** Recommended re-shape: **Augment** (keep Phase 5 per-venue as the backbone + add Bay Improviser as one additive source). Phase 6 (LLM-assisted per-venue) stays the real scaling lever, not aggregators.
+- **Biggest surprise** — the two clean *global* APIs that were supposed to define "the easy path" (Songkick, Bandsintown) are both **closed to a small unlicensed aggregator**: no obtainable key/`app_id`, ToS that ban scraping, edge-level bot walls (Songkick 406 / Bandsintown Cloudflare 403) — *and* their coverage skews to touring acts at big rooms, exactly away from foghorn's small jazz rooms (Songkick shows Bird & Beckett with 0 upcoming).
+- **Cleanest API — DoTheBay's** undocumented `events.json` ([memo](spikes/aggregator-evaluation/dothebay.md)): no auth, no anti-bot, ~1:1 with `ScrapedShow`, 239 music shows / ~87 venues in a sample week. But verdict is **Maybe→Skip**: its ToS bars scraping + restricts use to personal/non-commercial. Engineering-ready; gated on a *permission/feed* conversation, not code.
+- **Most concerning ToS posture** — a tie: Songkick (§9.8 explicit "no robots/scrapers/data-mine", `ClaudeBot Disallow: /`, paid partner-only API) and Bandsintown (bars commercial use *and* redistribution *and* scraping the very public pages that would fill the gap). What's Poppin is simply **not feasible** (a YouTube talk show; no web-readable calendar exists).
+
+Two live discovery POCs landed in `backend/scripts/` (`spike_aggregator_bay_improviser.py`, `spike_aggregator_dothebay.py`), each marked `# SPIKE — not production` and **not** registered in `REGISTERED_SCRAPERS`. Both run clean against live sources (Bay Improviser: 52 events parsed with UTC→PT conversion; DoTheBay: 17 music events with correct Pacific offset). **Open question for the PM thread before tickets are filed:** auto-accept aggregator-discovered venues into the DB, or maintain a curated venue allow-list? (Shapes the Bay Improviser ticket and interacts with the Phase 3.2 region/neighborhood facets — see RECOMMENDATION.md.)
+
 ## Watchlist digest endpoint (Phase 4.2, May 2026)
 
 A read-only `GET /api/watchlist/digest` — the next-N upcoming watchlist matches,
