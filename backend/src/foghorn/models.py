@@ -115,3 +115,25 @@ class IngestResult(BaseModel):
     created: int = 0
     updated: int = 0
     errors: list[str] = Field(default_factory=list)
+
+
+class ScrapeRunVenue(BaseModel):
+    """One venue's slice of a scrape run — what the scheduler/`make scrape`
+    recorded for it (mirrors the ``scrape_run_venues`` row)."""
+
+    venue_slug: str
+    started_at: str  # ISO 8601 UTC
+    finished_at: str  # ISO 8601 UTC
+    created: int = 0
+    updated: int = 0
+    errors: list[str] = Field(default_factory=list)
+
+
+class ScrapeRun(BaseModel):
+    """A single refresh of all registered scrapers — scheduled (04:00 PT) or
+    manual (`make scrape`). ``GET /api/health/scrape`` returns the latest one."""
+
+    id: int | None = None
+    started_at: str  # ISO 8601 UTC
+    finished_at: str  # ISO 8601 UTC
+    venues: list[ScrapeRunVenue] = Field(default_factory=list)
