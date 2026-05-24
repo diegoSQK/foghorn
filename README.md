@@ -11,14 +11,14 @@ A Bay Area local music & jazz show aggregator. Scrapes venue calendars and surfa
 
 ## Status
 
-Greenfield as of May 2026. Phase 1 scaffolding is the first work landing — see [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the roadmap and current state.
+Early development as of May 2026. Phase 1 (scaffolding + data-model spine) shipped; Phase 2.1 (first scraper end-to-end against Bird & Beckett) is in flight. See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the roadmap and current state.
 
 ## Stack
 
 Two-package monorepo:
 
-- `backend/` — Python 3.11+, FastAPI, SQLite. Per-venue scrapers in `backend/scrapers/`. Scheduled refresh via APScheduler.
-- `frontend/` — Next.js 15 + React 19 + TypeScript + Tailwind.
+- `backend/` — Python 3.11+, FastAPI, stdlib `sqlite3`. Per-venue scrapers in `backend/scrapers/`. Scheduled refresh via APScheduler.
+- `frontend/` — Next.js 16 + React 19 + TypeScript + Tailwind.
 
 ## How the project is run
 
