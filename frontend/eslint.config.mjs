@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Playwright e2e specs + config are validated by `make frontend-test`
+    // (Playwright compiles + runs them), not the fast default gate.
+    "tests/**",
+    "playwright.config.ts",
   ]),
 ]);
 
