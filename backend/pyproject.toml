@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "foghorn"
+version = "0.0.0"
+description = "Backend for foghorn — a Bay Area music & jazz show aggregator."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+# Versions pinned exactly per the Phase 1.1 ticket. Bump deliberately; the
+# `make gate` run is the safety net. APScheduler is held on the 3.x line
+# (4.x is a different API).
+dependencies = [
+    "fastapi==0.136.3",
+    "httpx==0.28.1",
+    "beautifulsoup4==4.14.3",
+    "apscheduler==3.11.2",
+    "pydantic==2.13.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.0.3",
+    "ruff==0.15.14",
+    "mypy==2.1.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/foghorn"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "W",   # pycodestyle warnings
+]
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+packages = ["foghorn"]
+strict = true
+warn_unused_configs = true
+
+# When Phase 2.x imports libraries without bundled type stubs (e.g. bs4,
+# apscheduler), add a per-module override here with ignore_missing_imports.
+# Omitted now so the skeleton has no unused config sections.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
