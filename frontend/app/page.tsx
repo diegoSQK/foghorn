@@ -92,6 +92,8 @@ export default async function Home({
   const venues = first(sp.venues);
   const timeOfDay = first(sp.time_of_day);
   const performerQuery = first(sp.performer_query);
+  const region = first(sp.region);
+  const neighborhood = first(sp.neighborhood);
 
   const query = new URLSearchParams({ from, to });
   if (venues) query.set("venues", venues);
@@ -99,6 +101,8 @@ export default async function Home({
     query.set("time_of_day", timeOfDay);
   }
   if (performerQuery) query.set("performer_query", performerQuery);
+  if (region) query.set("region", region);
+  if (neighborhood) query.set("neighborhood", neighborhood);
 
   const [shows, allVenues] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
