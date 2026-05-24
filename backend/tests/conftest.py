@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
@@ -11,6 +12,10 @@ import pytest
 from foghorn.models import Venue
 from foghorn.repo import db
 from foghorn.repo import venues as venues_repo
+
+# Never spin up the background scheduler under pytest (no orphan threads / cron
+# jobs firing mid-test). Set before any TestClient triggers the app lifespan.
+os.environ.setdefault("FOGHORN_DISABLE_SCHEDULER", "1")
 
 
 @pytest.fixture
