@@ -105,6 +105,7 @@ class ShowFilters(BaseModel):
     to_date: str | None = None  # YYYY-MM-DD, inclusive
     performer_canonical_substring: str | None = None
     region: Region | None = None
+    neighborhood: str | None = None  # case-insensitive exact match on venue
     # "early" = start_local_time < 21:00; "late" = start_local_time >= 22:00.
     time_of_day: Literal["early", "late"] | None = None
 
