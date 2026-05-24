@@ -37,7 +37,7 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 1.2 — data model + ingest scaffolding (May 2026), see [SHIPPED.md](SHIPPED.md#data-model-and-ingest-scaffolding-phase-12-may-2026).
+Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 2.2c — Mr. Tipple's scraper (May 2026), see [SHIPPED.md](SHIPPED.md#mr-tipples-scraper-via-the-tribe-events-api-may-2026).
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -71,11 +71,9 @@ Ship the three-jazz-venue MVP: one scraper per venue, daily refresh, list view i
 
 Originally scoped to SFJAZZ; pivoted to Bird & Beckett after SFJAZZ proved Cloudflare-blocked (the original [#4](https://github.com/diegoSQK/foghorn/issues/4) ticket was dropped — see its [pivot comment](https://github.com/diegoSQK/foghorn/issues/4#issuecomment-4526998270)). Bird & Beckett publishes a public Google Calendar `.ics` — clean, structured, no anti-bot challenges. The 2.1 deliverable is unchanged: implement the scraper, the scraper registry, the ingest wiring, the `GET /api/shows` endpoint, the minimal `frontend/app/page.tsx` flat-list view, and `make scrape` / `make backend-run` / `make frontend-run` targets. Tracked under [#6](https://github.com/diegoSQK/foghorn/issues/6) (originally a sibling parser ticket; promoted to the pilot).
 
-#### 2.2 Two more jazz scrapers (P1)
+#### 2.2 Two more jazz scrapers (P1) ✅
 
-`backend/scrapers/keys_jazz_bistro.py` ([#5](https://github.com/diegoSQK/foghorn/issues/5)) and `mr_tipples.py` ([#7](https://github.com/diegoSQK/foghorn/issues/7)). Each is its own issue so they can be claimed independently. Each must implement the same `ScrapedShow` interface and be CLI-runnable per the scraper convention. Frontend list page now shows all three venues' shows interleaved by date. (Bird & Beckett shipped as part of 2.1; SFJAZZ deferred.)
-
-✅ **Keys Jazz Bistro (#5) shipped May 2026** — see [Keys Jazz Bistro scraper](SHIPPED.md#keys-jazz-bistro-scraper-phase-22a-may-2026). HTML scrape of the venue's WordPress `/upcoming-shows/` page; plain `httpx`+`bs4`, no playwright. Collapse this 2.2 entry to a single `✅ Shipped` line once Mr. Tipple's (#7) lands.
+Shipped May 2026. **Keys Jazz Bistro (#5)** — HTML scrape of the venue's WordPress `/upcoming-shows/` page (plain `httpx`+`bs4`), see [Keys Jazz Bistro scraper](SHIPPED.md#keys-jazz-bistro-scraper-phase-22a-may-2026). **Mr. Tipple's (#7)** — Tribe Events REST API (also fills `ticket_url` + `price_text`), see [Mr. Tipple's scraper via the Tribe Events API](SHIPPED.md#mr-tipples-scraper-via-the-tribe-events-api-may-2026). (Bird & Beckett shipped as the 2.1 pilot; SFJAZZ deferred.) All three venues now interleave by date on the frontend.
 
 #### 2.3 Daily refresh scheduler (P1)
 
