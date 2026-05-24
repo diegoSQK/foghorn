@@ -37,7 +37,7 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 2.2c — Mr. Tipple's scraper (May 2026), see [SHIPPED.md](SHIPPED.md#mr-tipples-scraper-via-the-tribe-events-api-may-2026).
+Full chronological history lives in [SHIPPED.md](SHIPPED.md); version cut-points live in [CHANGELOG.md](CHANGELOG.md). Recently shipped: Phase 2.3 — daily refresh scheduler + scrape-health endpoint (May 2026), see [SHIPPED.md](SHIPPED.md#daily-refresh-scheduler-and-scrape-health-endpoint-phase-23-may-2026). **v0.1.0** cut 2026-05-24 — see [CHANGELOG.md](CHANGELOG.md#v010--2026-05-24).
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -45,7 +45,7 @@ When a roadmap item ships, the agent that lands it appends the as-shipped narrat
 
 ## In flight
 
-**Phase 2.1 — Bird & Beckett end-to-end pilot** ([#6](https://github.com/diegoSQK/foghorn/issues/6)). Originally scoped to SFJAZZ; pivoted to Bird & Beckett after SFJAZZ proved Cloudflare-blocked (see [#4 pivot comment](https://github.com/diegoSQK/foghorn/issues/4#issuecomment-4526998270)). This ticket carries the full Phase 2.1 deliverable: scraper registry, ingest wiring, `GET /api/shows`, the minimal frontend list page, and the `make scrape` / `make backend-run` / `make frontend-run` targets — with Bird & Beckett (public Google Calendar `.ics`) as the pilot venue rather than SFJAZZ. Coding agent claimed.
+*Nothing in flight. Phase 2 just shipped (v0.1.0); Phase 3 (filtering & search) is the next coherent block. PM thread to queue 3.1 / 3.2 / 3.3 tickets as a follow-on to the release cut.*
 
 ---
 
@@ -67,9 +67,9 @@ Shipped May 2026 — see [Data model + ingest scaffolding](SHIPPED.md#data-model
 
 Ship the three-jazz-venue MVP: one scraper per venue, daily refresh, list view in the frontend. This is the "is foghorn useful yet" milestone. SFJAZZ was originally part of the set but blocked behind Cloudflare; revisit deferred (see Deferred / still-outstanding).
 
-#### 2.1 First scraper end-to-end: Bird & Beckett (P1)
+#### 2.1 First scraper end-to-end: Bird & Beckett (P1) ✅
 
-Originally scoped to SFJAZZ; pivoted to Bird & Beckett after SFJAZZ proved Cloudflare-blocked (the original [#4](https://github.com/diegoSQK/foghorn/issues/4) ticket was dropped — see its [pivot comment](https://github.com/diegoSQK/foghorn/issues/4#issuecomment-4526998270)). Bird & Beckett publishes a public Google Calendar `.ics` — clean, structured, no anti-bot challenges. The 2.1 deliverable is unchanged: implement the scraper, the scraper registry, the ingest wiring, the `GET /api/shows` endpoint, the minimal `frontend/app/page.tsx` flat-list view, and `make scrape` / `make backend-run` / `make frontend-run` targets. Tracked under [#6](https://github.com/diegoSQK/foghorn/issues/6) (originally a sibling parser ticket; promoted to the pilot).
+Shipped May 2026 — see [Phase 2.1 end-to-end pilot via Bird and Beckett](SHIPPED.md#phase-21-end-to-end-pilot-via-bird-and-beckett-may-2026). Bird & Beckett `.ics` feed + scraper registry + ingest wiring + `GET /api/shows` + minimal frontend list page + `make scrape` / `make backend-run` / `make frontend-run` targets. Pilot re-homed from SFJAZZ → Bird & Beckett after the SFJAZZ Cloudflare block (the original [#4](https://github.com/diegoSQK/foghorn/issues/4) ticket was dropped; SFJAZZ deferred).
 
 #### 2.2 Two more jazz scrapers (P1) ✅
 
@@ -77,19 +77,19 @@ Shipped May 2026. **Keys Jazz Bistro (#5)** — HTML scrape of the venue's WordP
 
 #### 2.3 Daily refresh scheduler (P1) ✅
 
-Shipped May 2026 — see [Daily refresh scheduler and scrape-health endpoint](SHIPPED.md#daily-refresh-scheduler-and-scrape-health-endpoint-phase-23-may-2026). APScheduler `BackgroundScheduler` runs all registered scrapers nightly at 04:00 PT; `make scrape` shares the same `run_scrape` unit so manual runs are recorded too. `GET /api/health/scrape` surfaces the last run's per-venue counts + errors (503 until the first run). **Phase 2 is complete (2.1 + 2.2 + 2.3) — this is the v0.1.0 release-cut point** per "Suggested sequencing"; the cut itself is a PM-thread ritual (`RELEASE_PROCESS.md`).
+Shipped May 2026 — see [Daily refresh scheduler and scrape-health endpoint](SHIPPED.md#daily-refresh-scheduler-and-scrape-health-endpoint-phase-23-may-2026). APScheduler `BackgroundScheduler` runs all registered scrapers nightly at 04:00 PT; `make scrape` shares the same `run_scrape` unit so manual runs are recorded too. `GET /api/health/scrape` surfaces the last run's per-venue counts + errors (503 until the first run). **Phase 2 is complete (2.1 + 2.2 + 2.3) — cut as `v0.1.0` on 2026-05-24** ([CHANGELOG](CHANGELOG.md#v010--2026-05-24)).
 
 ### Phase 3 — Filtering & search
 
-Make the calendar useful for "what should I do this Friday."
+Make the calendar useful for "what should I do this Friday." Next coherent block after v0.1.0; PM thread to queue 3.1 / 3.2 / 3.3 tickets.
 
 #### 3.1 Date-range and venue filters (P1)
 
-Frontend: date range picker (default = next 14 days), venue checkboxes, "tonight / this weekend / next 7 days" quick selectors. Backend: `GET /api/shows?from=&to=&venues=` query params.
+Frontend: date range picker (default = next 14 days), venue checkboxes, "tonight / this weekend / next 7 days" quick selectors. Backend: `GET /api/shows?from=&to=&venues=` query params (the `from`/`to` already exist; `venues=` multi-value is new).
 
 #### 3.2 Region / neighborhood filter (P1)
 
-Tag each venue with `neighborhood` (already in the seed) and `region` (`SF`, `East Bay`, `Peninsula`, `South Bay`). Frontend exposes region as a top-level toggle; neighborhood as a secondary filter when a region is selected.
+Tag each venue with `neighborhood` (already in the seed) and `region` (`SF`, `East Bay`, `Peninsula`, `South Bay`; all current venues are SF so the column exists but doesn't differentiate yet). Frontend exposes region as a top-level toggle; neighborhood as a secondary filter when a region is selected.
 
 #### 3.3 Free-text performer search (P1)
 
@@ -139,9 +139,9 @@ Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a v
 ## Suggested sequencing for future releases
 
 1. **Phase 1** — scaffolding. Foundation; nothing depends on it being done well, but everything depends on it being done at all. ✅
-2. **Phase 2** — three jazz venues end-to-end. The first "this is useful" milestone. Cut a `v0.1.0` release tag at the end of this phase.
-3. **Phase 3** — filtering & search. Turns the raw calendar into something you'd actually open on a Friday afternoon.
-4. **Phase 4** — watchlist. Headline feature for the primary use case. Likely `v0.2.0` cut here.
+2. **Phase 2** — three jazz venues end-to-end. The first "this is useful" milestone. ✅ Cut as **v0.1.0** on 2026-05-24.
+3. **Phase 3** — filtering & search. Turns the raw calendar into something you'd actually open on a Friday afternoon. Next up.
+4. **Phase 4** — watchlist. Headline feature for the primary use case. Likely `v0.2.0` cut here (with or without Phase 3 rolled in, depending on whether Phase 3 ships as its own coherent sub-arc).
 5. **Phase 5** — venue expansion. Breadth without changing the model. Cut `v0.3.0` when the venue set feels comprehensive enough for personal use.
 6. **Phase 6** — LLM-assisted scraping. Scaling lever, picked up once breadth is the bottleneck.
 7. **Deferred items revisited.** SFJAZZ, Travel ETAs, hosting, accounts — addressed when their unblock conditions are met, not on a fixed schedule.
