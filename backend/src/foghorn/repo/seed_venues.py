@@ -37,7 +37,9 @@ SEED_VENUES: list[Venue] = [
         address="530 Broadway, San Francisco, CA",
         tz="America/Los_Angeles",
         website_url="https://www.keysjazzbistro.com",
-        calendar_url=_TBD,
+        # Set by Phase 2.2a. The scraper parses the forward-looking
+        # /upcoming-shows/ page — see scrapers/keys_jazz_bistro.
+        calendar_url="https://keysjazzbistro.com/upcoming-shows/",
     ),
     Venue(
         slug="bird_and_beckett",
