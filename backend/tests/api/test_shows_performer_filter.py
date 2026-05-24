@@ -1,9 +1,9 @@
 """Tests for the ``?performer_query=`` filter on ``GET /api/shows`` (Phase 3.3).
 
-Kept in its own file (not extending ``test_shows_endpoint.py``) so it doesn't
-conflict with #21's tests. The matching itself is Phase 1.2's
-``performer_canonical_substring``; these confirm the API wiring + canonicalize-
-on-input behave.
+Kept in its own file (not extending ``test_shows_endpoint.py``). As of Phase
+4.1 the matching is **token-bag** (``repo.performer_match``), shared with the
+watchlist — so reordered queries now match. These confirm the API wiring +
+canonicalize-on-input behave.
 """
 
 from __future__ import annotations
@@ -79,8 +79,17 @@ def _q(client: TestClient, **params: str) -> list[dict]:
     ).json()
 
 
+def test_reordered_query_matches_token_based(client: TestClient) -> None:
+    # Token-bag (4.1): "redman joshua" matches "joshua redman quartet" even
+    # though the old substring match (3.3) would have missed the reordering.
+    assert _names(_q(client, performer_query="redman joshua")) == [
+        "Joshua Redman Quartet",
+        "Joshua Redman Trio",
+    ]
+
+
 def test_matches_headliner_across_venues(client: TestClient) -> None:
-    # "joshua redman" is a substring of both canonical headliners, ordered by start.
+    # "joshua redman" tokens appear in both canonical headliners, ordered by start.
     assert _names(_q(client, performer_query="joshua redman")) == [
         "Joshua Redman Quartet",
         "Joshua Redman Trio",

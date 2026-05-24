@@ -8,13 +8,14 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const DEBOUNCE_MS = 300;
 
 export default function PerformerSearch() {
   const router = useRouter();
   const params = useSearchParams();
+  const pathname = usePathname(); // keep search on the current route (/ or /watchlist)
   const urlQuery = params.get("performer_query") ?? "";
 
   const [value, setValue] = useState(urlQuery);
@@ -31,10 +32,10 @@ export default function PerformerSearch() {
       if (value.trim()) next.set("performer_query", value.trim());
       else next.delete("performer_query");
       const query = next.toString();
-      router.push(query ? `/?${query}` : "/");
+      router.push(query ? `${pathname}?${query}` : pathname);
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [value, params, router]);
+  }, [value, params, router, pathname]);
 
   // Resync the input when the URL changes from outside (Clear filters, back).
   useEffect(() => {

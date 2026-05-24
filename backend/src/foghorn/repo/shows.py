@@ -11,6 +11,7 @@ import builtins
 import sqlite3
 
 from foghorn.models import Show, ShowFilters, ShowPerformer
+from foghorn.repo.performer_match import token_match_sql
 
 _SHOW_COLUMNS = (
     "id, venue_id, start_utc, start_local_date, start_local_time, "
@@ -147,6 +148,23 @@ def upsert(
     return stored
 
 
+def _performer_match_clause(
+    token_bags: builtins.list[builtins.list[str]],
+) -> tuple[str, builtins.list[str]]:
+    """An EXISTS-over-the-bill clause: true when any performer on the show
+    token-matches any of ``token_bags``. Returns ``("", [])`` when there's
+    nothing to match."""
+    predicate, params = token_match_sql("p.canonical_name", token_bags)
+    if not predicate:
+        return "", []
+    clause = (
+        "EXISTS (SELECT 1 FROM show_performers sp "
+        "JOIN performers p ON p.id = sp.performer_id "
+        f"WHERE sp.show_id = s.id AND {predicate})"
+    )
+    return clause, params
+
+
 def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
     """Return shows matching ``filters``, ordered by ``start_utc``, each with
     its bill attached. Date filters are inclusive and compare against
@@ -171,13 +189,23 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
     if filters.to_date:
         clauses.append("s.start_local_date <= ?")
         params.append(filters.to_date)
-    if filters.performer_canonical_substring:
-        clauses.append(
-            "EXISTS (SELECT 1 FROM show_performers sp "
-            "JOIN performers p ON p.id = sp.performer_id "
-            "WHERE sp.show_id = s.id AND p.canonical_name LIKE ?)"
+    # Performer match (token-bag, Phase 4.1): a show matches if any of its
+    # performers' canonical names whole-token-matches the query / any watchlist
+    # bag. Both go through the same EXISTS-over-the-bill helper.
+    if filters.performer_query_canonical:
+        clause, clause_params = _performer_match_clause(
+            [filters.performer_query_canonical.split()]
         )
-        params.append(f"%{filters.performer_canonical_substring}%")
+        if clause:
+            clauses.append(clause)
+            params.extend(clause_params)
+    if filters.watchlist_token_bags is not None:
+        clause, clause_params = _performer_match_clause(filters.watchlist_token_bags)
+        if clause:
+            clauses.append(clause)
+            params.extend(clause_params)
+        else:
+            clauses.append("1 = 0")  # watchlist requested but empty -> no matches
     # HH:MM is zero-padded 24h, so lexical comparison is chronological.
     # Early (< 21:00) and Late (>= 21:00) are exact complements — no gap.
     if filters.time_of_day == "early":

@@ -1,19 +1,20 @@
-// Show list (/). A server component whose filter state lives entirely in the
-// URL search params: it parses them, fetches the filtered shows + venues +
-// watchlist, and renders the URL-driven <FilterBar> over a <ShowList> (shared
-// with /watchlist). The watchlist set drives each performer's add/remove "+".
+// /watchlist — shows where any performer matches a watched name. Same
+// URL-driven filter framework as /, with ?watchlist=true added to the query and
+// a removable "Your watchlist" chip row on top. Empty watchlist shows a CTA.
 
+import Link from "next/link";
 import { Suspense } from "react";
 
-import FilterBar from "./FilterBar";
-import ShowList from "./ShowList";
+import FilterBar from "../FilterBar";
+import ShowList from "../ShowList";
+import WatchlistChips from "../WatchlistChips";
 import {
   getJSON,
   type ShowView,
   type VenueOption,
   type WatchlistEntry,
-} from "./lib/api";
-import { addDaysISO, todayISO } from "./lib/dates";
+} from "../lib/api";
+import { addDaysISO, todayISO } from "../lib/dates";
 
 const DEFAULT_WINDOW_DAYS = 14;
 
@@ -21,7 +22,7 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export default async function Home({
+export default async function WatchlistPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -36,7 +37,7 @@ export default async function Home({
   const region = first(sp.region);
   const neighborhood = first(sp.neighborhood);
 
-  const query = new URLSearchParams({ from, to });
+  const query = new URLSearchParams({ from, to, watchlist: "true" });
   if (venues) query.set("venues", venues);
   if (timeOfDay === "early" || timeOfDay === "late") {
     query.set("time_of_day", timeOfDay);
@@ -50,35 +51,40 @@ export default async function Home({
     getJSON<VenueOption[]>(`/api/venues`),
     getJSON<WatchlistEntry[]>(`/api/watchlist`),
   ]);
-  const watchlistCanon = new Set(
-    (watchlist ?? []).map((entry) => entry.canonical_name),
-  );
+  const entries = watchlist ?? [];
+  const watchlistCanon = new Set(entries.map((entry) => entry.canonical_name));
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
       <header className="mb-6">
-        <h1 className="text-3xl font-semibold tracking-tight">foghorn</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Watchlist</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Upcoming Bay Area jazz &amp; music shows
+          Upcoming shows with performers you follow
         </p>
       </header>
 
-      {shows === null ? (
+      {shows === null || watchlist === null ? (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
           Backend not reachable. Start it with{" "}
           <code className="font-mono">make backend-run</code>, then refresh.
         </div>
+      ) : entries.length === 0 ? (
+        <p className="text-zinc-500 dark:text-zinc-400">
+          Your watchlist is empty. Add performers from the{" "}
+          <Link href="/" className="underline hover:no-underline">
+            main page
+          </Link>{" "}
+          to follow them.
+        </p>
       ) : (
         <>
+          <WatchlistChips entries={entries} />
           <Suspense fallback={null}>
             <FilterBar venues={allVenues ?? []} />
           </Suspense>
-
           {shows.length === 0 ? (
             <p className="text-zinc-500 dark:text-zinc-400">
-              {performerQuery
-                ? `No shows matching “${performerQuery}” in this window. Try widening the date range or clearing other filters.`
-                : "No shows match these filters. Try widening the date range or clearing filters."}
+              No watchlist matches in this window.
             </p>
           ) : (
             <ShowList shows={shows} watchlistCanon={watchlistCanon} />

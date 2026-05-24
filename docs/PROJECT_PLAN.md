@@ -93,15 +93,15 @@ Shipped May 2026 — see [Region and neighborhood filter](SHIPPED.md#region-and-
 
 #### 3.3 Free-text performer search (P1) ✅
 
-Shipped May 2026 — see [Free-text performer search](SHIPPED.md#free-text-performer-search-phase-33-may-2026). `GET /api/shows?performer_query=` canonicalizes the input and reuses Phase 1.2's `performer_canonical_substring` (matches headliner or support; no parallel matching impl, so Phase 4's watchlist reuses it). Frontend: a prominent debounced (~300ms) search box (`PerformerSearch.tsx`) wired into the URL-driven framework. Substring match for now; FTS5 deferred until relevance demands it.
+Shipped May 2026 — see [Free-text performer search](SHIPPED.md#free-text-performer-search-phase-33-may-2026). `GET /api/shows?performer_query=` canonicalizes the input and matches headliner or support. Frontend: a prominent debounced (~300ms) search box (`PerformerSearch.tsx`) wired into the URL-driven framework. **Matching upgraded substring → token-bag as part of 4.1** (`repo/performer_match.py`, shared with the watchlist); FTS5 still deferred until relevance demands it.
 
 ### Phase 4 — Watchlist
 
 The friend-tracking surface — the headline feature for the primary user. The first user-facing read of the performer-tagging layer the data model already supports.
 
-#### 4.1 Watchlist data model + UI (P1)
+#### 4.1 Watchlist data model + UI (P1) ✅
 
-Single-user / local watchlist (no accounts yet): a `watchlist` table keyed on `canonical_name`. UI: a dedicated `/watchlist` route that lists upcoming shows where any performer matches a watchlist entry. From a show card on the main page, "add headliner to watchlist" and "add support to watchlist" actions. Persisted locally in the SQLite DB — no auth, single-tenant assumption documented.
+Shipped May 2026 — see [Watchlist data model, UI, and token-based matching](SHIPPED.md#watchlist-data-model-ui-and-token-based-matching-phase-41-may-2026). Single-tenant `watchlist` table keyed on `canonical_name`; `GET/POST/DELETE /api/watchlist` + `?watchlist=true` filter on `/api/shows` (empty watchlist → `[]`). Token-bag matching (`repo/performer_match.py`) is now the shared performer matcher (also powers 3.3). Frontend: `+`/`✓` add buttons on every performer, a `/watchlist` route (reusing FilterBar), and a `Watchlist (N)` nav count. CORS added for the client mutations.
 
 #### 4.2 Watchlist digest (P2)
 

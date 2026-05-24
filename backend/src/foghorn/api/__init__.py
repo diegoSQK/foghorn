@@ -10,14 +10,17 @@ watchlist (Phase 4) extend this surface.
 
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from foghorn.api.health import router as health_router
 from foghorn.api.shows import router as shows_router
 from foghorn.api.venues import router as venues_router
+from foghorn.api.watchlist import router as watchlist_router
 from foghorn.repo import db
 from foghorn.repo.seed_venues import seed
 from foghorn.scheduler.runner import start_scheduler
@@ -39,6 +42,20 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="foghorn", lifespan=lifespan)
+
+# The watchlist add/remove buttons are client components that call the API
+# cross-origin (frontend :3000 -> backend :8000), so CORS is required. Local-
+# first + no auth/cookies, so a permissive default is fine; FOGHORN_CORS_ORIGINS
+# (comma-separated) tightens it when the app is ever deployed publicly.
+_cors_origins = os.environ.get("FOGHORN_CORS_ORIGINS", "*")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"] if _cors_origins == "*" else _cors_origins.split(","),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(shows_router)
 app.include_router(venues_router)
 app.include_router(health_router)
+app.include_router(watchlist_router)

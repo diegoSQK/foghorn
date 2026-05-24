@@ -7,7 +7,7 @@
 // 3.2 (region) and 3.3 (performer search) plug into this same pattern.
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import LocationFilter from "./LocationFilter";
 import PerformerSearch from "./PerformerSearch";
@@ -34,6 +34,7 @@ const inputClass =
 export default function FilterBar({ venues }: { venues: VenueOption[] }) {
   const router = useRouter();
   const params = useSearchParams();
+  const pathname = usePathname(); // keep filters on the current route (/ or /watchlist)
 
   const today = todayISO();
   const from = params.get("from") ?? today;
@@ -51,7 +52,7 @@ export default function FilterBar({ venues }: { venues: VenueOption[] }) {
       else next.set(key, value);
     }
     const query = next.toString();
-    router.push(query ? `/?${query}` : "/");
+    router.push(query ? `${pathname}?${query}` : pathname);
   }
 
   const weekend = thisWeekend();
@@ -176,7 +177,7 @@ export default function FilterBar({ venues }: { venues: VenueOption[] }) {
       {params.toString().length > 0 && (
         <div>
           <Link
-            href="/"
+            href={pathname}
             className="text-sm text-zinc-500 underline hover:no-underline dark:text-zinc-400"
           >
             Clear filters
