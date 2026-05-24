@@ -1,0 +1,75 @@
+{
+  "events": [
+    {
+      "id": 101,
+      "title": "Steven Lugerner&#8217;s SLUGish Ensemble",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-05-23 18:00:00",
+      "utc_start_date": "2026-05-24 01:00:00",
+      "timezone": "America/Los_Angeles",
+      "url": "https://mrtipplessf.com/calendar/slugish-ensemble/",
+      "website": "http://www.opentable.com/restaurant/profile/260827/reserve?restref=260827&amp;datetime=2026-05-23T18%3A00",
+      "cost": "$15 – $30"
+    },
+    {
+      "id": 102,
+      "title": "Open Mic Night",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-05-24 19:00:00",
+      "utc_start_date": "2026-05-25 02:00:00",
+      "timezone": "America/Los_Angeles",
+      "url": "https://mrtipplessf.com/calendar/open-mic/",
+      "website": "",
+      "cost": ""
+    },
+    {
+      "id": 103,
+      "title": "Daytime Holiday Market",
+      "all_day": true,
+      "hide_from_listings": false,
+      "start_date": "2026-05-25 00:00:00",
+      "timezone": "America/Los_Angeles",
+      "url": "https://mrtipplessf.com/calendar/market/",
+      "website": "",
+      "cost": ""
+    },
+    {
+      "id": 104,
+      "title": "Hidden Soundcheck",
+      "all_day": false,
+      "hide_from_listings": true,
+      "start_date": "2026-05-26 20:00:00",
+      "timezone": "America/Los_Angeles",
+      "url": "https://mrtipplessf.com/calendar/soundcheck/",
+      "website": "",
+      "cost": ""
+    },
+    {
+      "id": 105,
+      "title": "José James",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-05-27 20:00:00",
+      "utc_start_date": "2026-05-28 03:00:00",
+      "timezone": "America/Los_Angeles",
+      "url": "https://mrtipplessf.com/calendar/jose-james/",
+      "website": "http://www.opentable.com/r/mr-tipples",
+      "cost": "$25"
+    },
+    {
+      "id": 106,
+      "title": "Closed for Private Event",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-05-28 18:00:00",
+      "timezone": "America/Los_Angeles",
+      "url": "https://mrtipplessf.com/calendar/private/",
+      "website": "",
+      "cost": ""
+    }
+  ],
+  "total": 6,
+  "total_pages": 1
+}
