@@ -14,10 +14,13 @@ license = { text = "MIT" }
 # (4.x is a different API).
 dependencies = [
     "fastapi==0.136.3",
+    "uvicorn[standard]==0.47.0",
     "httpx==0.28.1",
     "beautifulsoup4==4.14.3",
     "apscheduler==3.11.2",
     "pydantic==2.13.4",
+    "icalendar==7.1.2",
+    "recurring-ical-events==3.8.2",
 ]
 
 [project.optional-dependencies]
@@ -52,9 +55,10 @@ packages = ["foghorn"]
 strict = true
 warn_unused_configs = true
 
-# When Phase 2.x imports libraries without bundled type stubs (e.g. bs4,
-# apscheduler), add a per-module override here with ignore_missing_imports.
-# Omitted now so the skeleton has no unused config sections.
+# recurring-ical-events ships no py.typed marker (icalendar, httpx, and bs4 do).
+[[tool.mypy.overrides]]
+module = ["recurring_ical_events.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
