@@ -51,10 +51,53 @@ shows, idempotent on re-run.
 events at different start times — distinct natural keys, so both persist (this
 is correct: they're separate performances).
 
-**Concurrency note.** Built alongside #5 (Keys Jazz Bistro), which another agent
-is developing in the shared working tree. Both register a scraper in
-`scrapers/__init__.py` `REGISTERED_SCRAPERS`, so whichever PR merges second will
-need a one-line conflict reconcile on that dict.
+**Concurrency note.** Built alongside #5 (Keys Jazz Bistro), shipped concurrently
+by another agent — which moved to an isolated `git worktree` to stop clobbering
+the shared tree (#14). Both register a scraper in `scrapers/__init__.py`; this
+branch merged `main` and kept all three venues in `REGISTERED_SCRAPERS`.
+
+## Keys Jazz Bistro scraper (Phase 2.2a, May 2026)
+
+Second venue, and the first HTML scraper — Bird & Beckett (the pilot) reads an
+`.ics` feed. Closes #5. Follows the scraper-author pattern the
+[Phase 2.1 pilot](#phase-21-end-to-end-pilot-via-bird-and-beckett-may-2026)
+established — isolated `fetch_html`, a pure `today`-injected `parse_html`, a
+registry entry, a fixture test — so this entry records only what's
+Keys-specific.
+
+- **Source: `/upcoming-shows/`, not `/event-calendar/`.** Keys runs WordPress
+  with the "simple-events" plugin, which renders both. `/event-calendar/` has
+  machine-readable `<time datetime>` but shows one month at a time (including
+  past days) and duplicates a desktop grid + a mobile list. `/upcoming-shows/`
+  is a forward-looking WP Query Loop (`ul.wp-block-post-template`) that starts
+  at today, needs no pagination, and lists every upcoming show as a structured
+  `<li>`. Cleaner on every axis, so the scraper targets it.
+- **Plain `httpx` + `bs4`; no `playwright`.** The show list is in the
+  server-rendered HTML. (SFJAZZ — the original 2.1 target — was dropped for a
+  Cloudflare challenge; Keys has no such wall.)
+- **Dates are free text** (`Saturday, May 23, 2026 @ 10:30pm`) in a bare `<p>`.
+  The parser scans `<p>` elements — not the whole `<li>` text — so a show's
+  description paragraph or the ticket link's `aria-label` date can't be
+  mis-read. A weekday-anchored regex splits date + time; the weekday is not
+  trusted (it isn't validated against the date).
+- **Per-show provenance**: `source_url` is each show's own `/event/<slug>/`
+  page; `ticket_url` is the WooCommerce "Get Tickets" add-to-cart link when
+  present, else `None`. The listing carries no doors time or price → both
+  `None`.
+
+Verified live: `python -m foghorn.scrapers.keys_jazz_bistro` returns 36 shows
+(May 23 → Jun 24); two `make scrape` runs report `created=36` then
+`updated=36, errors=0` — idempotent on the natural key. The fixture test drives
+`parse_html` from a trimmed real snapshot covering the edge cases (multi-show
+day, minutes in the time, curly quotes, a missing ticket link, an out-of-window
+event). Full `make gate` green.
+
+**Worktree note.** Built in an isolated `git worktree` because another agent was
+shipping Mr. Tipple's (#7) in the main working tree at the same time, and one
+shared tree was clobbering both. The sibling 2.2 PRs each touch the registry
+(`scrapers/__init__.py`), the seed (`seed_venues.py`), and these docs, so expect
+a small conflict when the second of the two lands — resolve by keeping both
+venues' entries.
 
 ## Phase 2.1 end-to-end pilot via Bird and Beckett (May 2026)
 

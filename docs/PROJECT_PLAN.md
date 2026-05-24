@@ -12,12 +12,12 @@ Priority tiers used below:
 
 ## Architecture
 
-Two-package monorepo. `backend/` is Python 3.11+, FastAPI for the HTTP surface, SQLite for storage, with per-venue scrapers in `backend/scrapers/`. `frontend/` is Next.js 15 + TypeScript + Tailwind.
+Two-package monorepo. `backend/` is Python 3.11+, FastAPI for the HTTP surface, stdlib `sqlite3` for storage, with per-venue scrapers in `backend/scrapers/`. `frontend/` is Next.js 16 + TypeScript + Tailwind.
 
 The data lifecycle is **scrape → normalize → persist → serve → render**:
 
-1. Per-venue scrapers fetch and parse HTML, return typed `ScrapedShow` records. Standalone-runnable for debugging.
-2. An ingest pipeline normalizes performer names (display + canonical forms), resolves timezones, and dedupes against existing rows using the natural key `(venue_id, local_start_datetime, headliner_canonical)`.
+1. Per-venue scrapers fetch and parse HTML (or `.ics`, etc.), return typed `ScrapedShow` records. Standalone-runnable for debugging.
+2. An ingest pipeline normalizes performer names (display + canonical forms), resolves timezones, and dedupes against existing rows using the natural key `(venue_id, start_local_date, start_local_time, headliner_canonical)`.
 3. The repository layer persists normalized shows to SQLite, preserving `source_url` + `scraped_at` for provenance.
 4. FastAPI serves filtered queries (date range, region, performer search, watchlist matches).
 5. The Next.js frontend renders the calendar with filter and search UI; server components fetch from the API, client components handle interactivity.
@@ -28,10 +28,10 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Key risks and mitigations
 
-- **Venue site fragility.** Venues change their markup without warning; scrapers break silently. *Mitigation:* every scraper is independently runnable, returns typed output, and writes a `scraped_at` + `source_url` per show; the ingest pipeline logs per-venue counts so a venue that "suddenly has zero shows" is immediately visible. Phase 1 ships a scrape-health check surface.
+- **Venue site fragility.** Venues change their markup without warning; scrapers break silently. *Mitigation:* every scraper is independently runnable, returns typed output, and writes a `scraped_at` + `source_url` per show; the ingest pipeline logs per-venue counts so a venue that "suddenly has zero shows" is immediately visible. Phase 2.3 ships a scrape-health check surface.
 - **Performer-name matching is fuzzy.** "Joshua Redman Quartet" vs. "Joshua Redman" vs. "Redman, Joshua" — the watchlist needs to match meaningfully without false positives. *Mitigation:* store `display_name` (original) + `canonical_name` (normalized) separately; start with normalized substring match, escalate to token-based matching if false negatives become a problem.
-- **Anti-scraping pushback.** Daily polite scraping is unlikely to draw fire, but venues running aggressive WAFs (Cloudflare bot challenges, JS-rendered calendars) can require `playwright` or block outright. *Mitigation:* keep the per-venue parser interface flexible enough that a venue can swap from `httpx`+`bs4` to `playwright` without touching the ingest layer; document blocked venues in `docs/SHIPPED.md` with the failure mode.
-- **Scope creep into "the everything music app".** Travel ETAs, alerts, multi-user accounts, an iOS app — all defensible adds, all distractions from the four-jazz-venue MVP. *Mitigation:* `Deferred Workstream` in `AGENTS.md` is the explicit holding pen; new feature ideas land there until the current phase ships.
+- **Anti-scraping pushback.** Daily polite scraping is unlikely to draw fire, but venues running aggressive WAFs (Cloudflare bot challenges, JS-rendered calendars) can require `playwright` or block outright. *Realized risk:* SFJAZZ blocks every plain HTTP client behind a Cloudflare managed challenge — deferred to the Deferred / still-outstanding list, Phase 2.1 pivoted to Bird & Beckett's `.ics` feed. *Mitigation going forward:* keep the per-venue parser interface flexible enough that a venue can swap from `httpx`+`bs4` to `playwright` (or to a `.ics` parser, RSS, JSON-LD, etc.) without touching the ingest layer; document blocked venues here with the failure mode.
+- **Scope creep into "the everything music app".** Travel ETAs, alerts, multi-user accounts, an iOS app — all defensible adds, all distractions from the jazz-venues MVP. *Mitigation:* `Deferred Workstream` in `AGENTS.md` is the explicit holding pen; new feature ideas land there until the current phase ships.
 
 ---
 
@@ -45,7 +45,7 @@ When a roadmap item ships, the agent that lands it appends the as-shipped narrat
 
 ## In flight
 
-*Nothing in flight yet. Phase 1.1 (scaffolding) will be the first issue filed.*
+**Phase 2.1 — Bird & Beckett end-to-end pilot** ([#6](https://github.com/diegoSQK/foghorn/issues/6)). Originally scoped to SFJAZZ; pivoted to Bird & Beckett after SFJAZZ proved Cloudflare-blocked (see [#4 pivot comment](https://github.com/diegoSQK/foghorn/issues/4#issuecomment-4526998270)). This ticket carries the full Phase 2.1 deliverable: scraper registry, ingest wiring, `GET /api/shows`, the minimal frontend list page, and the `make scrape` / `make backend-run` / `make frontend-run` targets — with Bird & Beckett (public Google Calendar `.ics`) as the pilot venue rather than SFJAZZ. Coding agent claimed.
 
 ---
 
@@ -57,29 +57,27 @@ Stand up the monorepo skeleton, the CI gate, and the minimal data model so subse
 
 #### 1.1 Repo skeleton + CI gate (P1) ✅
 
-Shipped May 2026 — see [Repo skeleton + CI gate](SHIPPED.md#repo-skeleton-and-ci-gate-phase-11-may-2026). Storage choice landed as stdlib `sqlite3` (not an ORM). Note: `create-next-app@latest` now resolves to Next.js 16, not 15 — doc references to "Next.js 15" want a PM-thread reconcile.
+Shipped May 2026 — see [Repo skeleton + CI gate](SHIPPED.md#repo-skeleton-and-ci-gate-phase-11-may-2026). Storage choice landed as stdlib `sqlite3` (not an ORM). `create-next-app@latest` now resolves to Next.js 16 (not 15); doc references reconciled by a follow-up PM pass.
 
 #### 1.2 Data model + ingest scaffolding (P1) ✅
 
 Shipped May 2026 — see [Data model + ingest scaffolding](SHIPPED.md#data-model-and-ingest-scaffolding-phase-12-may-2026). SQLite schema (venues/performers/shows/show_performers), conn-injected typed repo layer, `ingest_scraped_shows` with unicode-aware canonicalization + tz→UTC, and the four-venue seed. No scraping yet — Phase 2.1 wires the first scraper into this.
 
-### Phase 2 — Four jazz venues end-to-end
+### Phase 2 — Three jazz venues end-to-end
 
-Ship the four-venue MVP: one scraper per venue, daily refresh, list view in the frontend. This is the "is foghorn useful yet" milestone.
+Ship the three-jazz-venue MVP: one scraper per venue, daily refresh, list view in the frontend. This is the "is foghorn useful yet" milestone. SFJAZZ was originally part of the set but blocked behind Cloudflare; revisit deferred (see Deferred / still-outstanding).
 
-#### 2.1 First scraper end-to-end (P1) ✅
+#### 2.1 First scraper end-to-end: Bird & Beckett (P1)
 
-Shipped May 2026 — see [Phase 2.1 end-to-end pilot via Bird and Beckett](SHIPPED.md#phase-21-end-to-end-pilot-via-bird-and-beckett-may-2026). The end-to-end infra (scraper registry, `make scrape`, `GET /api/shows`, minimal frontend list, run targets) landed. **The SFJAZZ pilot was dropped** (#4 closed): SFJAZZ is behind a Cloudflare managed challenge that blocks httpx+bs4, and bypass is out of scope. The pilot was re-homed to Bird & Beckett (#6), which publishes a clean public Google Calendar `.ics`.
+Originally scoped to SFJAZZ; pivoted to Bird & Beckett after SFJAZZ proved Cloudflare-blocked (the original [#4](https://github.com/diegoSQK/foghorn/issues/4) ticket was dropped — see its [pivot comment](https://github.com/diegoSQK/foghorn/issues/4#issuecomment-4526998270)). Bird & Beckett publishes a public Google Calendar `.ics` — clean, structured, no anti-bot challenges. The 2.1 deliverable is unchanged: implement the scraper, the scraper registry, the ingest wiring, the `GET /api/shows` endpoint, the minimal `frontend/app/page.tsx` flat-list view, and `make scrape` / `make backend-run` / `make frontend-run` targets. Tracked under [#6](https://github.com/diegoSQK/foghorn/issues/6) (originally a sibling parser ticket; promoted to the pilot).
 
-#### 2.2 Three more jazz scrapers (P1)
+#### 2.2 Two more jazz scrapers (P1) ✅
 
-`keys_jazz_bistro.py` (#5), `bird_and_beckett.py` (#6), `mr_tipples.py` (#7). Each its own issue, claimable independently against the same `ScrapedShow` interface + registry.
-
-✅ **Bird & Beckett (#6)** shipped May 2026 as the Phase 2.1 pilot (Google Calendar `.ics`) — see the SHIPPED link above. ✅ **Mr. Tipple's (#7)** shipped May 2026 via its Tribe Events REST API — see [Mr. Tipple's scraper via the Tribe Events API](SHIPPED.md#mr-tipples-scraper-via-the-tribe-events-api-may-2026). **Keys Jazz Bistro (#5) remains** (the last sibling; collapse this 2.2 block to a single ✅ line when it ships). The "depends on #4 / SFJAZZ" references are moot — #4 was dropped and the infra is on `main`; a PM pass should re-point them. Frontend interleaves all venues' shows by date.
+Shipped May 2026. **Keys Jazz Bistro (#5)** — HTML scrape of the venue's WordPress `/upcoming-shows/` page (plain `httpx`+`bs4`), see [Keys Jazz Bistro scraper](SHIPPED.md#keys-jazz-bistro-scraper-phase-22a-may-2026). **Mr. Tipple's (#7)** — Tribe Events REST API (also fills `ticket_url` + `price_text`), see [Mr. Tipple's scraper via the Tribe Events API](SHIPPED.md#mr-tipples-scraper-via-the-tribe-events-api-may-2026). (Bird & Beckett shipped as the 2.1 pilot; SFJAZZ deferred.) All three venues now interleave by date on the frontend.
 
 #### 2.3 Daily refresh scheduler (P1)
 
-Wire APScheduler into the backend process so all configured scrapers run once nightly (target: 04:00 PT, low traffic). Log per-venue counts + duration. Surface a `GET /api/health/scrape` endpoint that returns `last_run_at`, `last_run_per_venue_counts`, and any per-venue errors from the last run. Phase 2 done = open the page tomorrow morning and see fresh shows.
+Tracked under [#8](https://github.com/diegoSQK/foghorn/issues/8). Wire APScheduler into the backend process so all configured scrapers run once nightly (target: 04:00 PT, low traffic). Log per-venue counts + duration. Surface a `GET /api/health/scrape` endpoint that returns `last_run_at`, per-venue counts, and any per-venue errors from the last run. Phase 2 done = open the page tomorrow morning and see fresh shows across all three jazz venues.
 
 ### Phase 3 — Filtering & search
 
@@ -129,6 +127,7 @@ Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a v
 
 ## Deferred / still-outstanding
 
+- **SFJAZZ scraper.** Originally the Phase 2.1 pilot. The calendar sits behind a Cloudflare managed challenge that 403s every plain HTTP client (polite `foghorn-scraper` UA and a browser UA both); the sitemap host in `robots.txt` 404s. Cloudflare-bypass was explicitly out of scope for the original ticket. **Unblock condition:** willingness to take on per-venue Playwright (headless browser) complexity, or discovery of a cleaner SFJAZZ data feed (sitemap, third-party calendar, public API). File a fresh ticket when unblocked; the dropped original is [#4](https://github.com/diegoSQK/foghorn/issues/4).
 - **Travel-time ETAs** from home/work/studio addresses. Original requirement; deferred until the core calendar is solid. Map-provider decision (Google / Mapbox / ORS / coarse neighborhood table) deferred with it. **Unblock condition:** the core calendar is in regular use and "how long will it take to get there" is actually the friction point.
 - **Hosting / deployment.** Runs locally through Phases 1–5 minimum. **Unblock condition:** ready to share with friends, or want to view from a phone away from the laptop. Decision between Vercel + Python host vs. single VPS deferred to that point.
 - **Multi-user accounts.** Watchlist is single-tenant for now. **Unblock condition:** the app goes public (Phase 9+).
@@ -139,13 +138,13 @@ Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a v
 
 ## Suggested sequencing for future releases
 
-1. **Phase 1** — scaffolding. Foundation; nothing depends on it being done well, but everything depends on it being done at all.
-2. **Phase 2** — four jazz venues end-to-end. The first "this is useful" milestone. Cut a `v0.1.0` release tag at the end of this phase.
+1. **Phase 1** — scaffolding. Foundation; nothing depends on it being done well, but everything depends on it being done at all. ✅
+2. **Phase 2** — three jazz venues end-to-end. The first "this is useful" milestone. Cut a `v0.1.0` release tag at the end of this phase.
 3. **Phase 3** — filtering & search. Turns the raw calendar into something you'd actually open on a Friday afternoon.
 4. **Phase 4** — watchlist. Headline feature for the primary use case. Likely `v0.2.0` cut here.
 5. **Phase 5** — venue expansion. Breadth without changing the model. Cut `v0.3.0` when the venue set feels comprehensive enough for personal use.
 6. **Phase 6** — LLM-assisted scraping. Scaling lever, picked up once breadth is the bottleneck.
-7. **Deferred items revisited.** Travel ETAs, hosting, accounts — addressed when their unblock conditions are met, not on a fixed schedule.
+7. **Deferred items revisited.** SFJAZZ, Travel ETAs, hosting, accounts — addressed when their unblock conditions are met, not on a fixed schedule.
 
 ---
 

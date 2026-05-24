@@ -46,21 +46,21 @@ None at present. foghorn's surface is the website itself — users browse the sh
 - `docs/PM_THREAD_BOOTSTRAP.md` — bootstrap procedure for a fresh PM thread starting cold. Reading list, live-system sanity check, project-specific strategic context.
 - `docs/SETUP.md` — environment configuration: repo + GitHub PAT + label creation + filling in template placeholders. One-time setup reference.
 - `docs/EXAMPLES.md` — worked examples (issue ticket, SHIPPED entry, PROJECT_PLAN phase) drawn from a real project, with annotations on shape.
-- `backend/README.md` *(planned)* — authoritative reference for the backend's data model (shows, venues, performers), scraper interface, ingest pipeline, and API surface. Added in Phase 1 scaffolding.
+- `backend/README.md` — authoritative reference for the backend's data model (shows, venues, performers), scraper interface, ingest pipeline, and API surface. Filled in across Phase 1.
 - **GitHub Issues** — the work-item tracker. Issues are queued/claimed/closed via labels and state. The issue body is the ticket spec; the PR closes the issue on merge via `Closes #N`. See the **GitHub Issue Labels** section below for the label set.
 
 ## Project Shape
 
-Two-package monorepo, both intended to live in the repo root:
+Two-package monorepo, both in the repo root:
 
-- `backend/` — Python 3.11+. FastAPI for the HTTP surface, SQLite for storage (Postgres deferred until hosting is decided), per-venue scrapers in `backend/scrapers/<venue_slug>.py`. Scraping primarily with `httpx` + `beautifulsoup4`; reserve `playwright` for venues that require it (JS-rendered calendars). Daily scrape scheduled via a small in-process scheduler (APScheduler) when the backend is the long-running process; switch to cron / systemd timer if/when we add a separate worker.
-- `frontend/` — Next.js 15 + React 19 + TypeScript + Tailwind. Server components fetch from the backend API; client components for filtering / search interactivity. No database / auth in the frontend itself.
+- `backend/` — Python 3.11+. FastAPI for the HTTP surface, stdlib `sqlite3` for storage (Postgres deferred until hosting is decided), per-venue scrapers in `backend/scrapers/<venue_slug>.py`. Scraping primarily with `httpx` + `beautifulsoup4`; `playwright` reserved for venues that require it (JS-rendered calendars or anti-bot challenges). Daily scrape scheduled via a small in-process scheduler (APScheduler) when the backend is the long-running process; switch to cron / systemd timer if/when we add a separate worker.
+- `frontend/` — Next.js 16 + React 19 + TypeScript + Tailwind. Server components fetch from the backend API; client components for filtering / search interactivity. No database / auth in the frontend itself.
 
-Neither package is realized yet — see PROJECT_PLAN Phase 1 for scaffolding.
+Both packages are scaffolded (Phase 1.1) with the data-model spine in place (Phase 1.2). See `backend/README.md` for the data-model + storage details; see PROJECT_PLAN Phase 2 for in-flight scraper work.
 
 ## Current State
 
-Greenfield. Repo bootstrapped from `diegoSQK/agent-team-template` (May 2026). No code shipped yet. Phase 1 scaffolding (backend skeleton, frontend skeleton, CI gate) is the next thing to land; the four-jazz-venue end-to-end milestone follows in Phase 2.
+Phase 1 shipped (May 2026): backend + frontend scaffolding + CI gate (1.1), and the SQLite schema + repo layer + ingest pipeline + four-venue seed (1.2). Phase 2.1 — first scraper end-to-end + the `/api/shows` endpoint + minimal frontend list page + `make scrape` / `make backend-run` / `make frontend-run` targets — is in flight against **Bird & Beckett**, which publishes a public Google Calendar `.ics` (clean, structured, no anti-bot challenges). **SFJAZZ**, originally scoped as the 2.1 pilot, is blocked behind a Cloudflare managed challenge and deferred — see `Deferred Workstream` below.
 
 ## Commands
 
@@ -80,25 +80,25 @@ npm run lint
 npm run build  # surfaces type / config issues that lint misses
 ```
 
-Phase 1 scaffolding ticket pins exact versions and adds these commands to a `Makefile` at the repo root so `make gate` runs both.
+Root `Makefile` wraps both halves: `make gate` runs backend then frontend; `make backend-gate` / `make frontend-gate` run the halves individually; `make install` installs both sides' deps.
 
 ## Architecture Debugging Map
 
 When a show is wrong (missing, duplicated, mis-attributed, wrong time), inspect in this order:
 
-1. **The venue scraper** — `backend/scrapers/<venue_slug>.py`. Run it standalone (`python -m backend.scrapers.<venue>`) and inspect its raw output. 90% of show-data issues originate here (venue changed their markup, calendar paginated, performer name embedded in a non-obvious element).
-2. **The ingest pipeline** — `backend/ingest/pipeline.py`. Where scraper output is normalized (timezone, performer-name canonicalization) and deduped against existing rows. Wrong-time / duplicate issues that survive (1) live here.
-3. **The repository / storage layer** — `backend/repo/shows.py`. Persists normalized shows. Schema-shape problems and "missing because never written" issues live here.
-4. **The API view layer** — `backend/api/shows.py`. Filters (date range, region, performer search) applied here. "Show exists in DB but doesn't appear in API response" issues live here.
+1. **The venue scraper** — `backend/scrapers/<venue_slug>.py`. Run it standalone (`python -m foghorn.scrapers.<venue>`) and inspect its raw output. 90% of show-data issues originate here (venue changed their markup, calendar paginated, performer name embedded in a non-obvious element).
+2. **The ingest pipeline** — `backend/src/foghorn/ingest/pipeline.py`. Where scraper output is normalized (timezone, performer-name canonicalization) and deduped against existing rows. Wrong-time / duplicate issues that survive (1) live here.
+3. **The repository / storage layer** — `backend/src/foghorn/repo/shows.py`. Persists normalized shows. Schema-shape problems and "missing because never written" issues live here.
+4. **The API view layer** — `backend/src/foghorn/api/shows.py`. Filters (date range, region, performer search) applied here. "Show exists in DB but doesn't appear in API response" issues live here.
 5. **The frontend page** — `frontend/app/page.tsx` (and sub-routes for filter views). Rendering / formatting / display-timezone issues live here.
 
 ## Conventions
 
-- **Show identity.** Natural key is `(venue_id, local_start_datetime, headliner_canonical)`. Deduping uses this; scraper re-runs are idempotent.
-- **Time handling.** All show times stored as UTC in the DB with the venue's `IANA tz` (`America/Los_Angeles` for all current venues, but the column exists for future flexibility). Display always renders in the user's local timezone, defaulting to `America/Los_Angeles`.
-- **Performer names — display vs. search.** Store both: `display_name` is the venue's original string ("Joshua Redman Quartet"); `canonical_name` is the lowercased / accent-stripped / punctuation-removed form used for free-text and watchlist matching ("joshua redman quartet"). Never overwrite the display string; never search the display string.
-- **Scraper output is typed.** Each scraper returns `list[ScrapedShow]`, a frozen Pydantic model with required fields (venue_slug, headliner_raw, support_raw, start_local, doors_local?, ticket_url?, price_text?). Optional fields are explicit `None`, not missing.
-- **Scrapers are independently runnable.** `python -m backend.scrapers.<venue>` prints structured output and exits. No DB write side effects in the scraper module itself — that's the ingest pipeline's job.
+- **Show identity.** Natural key is `(venue_id, start_local_date, start_local_time, headliner_canonical)`. Deduping uses this; scraper re-runs are idempotent.
+- **Time handling.** All show times stored as UTC (`start_utc`) plus the venue's local date + time (`start_local_date` / `start_local_time`) in the venue's IANA tz (`America/Los_Angeles` for all current venues, but the column exists for future flexibility). Display always renders in the user's local timezone, defaulting to `America/Los_Angeles`. The ingest pipeline applies venue tz via stdlib `zoneinfo` to compute `start_utc` from the scraper's naive local datetime.
+- **Performer names — display vs. search.** Store both: `display_name` is the venue's original string ("Joshua Redman Quartet"); `canonical_name` is the NFKD-stripped / lowercased / punctuation-as-separator form used for free-text and watchlist matching ("joshua redman quartet"). Never overwrite the display string; never search the display string.
+- **Scraper output is typed.** Each scraper returns `list[ScrapedShow]`, a frozen Pydantic model with required fields (venue_slug, headliner_raw, support_raw, start_local, doors_local?, ticket_url?, price_text?, source_url). Optional fields are explicit `None`, not missing.
+- **Scrapers are independently runnable.** `python -m foghorn.scrapers.<venue>` prints structured output and exits. No DB write side effects in the scraper module itself — that's the ingest pipeline's job.
 - **Source-of-truth lineage.** Every persisted show row carries `source_url` and `scraped_at`. If anyone asks "why does foghorn say this," the answer is one click away.
 
 ## GitHub Issue Labels
@@ -134,6 +134,7 @@ The complete current set is whatever `gh label list` returns; the categories abo
 
 Explicitly deferred to keep early phases focused:
 
+- **SFJAZZ scraper.** Originally the Phase 2.1 pilot. SFJAZZ's calendar sits behind a Cloudflare managed challenge that 403s every plain HTTP client (both the polite `foghorn-scraper` UA and a browser UA), and the sitemap host in `robots.txt` 404s. Cloudflare-bypass was out of scope for the original ticket; Phase 2.1 pivoted to Bird & Beckett (public `.ics` feed) instead. **Unblock condition:** willingness to take on per-venue Playwright (headless browser) complexity, or discovery of a cleaner SFJAZZ data feed (sitemap, third-party calendar, public API). Will file a fresh ticket when unblocked.
 - **Travel-time ETAs from home/work/studio.** Deferred to a later phase. Decision on map provider (Google / Mapbox / ORS / coarse neighborhood lookup) deferred with it.
 - **Hosting / deployment.** Phases 1–N run locally. Decision on Vercel + Python host vs. single VPS deferred until the app is usable enough to deploy.
 - **Multi-user accounts.** Watchlist is local / single-user-shaped in early phases. Real accounts wait until the app goes public.
