@@ -130,9 +130,10 @@ Upcoming shows, ordered by `start_utc`. Query params (all optional):
 - `venues` — comma-separated venue slugs (e.g. `bird_and_beckett,keys_jazz_bistro`); omitted = all venues. Unknown slugs simply don't match.
 - `venue` — legacy single slug; prefer `venues=`.
 - `time_of_day` — `early` (`start_local_time` < 21:00) or `late` (>= 21:00); exact complements, no gap. Anything else ignored.
-- `performer_query` — free-text performer name; canonicalized server-side (same `canonicalize()` as ingest, so "Joshua Redman" matches "joshua redman quartet"), then substring-matched against any performer (headliner or support) on the bill. Empty after canonicalization (e.g. punctuation only) = no filter.
+- `performer_query` — free-text performer name; canonicalized server-side, then **token-bag matched** (Phase 4.1, via `repo/performer_match.py`) against any performer (headliner or support): every query token must be a whole token of the performer's canonical name, so "redman joshua" matches "joshua redman quartet". Empty after canonicalization = no filter.
 - `region` — `SF` / `East Bay` / `Peninsula` / `South Bay`; matches the venue's `region`. Unknown values ignored (not a 400). All current venues are SF.
 - `neighborhood` — matches the venue's `neighborhood`, case-insensitive exact (e.g. `North Beach`).
+- `watchlist` — `true` filters to shows where any performer token-matches any watchlist entry. Empty watchlist → `[]` (not all shows).
 
 All filters stack as ANDs. Date filters compare against `start_local_date`. Response is a JSON array of:
 
@@ -151,7 +152,19 @@ All filters stack as ANDs. Date filters compare against `start_local_date`. Resp
 }
 ```
 
-Phase 4 adds the watchlist surface.
+### `GET/POST/DELETE /api/watchlist`
+
+The single-tenant watchlist of followed performers (Phase 4.1). The canonical
+performer-match utility is `repo/performer_match.py` (token-bag), shared with
+`?performer_query=`.
+
+- `GET /api/watchlist` → `[{slug-less entry}]`: `canonical_name`, `display_name`, `added_at`, `notes` (newest first).
+- `POST /api/watchlist` body `{"display_name": "Joshua Redman Quartet", "notes": null}` → canonicalizes the name (422 if it canonicalizes to nothing), returns the entry. Re-adding an existing canonical name keeps the original `display_name`/`added_at`.
+- `DELETE /api/watchlist/{canonical_name}` → 204, or 404 if not present.
+
+**CORS:** the frontend's add/remove buttons call these cross-origin, so the app
+enables `CORSMiddleware` (permissive by default for local-first use; tighten via
+`FOGHORN_CORS_ORIGINS` when deployed).
 
 ### `GET /api/venues`
 

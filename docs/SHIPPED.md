@@ -8,6 +8,85 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Watchlist data model, UI, and token-based matching (Phase 4.1, May 2026)
+
+Diego's original "find shows where my friends are playing" ask. Closes #26. A
+single-tenant watchlist of performers, a dedicated `/watchlist` view, add/remove
+affordances on every show card — and the performer-match logic upgraded to
+token-bag and shared between this and 3.3's search.
+
+**Token-bag matching is now the canonical performer match
+(`repo/performer_match.py`).** A query matches a performer iff every whitespace
+token of the (canonicalized) query is a whole token of the performer's canonical
+name. So "joshua redman", "redman joshua", and "Redman, Joshua" all match
+"joshua redman quartet"; "redm" does **not** match "redman" (whole tokens, not
+character substrings). This replaces 3.3's one-directional substring match —
+**3.3's `?performer_query=` was refactored to use it too** (one matcher, same
+UX in search and watchlist), and 3.3's tests gained a reordering case that the
+old substring match would have failed. `matches_token_bag` is the pure function;
+`token_match_sql` builds the parameterized `(' '||name||' ') LIKE '% tok %'`
+predicate (OR across bags, AND within). Tokens are pre-canonicalized to
+`[a-z0-9 ]`, so they carry no `LIKE` wildcards and need no escaping. FTS5/trigram
+fuzzy matching stays deferred (PROJECT_PLAN Phase 7).
+
+**Schema + repo.** `watchlist(canonical_name PK, display_name, added_at, notes)`
+— `canonical_name` (canonicalized `display_name`) is both match key and PK; no
+`user_id` (single-tenant per AGENTS.md — that's a future migration, not pre-paid
+now). `repo/watchlist.py` add/list/remove: **canonicalize-on-add**, and re-adding
+the same canonical never overwrites the original `display_name`/`added_at` (it
+can update `notes`).
+
+**Two-level matching — deliberate.** The `+`/`✓` button on a show card reflects
+**exact** canonical membership (is *this* performer on the list), while the
+`?watchlist=true` filter uses **token-bag** (surface every show where any
+performer matches any watched name). So watching "Vince Lateano" surfaces "Vince
+Lateano Trio" shows in `/watchlist`, but that Trio's `+` button stays a `+`
+unless you add it specifically. This is correct, if subtle — documented here so
+a future reader doesn't "fix" it.
+
+**`?watchlist=true` on `/api/shows`** loads the watchlist, turns each entry into
+a token bag, and matches via the shared predicate, stacking (AND) with all other
+filters. **Empty watchlist → `[]`** (surfaces the empty state, doesn't flood
+with everything) — both API and the `/watchlist` page handle this (the page
+shows a CTA to add performers from `/`, not an empty FilterBar).
+
+**Watchlist CRUD (`api/watchlist.py`).** `GET/POST/DELETE /api/watchlist` —
+POST canonicalizes the display name (422 if it canonicalizes to nothing), DELETE
+by canonical name (404 if absent, 204 on success).
+
+**CORS added.** The add/remove buttons are client components that call the API
+cross-origin (frontend `:3000` → backend `:8000`), so `api/__init__.py` gained
+`CORSMiddleware`. Local-first + no auth, so it defaults permissive
+(`allow_origins=["*"]`); `FOGHORN_CORS_ORIGINS` tightens it when the app is ever
+deployed publicly. (Server-component fetches are server-side and never needed
+CORS — this is purely for the new client mutations.)
+
+**Frontend.** Filter/show rendering was extracted into a shared `ShowList`
+(used by `/` and `/watchlist`) and `lib/api.ts` (shared base/types/`getJSON`).
+`AddToWatchlistButton` (client, optimistic +/✓ toggle, reverts on failure) sits
+on every performer; the server passes each a server-computed `initiallyOn`.
+`/watchlist` reuses `FilterBar` — which (with `PerformerSearch`) was made
+route-aware via `usePathname()` so filters stay on `/watchlist` instead of
+bouncing to `/`. `WatchlistChips` (client) removes entries and `router.refresh()`es
+so the matches + chips + nav count re-render. The nav lives in `layout.tsx`
+(async, server-fetches the count) → `Watchlist (N)`; the count updates on
+navigation (optimistic card adds catch up on the next nav, per the ticket).
+
+**FE gotcha:** the `/watchlist` split — shows are server-fetched, but the
+watchlist is client-mutated — is reconciled with `router.refresh()` (chip
+removal) and optimistic local state (card buttons). No client store; the server
+is the source of truth, the client just nudges it and re-reads.
+
+Tests (122 green under mypy `strict`): `repo/test_performer_match.py` (token
+cases incl. reorder, partial-token-false, accents), `repo/test_repo_watchlist.py`
+(add/list/remove, idempotency, display preservation), `api/test_watchlist_endpoint.py`
+(CRUD + 404 + canonicalize + 422), `api/test_shows_watchlist_filter.py`
+(`?watchlist=true` matches, empty→[], stacks), and 3.3's
+`test_shows_performer_filter.py` updated for token behavior. Live-verified the
+full UI: empty CTA → add → `/watchlist` shows token-matched shows + chips + nav
+count, and the exact-performer `✓` state on `/`. **Frontend test gap unchanged**
+(no component framework yet — still a future ticket).
+
 ## Late filter now starts at 9pm — no time-of-day gap (May 2026)
 
 Small follow-up to Phase 3.1's time-of-day chips. As shipped, `Late` was
