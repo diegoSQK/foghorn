@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "bird_and_beckett",
+    "name": "Bird & Beckett Books and Records",
+    "neighborhood": "Glen Park",
+    "region": "SF"
+  },
+  {
+    "slug": "keys_jazz_bistro",
+    "name": "Keys Jazz Bistro",
+    "neighborhood": "North Beach",
+    "region": "SF"
+  },
+  {
+    "slug": "mr_tipples",
+    "name": "Mr. Tipple's Recording Studio",
+    "neighborhood": "Hayes Valley",
+    "region": "SF"
+  }
+]
