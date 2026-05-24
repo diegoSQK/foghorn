@@ -70,6 +70,15 @@ CREATE TABLE IF NOT EXISTS scrape_runs (
     finished_at  TEXT NOT NULL
 );
 
+-- Single-tenant watchlist of followed performers (Phase 4.1). canonical_name
+-- (canonicalized display_name) is the match key; no user_id (single-tenant).
+CREATE TABLE IF NOT EXISTS watchlist (
+    canonical_name  TEXT PRIMARY KEY,
+    display_name    TEXT NOT NULL,
+    added_at        TEXT NOT NULL,
+    notes           TEXT
+);
+
 CREATE TABLE IF NOT EXISTS scrape_run_venues (
     scrape_run_id  INTEGER NOT NULL REFERENCES scrape_runs(id),
     venue_slug     TEXT NOT NULL,

@@ -20,6 +20,7 @@ from foghorn.models import Region, Show, ShowFilters, Venue
 from foghorn.repo import db
 from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
+from foghorn.repo import watchlist as watchlist_repo
 
 router = APIRouter()
 
@@ -109,18 +110,28 @@ def build_show_views(
     from_date: str,
     to_date: str,
     time_of_day: Literal["early", "late"] | None = None,
-    performer_canonical_substring: str | None = None,
+    performer_query_canonical: str | None = None,
     region: Region | None = None,
     neighborhood: str | None = None,
+    watchlist: bool = False,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
     it's unit-testable against a connection without going through HTTP."""
+    # When the watchlist filter is on, turn each entry's canonical name into a
+    # token bag. An empty watchlist yields [] → shows.list matches nothing
+    # (surfacing the empty state rather than flooding with all shows).
+    watchlist_bags: list[list[str]] | None = None
+    if watchlist:
+        watchlist_bags = [
+            entry.canonical_name.split() for entry in watchlist_repo.list_all(conn)
+        ]
     filters = ShowFilters(
         venue_slugs=venue_slugs,
         from_date=from_date,
         to_date=to_date,
         time_of_day=time_of_day,
-        performer_canonical_substring=performer_canonical_substring,
+        performer_query_canonical=performer_query_canonical,
+        watchlist_token_bags=watchlist_bags,
         region=region,
         neighborhood=neighborhood,
     )
@@ -155,6 +166,9 @@ def list_shows(
     neighborhood: str | None = Query(
         default=None, description="venue neighborhood (case-insensitive exact)"
     ),
+    watchlist: str | None = Query(
+        default=None, description="'true' to filter to watchlist matches"
+    ),
 ) -> list[ShowView]:
     today = dt.date.today()
     from_date = from_ or today.isoformat()
@@ -170,7 +184,7 @@ def list_shows(
     # Canonicalize the query the same way performers are stored (Phase 1.2), so
     # "Joshua Redman" matches "joshua redman quartet". A query that's empty
     # after canonicalization (e.g. only punctuation) means "no filter".
-    performer_substring = canonicalize(performer_query) if performer_query else ""
+    performer_canonical = canonicalize(performer_query) if performer_query else ""
 
     # Narrow region to a known value; unknown values are ignored, not a 400.
     reg: Region | None = next((r for r in _REGIONS if r == region), None)
@@ -183,9 +197,10 @@ def list_shows(
             from_date=from_date,
             to_date=to_date,
             time_of_day=tod,
-            performer_canonical_substring=performer_substring or None,
+            performer_query_canonical=performer_canonical or None,
             region=reg,
             neighborhood=neighborhood or None,
+            watchlist=watchlist == "true",
         )
     finally:
         conn.close()

@@ -103,7 +103,13 @@ class ShowFilters(BaseModel):
     venue_slugs: list[str] | None = None
     from_date: str | None = None  # YYYY-MM-DD, inclusive
     to_date: str | None = None  # YYYY-MM-DD, inclusive
-    performer_canonical_substring: str | None = None
+    # Canonicalized free-text query; whole-token matched against any performer
+    # (Phase 4.1 upgraded this from substring to token-bag matching).
+    performer_query_canonical: str | None = None
+    # Watchlist filter: each inner list is one entry's canonical tokens. A show
+    # matches if any performer token-matches any bag. Empty list = no matches
+    # (empty watchlist), None = filter not requested.
+    watchlist_token_bags: list[list[str]] | None = None
     region: Region | None = None
     neighborhood: str | None = None  # case-insensitive exact match on venue
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
@@ -140,3 +146,14 @@ class ScrapeRun(BaseModel):
     started_at: str  # ISO 8601 UTC
     finished_at: str  # ISO 8601 UTC
     venues: list[ScrapeRunVenue] = Field(default_factory=list)
+
+
+class Watchlist(BaseModel):
+    """A performer the user follows. ``canonical_name`` (the canonicalized
+    ``display_name``) is the match key + primary key; ``display_name`` is the
+    verbatim string the user added, kept for the UI. Single-tenant — no user_id."""
+
+    canonical_name: str
+    display_name: str
+    added_at: str  # ISO 8601 UTC
+    notes: str | None = None
