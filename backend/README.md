@@ -110,22 +110,71 @@ A failure on one show is captured in `errors` without aborting the batch.
 
 **Seed.** `repo/seed_venues.py` upserts the four Phase 2 jazz venues (SFJAZZ,
 Keys Jazz Bistro, Bird & Beckett, Mr. Tipple's). Idempotent via upsert-on-slug;
-run standalone with `python -m foghorn.repo.seed_venues`. Each `calendar_url` is
-a `TBD` placeholder until that venue's Phase 2.x scraper ticket sets the real
-one.
+run standalone with `python -m foghorn.repo.seed_venues`. Each `calendar_url`
+starts as a `TBD` placeholder until that venue's Phase 2.x scraper ticket sets
+the real one (Bird & Beckett's is set as of Phase 2.1).
 
 ## API Surface
 
-*Filled in Phase 2.x.* FastAPI app serving filtered show queries
-(`GET /api/shows` with date-range / region / performer-search params), a
-scrape-health endpoint (`GET /api/health/scrape`), and the watchlist surface
-(Phase 4).
+FastAPI app `foghorn.api:app` (run with `make backend-run` →
+`uvicorn foghorn.api:app --reload` on `:8000`). On startup it seeds the venues
+so a fresh DB serves correctly. Read-only so far.
+
+### `GET /api/shows`
+
+Upcoming shows, ordered by `start_utc`. Query params (all optional):
+
+- `venue` — venue slug (e.g. `bird_and_beckett`); omitted = all venues.
+- `from` — ISO date, inclusive (default: today).
+- `to` — ISO date, inclusive (default: today + 30 days).
+
+Date filters compare against `start_local_date`. Response is a JSON array of:
+
+```json
+{
+  "venue": {"slug": "bird_and_beckett", "name": "Bird & Beckett Books and Records",
+            "neighborhood": "Glen Park", "region": "SF"},
+  "start_local_date": "2026-06-05",
+  "start_local_time": "19:30",
+  "doors_local_time": null,
+  "headliner": {"display": "David Parker Sextet", "canonical": "david parker sextet"},
+  "support": [{"display": "...", "canonical": "..."}],
+  "ticket_url": null,
+  "price_text": null,
+  "source_url": "https://birdbeckett.com/events/"
+}
+```
+
+Phase 3 adds region / neighborhood / performer-search params; Phase 2.3 adds
+`GET /api/health/scrape`; Phase 4 adds the watchlist surface.
 
 ## Scrapers
 
-*Filled in Phase 2.x.* Each venue scraper lives in
-`foghorn.scrapers.<venue_slug>` and returns `list[ScrapedShow]` (a frozen
-Pydantic model). Scrapers are independently runnable
-(`python -m foghorn.scrapers.<venue>`) with no DB write side effects — that's
-the ingest pipeline's job. Seed venues: SFJAZZ, Keys Jazz Bistro, Bird &
-Beckett, Mr. Tipple's.
+Each venue scraper lives in `foghorn.scrapers.<venue_slug>` and exposes a
+zero-argument `scrape() -> list[ScrapedShow]` (the frozen scraper contract).
+Scrapers have no DB side effects — that's the ingest pipeline's job — and are
+independently runnable: `python -m foghorn.scrapers.<venue>` prints the scraped
+shows as JSON.
+
+`REGISTERED_SCRAPERS` (`scrapers/__init__.py`) maps venue slug → scrape
+callable. `make scrape` (`foghorn.cli.scrape`) seeds venues, then runs each
+registered scraper through `ingest_scraped_shows`, printing per-venue
+`created / updated / errors` (exit code = total failures, for cron/CI).
+
+**Pattern (see `bird_and_beckett`).** Split `fetch_*()` (network) from a pure
+`parse_*(text, today, ...)` so the parser is deterministic and fixture-testable
+without the network. Bird & Beckett reads the venue's public Google Calendar
+`.ics` (a cleaner, more stable source than its WordPress event posts) and uses
+`icalendar` + `recurring-ical-events` to expand the next ~90 days — including
+recurring residencies — mapping each timed musical event to a `ScrapedShow`,
+skipping all-day entries, and applying a conservative non-music exclusion
+heuristic (errs toward inclusion). Datetimes are normalized to naive venue-local
+time; ingest re-applies the tz.
+
+**Adding a venue:** implement `scrapers/<slug>.py` with `scrape()`, register it
+in `REGISTERED_SCRAPERS`, set the venue's `calendar_url` in the seed, and add a
+fixture-driven parser test.
+
+**SFJAZZ note.** SFJAZZ (Phase 2's nominal pilot) sits behind a Cloudflare
+managed challenge that 403s simple HTTP clients, so it has no scraper yet — the
+Phase 2.1 pilot was re-homed to Bird & Beckett. See `docs/SHIPPED.md`.
