@@ -17,6 +17,7 @@ from fastapi import FastAPI
 
 from foghorn.api.health import router as health_router
 from foghorn.api.shows import router as shows_router
+from foghorn.api.venues import router as venues_router
 from foghorn.repo import db
 from foghorn.repo.seed_venues import seed
 from foghorn.scheduler.runner import start_scheduler
@@ -39,4 +40,5 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="foghorn", lifespan=lifespan)
 app.include_router(shows_router)
+app.include_router(venues_router)
 app.include_router(health_router)
