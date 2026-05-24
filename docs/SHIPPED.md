@@ -8,6 +8,69 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Daily refresh scheduler and scrape-health endpoint (Phase 2.3, May 2026)
+
+Phase 2's last piece: refreshes now happen on their own (nightly 04:00 PT) and
+there's a surface to answer "did last night's run work?" Closes #8. With this,
+Phase 2 is complete — open the page in the morning and all three jazz venues
+are current.
+
+**`BackgroundScheduler`, not `AsyncIOScheduler`.** The scrape job is synchronous
+and blocking (httpx fetches + SQLite writes). `BackgroundScheduler` runs it on a
+worker thread, off the FastAPI event loop, so the API stays responsive during a
+refresh. Each run opens its **own** SQLite connection inside that thread, which
+satisfies sqlite3's `check_same_thread` guard (the app's request connections are
+separate and short-lived). An `AsyncIOScheduler` would have run the blocking job
+on the event loop — wrong fit.
+
+**One unit of work, two callers.** `scheduler/runner.py:run_scrape(conn,
+scrapers=…)` runs every registered scraper through ingest, captures a per-venue
+result (`created` / `updated` / `errors`), and records one run. Both the nightly
+job *and* `make scrape` call it, so a manual refresh lands a `scrape_runs` row
+and shows in `/api/health/scrape` exactly like a scheduled one (the old
+bespoke loop in `cli/scrape.py` is gone). A per-venue failure — scraper raises,
+or ingest reports errors — is captured in that venue's `errors` and never
+propagates: one bad venue can't crash the run or kill the scheduler thread.
+
+**Schema + trim.** Two additive tables: `scrape_runs(id, started_at,
+finished_at)` and `scrape_run_venues(scrape_run_id, venue_slug, started_at,
+finished_at, created, updated, errors_json)` — errors are stored as a JSON array
+in `errors_json`. `repo/scrape_runs.record_run` inserts the run + child rows
+then trims to the most recent 30 (`DELETE … ORDER BY id DESC LIMIT -1 OFFSET
+30`), deleting child rows first so no orphans accumulate.
+
+**`GET /api/health/scrape`** (`api/health.py`) returns the latest run's
+`last_run_at` / `last_run_finished_at` + a per-venue breakdown (`slug`,
+timestamps, counts, `errors`). Returns **503 `{"error":
+"no_scrape_runs_yet"}`** when no run exists yet — deliberately distinct from "ran
+but a venue failed" (200 with that venue's `errors` populated), so an ops poller
+can tell "never ran" from "ran badly."
+
+**Test-environment guard.** The scheduler is gated behind
+`FOGHORN_DISABLE_SCHEDULER`; `start_scheduler()` returns `None` when it's set.
+`tests/conftest.py` sets it at import so no pytest run (including the
+`TestClient`-driven API tests, which exercise the lifespan) ever starts a
+background thread or fires cron. The app lifespan starts the scheduler on
+startup and `shutdown(wait=False)`s it on exit.
+
+Tests (7 new, all green under mypy `strict`): `scheduler/test_runner.py`
+(success + raising scraper isolation, persistence/readback, unseeded-venue
+error), `scheduler/test_trim.py` (32 inserts trim to 30 keeping newest; explicit
+trim leaves no orphan child rows), `api/test_health_scrape.py` (the 503 no-runs
+case + latest-run shape with a populated `errors`). Live: `make scrape` recorded
+a run across all three venues (59 / 36 / 106), and startup registered the job
+with `next_run_time` at the next 04:00 PT.
+
+**Deps note.** `apscheduler` (already pinned since Phase 1.1) ships no `py.typed`,
+so it joined the mypy `ignore_missing_imports` override alongside
+`recurring_ical_events`.
+
+**Release signal (for the PM thread):** Phase 2.1 (#6), 2.2 (#5, #7), and 2.3
+(#8) are all shipped — this is the **v0.1.0 release-cut point** per
+`docs/PROJECT_PLAN.md` → "Suggested sequencing." Per `RELEASE_PROCESS.md` the
+cut is a PM-thread ritual, so it is *not* done in this PR — surfaced for the PM
+thread to run.
+
 ## Mr. Tipple's scraper via the Tribe Events API (May 2026)
 
 Second of the three Phase 2.2 sibling scrapers (closes #7). Adds Mr. Tipple's

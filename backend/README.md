@@ -118,7 +118,8 @@ the real one (Bird & Beckett's is set as of Phase 2.1).
 
 FastAPI app `foghorn.api:app` (run with `make backend-run` →
 `uvicorn foghorn.api:app --reload` on `:8000`). On startup it seeds the venues
-so a fresh DB serves correctly. Read-only so far.
+so a fresh DB serves correctly and starts the nightly scrape scheduler (see
+[Scheduled jobs](#scheduled-jobs)). Read-only so far.
 
 ### `GET /api/shows`
 
@@ -145,8 +146,40 @@ Date filters compare against `start_local_date`. Response is a JSON array of:
 }
 ```
 
-Phase 3 adds region / neighborhood / performer-search params; Phase 2.3 adds
-`GET /api/health/scrape`; Phase 4 adds the watchlist surface.
+Phase 3 adds region / neighborhood / performer-search params; Phase 4 adds the
+watchlist surface.
+
+### `GET /api/health/scrape`
+
+The most recent scrape run (scheduled or `make scrape`) with its per-venue
+breakdown — so "did last night's refresh run, and did anything break?" is one
+request away:
+
+```json
+{
+  "last_run_at": "2026-05-24T04:00:01+00:00",
+  "last_run_finished_at": "2026-05-24T04:01:43+00:00",
+  "venues": [
+    {"slug": "bird_and_beckett", "started_at": "...", "finished_at": "...",
+     "created": 0, "updated": 12, "errors": []},
+    {"slug": "keys_jazz_bistro", "started_at": "...", "finished_at": "...",
+     "created": 0, "updated": 0, "errors": ["timeout fetching calendar (httpx.ReadTimeout)"]}
+  ]
+}
+```
+
+Returns **503** `{"error": "no_scrape_runs_yet"}` until the first run is
+recorded — distinct from "ran but a venue failed" (200 with that venue's
+`errors` populated).
+
+## Scheduled jobs
+
+A nightly scrape runs at **04:00 America/Los_Angeles** via APScheduler's
+`BackgroundScheduler` (started in the FastAPI lifespan), refreshing every
+registered scraper and recording a row read by `GET /api/health/scrape`.
+`make scrape` runs the same unit of work on demand. The scheduler is suppressed
+when `FOGHORN_DISABLE_SCHEDULER` is set (pytest sets it). Run history is kept to
+the most recent 30 runs. See `scheduler/runner.py`.
 
 ## Scrapers
 
