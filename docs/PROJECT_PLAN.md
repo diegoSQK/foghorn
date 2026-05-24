@@ -83,9 +83,9 @@ Shipped May 2026 — see [Daily refresh scheduler and scrape-health endpoint](SH
 
 Make the calendar useful for "what should I do this Friday." Next coherent block after v0.1.0; PM thread to queue 3.1 / 3.2 / 3.3 tickets. 3.1 establishes the URL-driven filter framework the other two inherit; 3.3 lands first for user value (performer search is meaningful with current data); 3.2 ships region + neighborhood (single-region for now, fills out as Phase 5 adds non-SF venues).
 
-#### 3.1 Date-range + venue filters + URL-driven filter framework (P1)
+#### 3.1 Date-range + venue filters + URL-driven filter framework (P1) ✅
 
-Frontend: date range picker (default = next 14 days), venue checkboxes, and quick-selector chips: date-based (`Tonight` / `This weekend` / `Next 7 days`) **plus time-of-day chips (`Early` = before 9pm / `Late` = 10pm onward)** computed from `start_local_time`. Backend: `GET /api/shows?from=&to=&venues=...` (the `from`/`to` already exist; `venues=` multi-value is new). Filters live in URL search params and the server component re-fetches on navigation; shareable URLs, App Router-native, future-friendly for `/watchlist`. The filter framework here is what 3.2 and 3.3 extend.
+Shipped May 2026 — see [Date and venue filters, URL-driven framework](SHIPPED.md#date-and-venue-filters-url-driven-framework-phase-31-may-2026). URL search params are the single source of truth; the server component reads them and re-fetches on navigation (shareable/bookmarkable, back-button works), and `FilterBar` (client) writes changes back via `router.push`. Native date inputs (apply-on-change, no picker lib), venue checkboxes (from the new `GET /api/venues`), and quick chips (`Tonight`/`This weekend`/`Next 7 days` + server-side `Early`/`Late` via `?time_of_day=`). Backend adds `?venues=` (comma slugs) + `?time_of_day=`. **3.2 and 3.3 inherit this framework.**
 
 #### 3.2 Region / neighborhood filter (P1)
 

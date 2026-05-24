@@ -174,6 +174,13 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
             "WHERE sp.show_id = s.id AND p.canonical_name LIKE ?)"
         )
         params.append(f"%{filters.performer_canonical_substring}%")
+    # HH:MM is zero-padded 24h, so lexical comparison is chronological.
+    if filters.time_of_day == "early":
+        clauses.append("s.start_local_time < ?")
+        params.append("21:00")
+    elif filters.time_of_day == "late":
+        clauses.append("s.start_local_time >= ?")
+        params.append("22:00")
 
     sql = (
         f"SELECT {', '.join('s.' + c.strip() for c in _SHOW_COLUMNS.split(','))} "

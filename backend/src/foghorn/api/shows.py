@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime as dt
 import sqlite3
+from typing import Literal
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
@@ -84,19 +85,33 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
     )
 
 
+def _parse_venue_slugs(venues: str | None, venue: str | None) -> list[str] | None:
+    """Resolve the venue filter from the multi-value ``venues=`` param (comma
+    separated) or the legacy singular ``venue=``. An empty/blank list means
+    "no constraint" (all venues), avoiding the empty-filter footgun."""
+    if venues is not None:
+        slugs = [s.strip() for s in venues.split(",") if s.strip()]
+        return slugs or None
+    if venue:
+        return [venue]
+    return None
+
+
 def build_show_views(
     conn: sqlite3.Connection,
     *,
-    venue: str | None,
+    venue_slugs: list[str] | None,
     from_date: str,
     to_date: str,
+    time_of_day: Literal["early", "late"] | None = None,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
     it's unit-testable against a connection without going through HTTP."""
     filters = ShowFilters(
-        venue_slugs=[venue] if venue else None,
+        venue_slugs=venue_slugs,
         from_date=from_date,
         to_date=to_date,
+        time_of_day=time_of_day,
     )
     shows = shows_repo.list(conn, filters)
     venues_by_id = {v.id: v for v in venues_repo.list_all(conn)}
@@ -105,22 +120,41 @@ def build_show_views(
 
 @router.get("/api/shows", response_model=list[ShowView])
 def list_shows(
-    venue: str | None = Query(default=None, description="venue slug"),
+    venue: str | None = Query(
+        default=None, description="single venue slug (legacy; prefer venues=)"
+    ),
+    venues: str | None = Query(
+        default=None, description="comma-separated venue slugs"
+    ),
     from_: str | None = Query(
         default=None, alias="from", description="ISO date (default: today)"
     ),
     to: str | None = Query(
         default=None, description="ISO date (default: today + 30 days)"
     ),
+    time_of_day: str | None = Query(
+        default=None, description="early | late (filters by start time)"
+    ),
 ) -> list[ShowView]:
     today = dt.date.today()
     from_date = from_ or today.isoformat()
     to_date = to or (today + dt.timedelta(days=DEFAULT_WINDOW_DAYS)).isoformat()
 
+    # Narrow to the Literal; unknown values are ignored rather than 400.
+    tod: Literal["early", "late"] | None = None
+    if time_of_day == "early":
+        tod = "early"
+    elif time_of_day == "late":
+        tod = "late"
+
     conn = db.connect()
     try:
         return build_show_views(
-            conn, venue=venue, from_date=from_date, to_date=to_date
+            conn,
+            venue_slugs=_parse_venue_slugs(venues, venue),
+            from_date=from_date,
+            to_date=to_date,
+            time_of_day=tod,
         )
     finally:
         conn.close()

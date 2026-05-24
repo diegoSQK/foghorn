@@ -8,6 +8,64 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Date and venue filters, URL-driven framework (Phase 3.1, May 2026)
+
+The first Phase 3 ticket and the one that sets the pattern: the calendar is now
+filterable by date range, venue, and time of day, with all filter state living
+in the URL. Closes #19. Builds on v0.1.0; 3.2 (region) and 3.3 (performer
+search) plug into this framework.
+
+**URL is the single source of truth.** `app/page.tsx` is an `async` server
+component reading `searchParams` (`?from=&to=&venues=&time_of_day=`), building
+the `/api/shows` query, fetching, and rendering. Filters are shareable,
+bookmarkable, and back-button-correct. The client `FilterBar` derives every
+control's state from `useSearchParams()` on each render and writes changes via
+`router.push` — **no local filter state**, so URL and UI can't drift. This is
+the contract 3.2/3.3 inherit: add a param, read it server-side, add a control
+that pushes it.
+
+**Native date inputs, no picker library.** Two `<input type="date">` (with
+`min`/`max` cross-bounding) on apply-on-change — selecting a complete date
+navigates immediately; native inputs don't fire per-keystroke, so no debounce
+needed. Skipped `react-day-picker` et al.: a dependency + bundle weight for a
+two-field range the platform already gives us. Revisit if we need range-drag or
+multi-month UX.
+
+**`?venues=` (multi-value).** Comma-separated slugs
+(`?venues=bird_and_beckett,keys_jazz_bistro`) parsed into
+`ShowFilters.venue_slugs`; unknown slugs simply don't match (mixed valid/invalid
+filters to the valid). The legacy singular `?venue=` still works. The frontend
+omits the param entirely when all (or zero) venue checkboxes are selected,
+keeping the default URL clean and dodging the empty-set footgun (zero
+checked = all).
+
+**`GET /api/venues`** returns the venue-filter options — `slug`/`name`/
+`neighborhood`/`region`. It's filtered to `REGISTERED_SCRAPERS`, so seeded-but-
+deferred **SFJAZZ is excluded** (no scraper, never any shows → no dead
+checkbox). This couples the venues endpoint to the scraper registry on purpose:
+"venues foghorn tracks" is exactly the registry.
+
+**Time-of-day is server-side.** `Early` (`start_local_time` < 21:00) / `Late`
+(>= 22:00) are a `?time_of_day=` param → `ShowFilters.time_of_day` → a SQL
+clause (lexical compare works since `HH:MM` is zero-padded 24h). Chosen over
+client-side post-filtering for consistency with the other filters and so the
+URL fully determines the result set (cache-friendly, shareable). Unknown values
+are ignored, not 400. Note the deliberate 21:00–21:59 gap between Early and
+Late — matches the ticket's definition.
+
+Backend tests (`api/test_shows_endpoint.py` extended, `api/test_venues_endpoint.py`
+new) cover `?venues=` (single/multi/unknown/mixed), legacy `?venue=`,
+`time_of_day` early/late + ignored-bogus, filter stacking, and that
+`/api/venues` lists exactly the three scraped venues. 80 tests green under mypy
+`strict`.
+
+**Frontend testing gap (flagged per ticket).** The frontend still has no unit/
+component test framework — only `tsc`/`eslint`/`next build`. The
+URL→fetch→render path was verified by a live SSR check (filtered URLs render
+the right venues/times), but `FilterBar`'s click-through (chip toggles,
+checkbox→URL) isn't covered by an automated test. Standing up Playwright/RTL is
+its own ticket; didn't introduce one here.
+
 ## Daily refresh scheduler and scrape-health endpoint (Phase 2.3, May 2026)
 
 Phase 2's last piece: refreshes now happen on their own (nightly 04:00 PT) and

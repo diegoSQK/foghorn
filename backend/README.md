@@ -125,9 +125,11 @@ so a fresh DB serves correctly and starts the nightly scrape scheduler (see
 
 Upcoming shows, ordered by `start_utc`. Query params (all optional):
 
-- `venue` — venue slug (e.g. `bird_and_beckett`); omitted = all venues.
 - `from` — ISO date, inclusive (default: today).
 - `to` — ISO date, inclusive (default: today + 30 days).
+- `venues` — comma-separated venue slugs (e.g. `bird_and_beckett,keys_jazz_bistro`); omitted = all venues. Unknown slugs simply don't match.
+- `venue` — legacy single slug; prefer `venues=`.
+- `time_of_day` — `early` (`start_local_time` < 21:00) or `late` (>= 22:00); anything else ignored.
 
 Date filters compare against `start_local_date`. Response is a JSON array of:
 
@@ -146,8 +148,19 @@ Date filters compare against `start_local_date`. Response is a JSON array of:
 }
 ```
 
-Phase 3 adds region / neighborhood / performer-search params; Phase 4 adds the
-watchlist surface.
+Phase 3.2 adds `region` / `neighborhood` params; 3.3 adds performer search;
+Phase 4 adds the watchlist surface.
+
+### `GET /api/venues`
+
+The venues foghorn actively scrapes (the venue-filter options) — `slug`, `name`,
+`neighborhood`, `region`. Excludes seeded-but-unscraped venues (SFJAZZ), so it's
+filtered by `REGISTERED_SCRAPERS`, not a raw `venues` table dump.
+
+```json
+[{"slug": "bird_and_beckett", "name": "Bird & Beckett Books and Records",
+  "neighborhood": "Glen Park", "region": "SF"}]
+```
 
 ### `GET /api/health/scrape`
 
