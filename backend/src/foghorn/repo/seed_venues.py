@@ -58,8 +58,10 @@ SEED_VENUES: list[Venue] = [
         region="SF",
         address="39 Fell St, San Francisco, CA",
         tz="America/Los_Angeles",
-        website_url="https://www.mrtipples.com",
-        calendar_url=_TBD,
+        # The seed originally had mrtipples.com (NXDOMAIN). Live site is
+        # mrtipplessf.com; the scraper reads its Tribe Events REST API.
+        website_url="https://mrtipplessf.com",
+        calendar_url="https://mrtipplessf.com/calendar/",
     ),
 ]
 
