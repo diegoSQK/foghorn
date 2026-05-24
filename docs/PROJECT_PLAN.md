@@ -81,15 +81,15 @@ Shipped May 2026 — see [Daily refresh scheduler and scrape-health endpoint](SH
 
 ### Phase 3 — Filtering & search
 
-Make the calendar useful for "what should I do this Friday." Next coherent block after v0.1.0; PM thread to queue 3.1 / 3.2 / 3.3 tickets. 3.1 establishes the URL-driven filter framework the other two inherit; 3.3 lands first for user value (performer search is meaningful with current data); 3.2 ships region + neighborhood (single-region for now, fills out as Phase 5 adds non-SF venues).
+Make the calendar useful for "what should I do this Friday." All three dimensions shipped (the coherent block after v0.1.0, heading toward the v0.2.0 cut): 3.1 established the URL-driven filter framework (date + venue + time-of-day) the other two inherit, 3.3 added performer search, and 3.2 added region + neighborhood (single-region for now, fills out as Phase 5 adds non-SF venues).
 
 #### 3.1 Date-range + venue filters + URL-driven filter framework (P1) ✅
 
 Shipped May 2026 — see [Date and venue filters, URL-driven framework](SHIPPED.md#date-and-venue-filters-url-driven-framework-phase-31-may-2026). URL search params are the single source of truth; the server component reads them and re-fetches on navigation (shareable/bookmarkable, back-button works), and `FilterBar` (client) writes changes back via `router.push`. Native date inputs (apply-on-change, no picker lib), venue checkboxes (from the new `GET /api/venues`), and quick chips (`Tonight`/`This weekend`/`Next 7 days` + server-side `Early`/`Late` via `?time_of_day=`). Backend adds `?venues=` (comma slugs) + `?time_of_day=`. **3.2 and 3.3 inherit this framework.**
 
-#### 3.2 Region / neighborhood filter (P1)
+#### 3.2 Region / neighborhood filter (P1) ✅
 
-Tag each venue with `neighborhood` (already in the seed) and `region` (`SF`, `East Bay`, `Peninsula`, `South Bay`; all current venues are SF so the column exists but doesn't differentiate yet). Frontend exposes region as a top-level toggle; neighborhood as a secondary filter when a region is selected. Backend: `?region=&neighborhood=` query params filter by venue's column.
+Shipped May 2026 — see [Region and neighborhood filter](SHIPPED.md#region-and-neighborhood-filter-phase-32-may-2026). `?region=` / `?neighborhood=` on `GET /api/shows` (case-insensitive neighborhood; AND-stack with existing filters), and a `LocationFilter.tsx` with region chips (non-SF greyed "(soon)") + a region-scoped neighborhood dropdown. Region/venue filters independent (AND, no cascade). Mostly framework-complete until Phase 5 brings non-SF venues — each region chip activates as its first venue ships.
 
 #### 3.3 Free-text performer search (P1) ✅
 

@@ -11,13 +11,19 @@ from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
 
 
-def _venue(conn: sqlite3.Connection, slug: str, region: str) -> Venue:
+def _venue(
+    conn: sqlite3.Connection,
+    slug: str,
+    region: str,
+    neighborhood: str | None = None,
+) -> Venue:
     return venues_repo.upsert(
         conn,
         Venue(
             slug=slug,
             name=slug.upper(),
             region=region,  # type: ignore[arg-type]  # tests pass valid Region values
+            neighborhood=neighborhood,
             tz="America/Los_Angeles",
             calendar_url="https://example.com/cal",
         ),
@@ -160,3 +166,23 @@ def test_list_substring_matches_support_acts(conn: sqlite3.Connection) -> None:
         conn, ShowFilters(performer_canonical_substring="esperanza")
     )
     assert len(matched) == 1
+
+
+def test_list_filters_by_neighborhood(conn: sqlite3.Connection) -> None:
+    north_beach = _venue(conn, "keys_jazz_bistro", "SF", neighborhood="North Beach")
+    glen_park = _venue(conn, "bird_and_beckett", "SF", neighborhood="Glen Park")
+    _insert_show(conn, north_beach, date="2026-06-01", headliner="Keys Act")
+    _insert_show(conn, glen_park, date="2026-06-02", headliner="Bird Act")
+
+    exact = shows_repo.list(conn, ShowFilters(neighborhood="North Beach"))
+    assert [s.headliner_canonical for s in exact] == ["keys act"]
+
+    # Case-insensitive exact match (COLLATE NOCASE).
+    lowered = shows_repo.list(conn, ShowFilters(neighborhood="north beach"))
+    assert [s.headliner_canonical for s in lowered] == ["keys act"]
+
+    # Region + neighborhood stack as an AND.
+    combined = shows_repo.list(
+        conn, ShowFilters(region="SF", neighborhood="Glen Park")
+    )
+    assert [s.headliner_canonical for s in combined] == ["bird act"]

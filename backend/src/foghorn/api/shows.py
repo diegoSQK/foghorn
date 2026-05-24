@@ -16,7 +16,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from foghorn.ingest.pipeline import canonicalize
-from foghorn.models import Show, ShowFilters, Venue
+from foghorn.models import Region, Show, ShowFilters, Venue
 from foghorn.repo import db
 from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
@@ -24,6 +24,10 @@ from foghorn.repo import venues as venues_repo
 router = APIRouter()
 
 DEFAULT_WINDOW_DAYS = 30
+
+# The known regions, used to narrow the free-text ?region= param to the
+# Region literal (and ignore anything else rather than 400).
+_REGIONS: tuple[Region, ...] = ("SF", "East Bay", "Peninsula", "South Bay")
 
 
 class VenueView(BaseModel):
@@ -106,6 +110,8 @@ def build_show_views(
     to_date: str,
     time_of_day: Literal["early", "late"] | None = None,
     performer_canonical_substring: str | None = None,
+    region: Region | None = None,
+    neighborhood: str | None = None,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
     it's unit-testable against a connection without going through HTTP."""
@@ -115,6 +121,8 @@ def build_show_views(
         to_date=to_date,
         time_of_day=time_of_day,
         performer_canonical_substring=performer_canonical_substring,
+        region=region,
+        neighborhood=neighborhood,
     )
     shows = shows_repo.list(conn, filters)
     venues_by_id = {v.id: v for v in venues_repo.list_all(conn)}
@@ -141,6 +149,12 @@ def list_shows(
     performer_query: str | None = Query(
         default=None, description="free-text performer name (canonicalized)"
     ),
+    region: str | None = Query(
+        default=None, description="SF | East Bay | Peninsula | South Bay"
+    ),
+    neighborhood: str | None = Query(
+        default=None, description="venue neighborhood (case-insensitive exact)"
+    ),
 ) -> list[ShowView]:
     today = dt.date.today()
     from_date = from_ or today.isoformat()
@@ -158,6 +172,9 @@ def list_shows(
     # after canonicalization (e.g. only punctuation) means "no filter".
     performer_substring = canonicalize(performer_query) if performer_query else ""
 
+    # Narrow region to a known value; unknown values are ignored, not a 400.
+    reg: Region | None = next((r for r in _REGIONS if r == region), None)
+
     conn = db.connect()
     try:
         return build_show_views(
@@ -167,6 +184,8 @@ def list_shows(
             to_date=to_date,
             time_of_day=tod,
             performer_canonical_substring=performer_substring or None,
+            region=reg,
+            neighborhood=neighborhood or None,
         )
     finally:
         conn.close()

@@ -56,6 +56,55 @@ the real DB: "lateano" → 4 Vince Lateano shows, "quartet" → 46, and
 `PerformerSearch`'s debounce/clear/resync is verified by build + live exercise,
 not an automated test. Same future ticket 3.1 flagged.
 
+## Region and neighborhood filter (Phase 3.2, May 2026)
+
+The second Phase 3 filter dimension, built on 3.1's URL-as-state framework.
+Closes #21. Adds `?region=` and `?neighborhood=` to `GET /api/shows` plus a
+region chip group and a region-scoped neighborhood dropdown on the frontend.
+
+- **Backend.** `?region=SF` matches the venue's `region`; `?neighborhood=`
+  matches the venue's `neighborhood` case-insensitively (`COLLATE NOCASE`,
+  exact — neighborhoods are short distinct strings, no fuzzy match needed). Both
+  stack as ANDs with the existing date / venue / time-of-day / performer
+  filters. `repo.shows.list` already joined `venues` and filtered `region`
+  (added speculatively in an earlier phase); this wires `neighborhood` into the
+  same query and threads both params through `ShowFilters` and the endpoint.
+  Unknown `region` values are ignored (narrowed to the `Region` literal) rather
+  than 400, mirroring `time_of_day`.
+- **No seed changes needed.** The four-venue seed already carries `region="SF"`
+  and correct neighborhoods (Hayes Valley — SFJAZZ + Mr. Tipple's; North Beach —
+  Keys; Glen Park — Bird & Beckett). Verified, left as-is.
+- **Frontend.** A single `LocationFilter.tsx` (co-locating the region chips and
+  the neighborhood select) composes into `FilterBar` with one import + one JSX
+  line — deliberately small to keep the merge with the sibling 3.3 search ticket
+  trivial. All four regions render; only regions with scraped venues are
+  interactive (derived from `/api/venues`), the rest greyed with a "(soon)"
+  affordance so the Phase 5 expansion is visible. Region is **single-select**
+  (re-click clears). The neighborhood dropdown appears only when a region is
+  active and lists that region's neighborhoods; changing/clearing the region
+  drops the neighborhood param (it's region-scoped).
+- **Region/neighborhood vs. venue checkboxes: independent.** They AND together
+  in the backend rather than cascading — a contradictory combination just yields
+  the honest empty state. Simpler than auto-toggling checkboxes, and the URL
+  stays a faithful record of exactly what was asked.
+
+Mostly framework-complete until Phase 5 brings non-SF venues: today every venue
+is SF, so region doesn't discriminate and only neighborhood meaningfully
+narrows. The moment an East Bay / Peninsula / South Bay venue ships a scraper,
+its region chip activates and the filter just works.
+
+Tests: `tests/api/test_shows_region_filter.py` (its own file, to avoid conflict
+with 3.3's tests) covers region SF / East Bay / unknown, neighborhood exact +
+case-insensitive, combined, and stacking; `tests/test_repo_shows.py` gains a
+neighborhood repo case. Verified live over HTTP (`region=SF` → all,
+`East Bay` → `[]`, `neighborhood=Hayes Valley` → Mr. Tipple's,
+`region=SF&neighborhood=North Beach` → Keys). Full `make gate` green.
+
+**Worktree note.** Built in an isolated `git worktree` alongside the active 3.3
+performer-search work; both touch `FilterBar.tsx`, `api/shows.py`, and
+`page.tsx` additively, so the second of #20 / #21 to merge resolves a small
+"keep both" conflict.
+
 ## Date and venue filters, URL-driven framework (Phase 3.1, May 2026)
 
 The first Phase 3 ticket and the one that sets the pattern: the calendar is now
