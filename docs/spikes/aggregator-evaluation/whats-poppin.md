@@ -1,0 +1,11 @@
+# Aggregator evaluation — What's Poppin
+
+> Spike memo for [#29](https://github.com/diegoSQK/foghorn/issues/29). Evaluated 2026-05-23. **Verdict: Not feasible — Skip.**
+
+**Candidate:** "What's Poppin" — per the ticket, a Bay Area music stream/podcast rather than a website-first product. The spike question was narrow: *is there any web-readable, machine-ingestible calendar associated with it?*
+
+**No ingestible calendar exists.** The only Bay Area live-music entity matching the name is **"What's Poppin!", a YouTube live-stream talk show for Bay Area music** (lone confirming hit: a YouTube result self-describing it as "a live stream talk show for Bay Area music", `https://www.youtube.com/watch?v=CoqUVkHHop8`). Its output is spoken-aloud video/audio — exactly the format the ticket rules out. Seven search passes across podcast platforms (Spotify, Apple), Instagram/Linktree, community radio, and explicit "calendar / schedule / newsletter / upcoming events" queries surfaced **no website calendar, no public Google Calendar/iCal, no Linktree schedule page, no structured newsletter, and no API/RSS/JSON-LD feed**. A frequently co-surfacing but **separate** org, "San Francisco Bay Area Live Music" (`sanfranciscobayarealivemusic.com`), was checked too and likewise has only podcast episodes + a static venue list — no dated show listings. Because the only outputs are talk audio and (at most) image flyers, and OCR/transcription are explicitly out of scope, there is nothing to ingest; the rest of the rubric (data shape, coverage, freshness, dedup, access, ToS) is moot.
+
+### Confidence & caveats
+
+Medium-high on the conclusion, lower on entity identification — "What's Poppin" is a heavily polluted search term (Jack Harlow song; an unrelated Seattle pop-culture podcast), all filtered out. Only one Bay Area music entity by this name could be positively confirmed (the YouTube talk show); its channel link-panel and any Instagram/Linktree bio could not be crawled (YouTube/Instagram return anti-bot shells), so a low-visibility schedule behind an Instagram bio link can't be 100% ruled out — but nothing in seven varied searches hinted at one, and a stream show's natural output would fall outside ingest scope regardless. A clean "no ingestible calendar found" is the outcome.
