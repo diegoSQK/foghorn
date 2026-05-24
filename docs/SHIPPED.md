@@ -8,6 +8,40 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Watchlist digest endpoint (Phase 4.2, May 2026)
+
+A read-only `GET /api/watchlist/digest` — the next-N upcoming watchlist matches,
+chronological — for a future cron/email/push "what's coming up for you" consumer
+(delivery itself stays deferred). Closes #27.
+
+**Almost pure reuse of 4.1.** The endpoint runs `build_show_views(...,
+watchlist=True)` over `[today, today + days]` (the exact `?watchlist=true`
+filter + a today-anchored window), then the *only* new logic computes
+`watchlist_matches` per row: which watched `display_name`(s) hit, via the same
+`matches_token_bag`. A show can match more than one (a bill with two watched
+names), so it's a list. Response: `{generated_at, matches: [...]}` where each
+match is a `/api/shows` row **plus** `watchlist_matches`. Ordered by `start_utc`;
+`limit` applied after match + ordering. Empty watchlist → `{generated_at,
+matches: []}` (200, not 503 — nothing wrong, just nothing to send).
+
+**Shape held up after dogfooding 4.1** — the ticket flagged it might want
+reshaping, but reusing the filter + adding the matched-names field was exactly
+right; no deviation. Params `days` (default 14) and `limit` (default 20) are
+bounded (`ge=1`); out-of-range values 422 rather than silently clamping.
+
+**No frontend, no new schema or match logic** — purely the new endpoint on the
+existing `api/watchlist.py`. Tests (`api/test_watchlist_digest_endpoint.py`):
+ordering + window filtering, the `watchlist_matches` field (incl. a
+two-watched-names overlap), `days` widening, `limit` capping, and both
+empty-watchlist and no-upcoming-matches → empty. Anchored to `date.today()` (the
+digest uses the real clock, unlike the param-driven endpoints) so they're
+date-independent. Verified live against the real DB.
+
+**Release signal (PM thread):** with Phase 3 (#19/#20/#21) and Phase 4 (#26/#27)
+both complete, this is the **v0.2.0 release-cut point** per PROJECT_PLAN
+"Suggested sequencing". Per `RELEASE_PROCESS.md` the cut is a PM-thread ritual —
+*not* done in this PR; surfaced for the PM thread.
+
 ## Watchlist data model, UI, and token-based matching (Phase 4.1, May 2026)
 
 Diego's original "find shows where my friends are playing" ask. Closes #26. A

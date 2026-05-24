@@ -166,6 +166,16 @@ performer-match utility is `repo/performer_match.py` (token-bag), shared with
 enables `CORSMiddleware` (permissive by default for local-first use; tighten via
 `FOGHORN_CORS_ORIGINS` when deployed).
 
+### `GET /api/watchlist/digest`
+
+Next-N upcoming watchlist matches for a future cron/email/push digest (Phase
+4.2). Params: `days` (default 14, look-ahead window) and `limit` (default 20).
+Reuses the `?watchlist=true` filter over `[today, today+days]`, ordered by
+`start_utc`. Returns `{generated_at, matches}` where each match is a
+`/api/shows` row plus `watchlist_matches` — the watched `display_name`(s) that
+hit it (a show can match more than one). Empty watchlist → `{generated_at,
+matches: []}` (200).
+
 ### `GET /api/venues`
 
 The venues foghorn actively scrapes (the venue-filter options) — `slug`, `name`,
