@@ -37,7 +37,7 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 1.2 — data model + ingest scaffolding (May 2026), see [SHIPPED.md](SHIPPED.md#data-model-and-ingest-scaffolding-phase-12-may-2026).
+Full chronological history lives in [SHIPPED.md](SHIPPED.md). Recently shipped: Phase 2.1 — first scraper end-to-end, the Bird & Beckett pilot (May 2026), see [SHIPPED.md](SHIPPED.md#phase-21-end-to-end-pilot-via-bird-and-beckett-may-2026).
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -67,13 +67,15 @@ Shipped May 2026 — see [Data model + ingest scaffolding](SHIPPED.md#data-model
 
 Ship the four-venue MVP: one scraper per venue, daily refresh, list view in the frontend. This is the "is foghorn useful yet" milestone.
 
-#### 2.1 First scraper end-to-end: SFJAZZ (P1)
+#### 2.1 First scraper end-to-end (P1) ✅
 
-Pick SFJAZZ as the pilot — largest venue, most-structured site, lowest scraper risk. Implement `backend/scrapers/sfjazz.py`. Run end-to-end: scraper → ingest → repo → API endpoint `GET /api/shows?venue=sfjazz` returns the next 90 days of shows. Add a minimal `frontend/app/page.tsx` that fetches `/api/shows` (no filters yet) and renders a flat list. Ship a `make scrape` command that runs all configured scrapers once and prints per-venue counts.
+Shipped May 2026 — see [Phase 2.1 end-to-end pilot via Bird and Beckett](SHIPPED.md#phase-21-end-to-end-pilot-via-bird-and-beckett-may-2026). The end-to-end infra (scraper registry, `make scrape`, `GET /api/shows`, minimal frontend list, run targets) landed. **The SFJAZZ pilot was dropped** (#4 closed): SFJAZZ is behind a Cloudflare managed challenge that blocks httpx+bs4, and bypass is out of scope. The pilot was re-homed to Bird & Beckett (#6), which publishes a clean public Google Calendar `.ics`.
 
 #### 2.2 Three more jazz scrapers (P1)
 
-`backend/scrapers/keys_jazz_bistro.py`, `bird_and_beckett.py`, `mr_tipples.py`. Each is its own issue so they can be claimed independently. Each must implement the same `ScrapedShow` interface and be CLI-runnable per the scraper convention. Frontend list page now shows all four venues' shows interleaved by date.
+`keys_jazz_bistro.py` (#5), `bird_and_beckett.py` (#6), `mr_tipples.py` (#7). Each its own issue, claimable independently against the same `ScrapedShow` interface + registry.
+
+✅ **Bird & Beckett (#6) shipped May 2026** as the Phase 2.1 pilot — see the SHIPPED link above. Keys Jazz Bistro (#5) and Mr. Tipple's (#7) remain; they build on the registry / ingest / API / frontend infra that pilot landed. (Their tickets say "depends on #4 / SFJAZZ" — now moot, since #4 was dropped and the infra is on `main`; a PM pass should re-point those.) Frontend interleaves all venues' shows by date once they land.
 
 #### 2.3 Daily refresh scheduler (P1)
 

@@ -8,6 +8,100 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Phase 2.1 end-to-end pilot via Bird and Beckett (May 2026)
+
+The first venue end-to-end: scrape → ingest → `GET /api/shows` → a rendered
+frontend list. Closes #6 (Bird & Beckett scraper, 2.2b). Also lands the Phase
+2.1 infrastructure — scraper registry, `make scrape`, the API endpoint, the
+frontend page, and the run targets — that the remaining 2.2 siblings build on.
+
+**Re-pilot: SFJAZZ → Bird & Beckett.** #4 picked SFJAZZ as the pilot for being
+"largest / most-structured / lowest scraper risk." Dogfooding falsified that:
+SFJAZZ sits behind a **Cloudflare managed challenge** that 403s every simple
+HTTP client (the polite `foghorn-scraper` UA and a browser UA alike), and the
+robots.txt sitemap host 404s. Bypassing Cloudflare is explicitly out of scope,
+and a headless browser often doesn't beat a managed challenge anyway. Of the
+four jazz venues, Bird & Beckett was the cleanest reachable source, so #4 was
+**dropped** and the pilot re-homed here. SFJAZZ can return later as a fresh
+ticket if we take on a browser/alternative-source approach. *Lesson for the
+remaining venues: probe reachability before assuming a site is scrapable.*
+
+**Data source: a public Google Calendar `.ics`.** Bird & Beckett is WordPress
+with no events plugin or custom post type — its event "posts" carry the date in
+free-text titles (fragile). But its `/events` page embeds a public Google
+Calendar, whose `.ics` export (`.../ical/<id>/public/basic.ics`) is a clean,
+current, structured feed (3600+ historical VEVENTs; ~100 upcoming). The scraper
+reads that. `venues.calendar_url` for Bird & Beckett points at the human
+`/events` page (also the per-show `source_url`); the `.ics` URL is a constant in
+the scraper module.
+
+**Parsing (`scrapers/bird_and_beckett.py`).** `fetch_ics()` (httpx, polite UA,
+follow redirects) is split from a pure `parse_ics(ics_text, today, window_days)`
+so the parser is deterministic and fixture-testable without network. Parsing
+uses `icalendar` + `recurring-ical-events`: `recurring_ical_events.of(cal)
+.between(today, today+90d)` expands recurring series (the venue runs ~14 active
+monthly residencies — Vince Lateano, Scott Foster, etc.) into concrete dated
+instances, handling `RECURRENCE-ID` overrides and `EXDATE`. Each timed event
+becomes a `ScrapedShow` (SUMMARY → headliner; no support/ticket/price/doors —
+the calendar doesn't carry them, and B&B takes phone reservations). All-day
+(`VALUE=DATE`) entries are skipped. Expanded instances come back tz-aware (PT or
+UTC); we convert to the venue tz and drop tzinfo to get naive local time, which
+ingest re-applies the tz to. A **conservative non-music heuristic** drops events
+whose title carries strong literary signals (poetry/reading/lecture/…); it errs
+toward inclusion per the ticket, so some literary events still leak (e.g. a
+small-press release) — refining it is future work.
+
+**Registry + CLI.** `REGISTERED_SCRAPERS` (`scrapers/__init__.py`) maps slug →
+`scrape`. `foghorn.cli.scrape` (`make scrape`) seeds venues, runs each scraper
+through `ingest_scraped_shows`, prints per-venue `created/updated/errors`, and
+exits non-zero on any failure.
+
+**API (`api/shows.py`, `api/__init__.py`).** `GET /api/shows?venue=&from=&to=`
+(defaults today..+30d, inclusive on `start_local_date`), ordered by `start_utc`.
+Response rows carry venue (slug/name/neighborhood/region), local date/time,
+doors, headliner + support as `{display, canonical}`, ticket_url, price_text,
+source_url — see `backend/README.md` § API Surface for the shape (the reference
+for future scraper authors). The app (`foghorn.api:app`) seeds venues in its
+lifespan. Endpoint is sync and opens a SQLite connection per request (cheap, and
+keeps each request single-threaded so the default `check_same_thread` guard
+holds).
+
+**Frontend (`frontend/app/page.tsx`).** Server component fetching `/api/shows`
+(`cache: "no-store"`) from `NEXT_PUBLIC_API_BASE_URL` (default
+`http://localhost:8000`), rendering shows grouped by local date with friendly
+date/time formatting and a ticket link when present. Renders a clear "Backend
+not reachable — `make backend-run`" panel when the fetch fails. Intentionally
+bare; Phase 3 dresses it up.
+
+**Deps + config.** Added `uvicorn[standard]==0.47.0` (the run target),
+`icalendar==7.1.2`, `recurring-ical-events==3.8.2` to `backend/pyproject.toml`,
+plus a mypy `ignore_missing_imports` override for `recurring_ical_events` (no
+`py.typed`; icalendar/httpx/bs4 ship types). `db.connect()` now reads
+`FOGHORN_DB_PATH` at call time (was import time) so tests/ops can repoint the DB
+after import. Makefile gained `scrape`, `backend-run`, `frontend-run`.
+
+Tests (49 total green under mypy `strict`): `scrapers/test_bird_and_beckett.py`
+drives `parse_ics` against a curated fixture (`fixtures/bird_and_beckett_sample
+.ics`) with a pinned `today` — covering TZID vs UTC times, non-music exclusion,
+all-day skip, weekly-recurrence expansion, accents, and windowing.
+`test_ingest_e2e_bird_and_beckett.py` runs the fixture through ingest (counts,
+tz→UTC round-trip, display-name preservation, idempotent re-ingest).
+`api/test_shows_endpoint.py` points the app at a tmp DB via `FOGHORN_DB_PATH`
+and drives `GET /api/shows` with `TestClient` (ordering, shape, filters).
+Verified live too: `make scrape` ingested 59 shows, and a real
+`uvicorn`+`next start` run rendered them grouped by date in the SSR'd HTML.
+
+**Gotchas.** (1) UTC-stored events near midnight render a day earlier in local
+time (e.g. a show at 03:00Z shows as the prior evening PT) — correct, just
+worth knowing. (2) No `ticket_url`/`price` from this calendar (phone
+reservations). (3) The non-music heuristic is imperfect by design.
+
+**Bookkeeping.** Closes #6; #4 (SFJAZZ) was dropped (closed) with the Cloudflare
+rationale. The 2.2 siblings #5 (Keys) and #7 (Mr. Tipple's) remain — their
+tickets say "depends on #4," now moot: the registry/ingest/API/frontend infra
+they need ships here. A PM-thread pass should re-point those references and
+reconcile the "Next.js 15" doc mentions (create-next-app installed Next 16).
+
 ## Data model and ingest scaffolding (Phase 1.2, May 2026)
 
 The data-model spine every Phase 2.x scraper plugs into: the SQLite schema, the

@@ -47,7 +47,9 @@ SEED_VENUES: list[Venue] = [
         address="653 Chenery St, San Francisco, CA",
         tz="America/Los_Angeles",
         website_url="https://www.birdbeckett.com",
-        calendar_url=_TBD,
+        # Set by Phase 2.1 (the pilot venue). The scraper reads the public
+        # Google Calendar .ics behind this page — see scrapers/bird_and_beckett.
+        calendar_url="https://birdbeckett.com/events/",
     ),
     Venue(
         slug="mr_tipples",

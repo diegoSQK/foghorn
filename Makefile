@@ -1,4 +1,4 @@
-.PHONY: gate backend-gate frontend-gate install
+.PHONY: gate backend-gate frontend-gate install scrape backend-run frontend-run
 
 # Full lint / type / test gate across both packages. Runs the backend half
 # then the frontend half; make stops at the first target that exits non-zero.
@@ -20,3 +20,16 @@ frontend-gate:
 install:
 	cd backend && pip install -e ".[dev]"
 	cd frontend && npm install
+
+# Run every registered scraper once through the ingest pipeline, printing
+# per-venue counts. Writes to the SQLite DB (FOGHORN_DB_PATH or the default).
+scrape:
+	cd backend && python -m foghorn.cli.scrape
+
+# Run the backend API (http://localhost:8000) with autoreload.
+backend-run:
+	cd backend && uvicorn foghorn.api:app --reload
+
+# Run the Next.js dev server (http://localhost:3000).
+frontend-run:
+	cd frontend && npm run dev

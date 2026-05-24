@@ -14,19 +14,23 @@ from pathlib import Path
 
 from foghorn.repo import schema
 
-# Default location: <backend>/foghorn.db (gitignored). Overridable for ops /
-# alternate environments via FOGHORN_DB_PATH.
+# Default location: <backend>/foghorn.db (gitignored).
 _BACKEND_DIR = Path(__file__).resolve().parents[3]
-DEFAULT_DB_PATH = Path(os.environ.get("FOGHORN_DB_PATH", _BACKEND_DIR / "foghorn.db"))
+
+
+def default_db_path() -> Path:
+    """Default DB location. Read at call time so ``FOGHORN_DB_PATH`` can be set
+    after import (e.g. by tests pointing the app at a tmp DB)."""
+    return Path(os.environ.get("FOGHORN_DB_PATH", _BACKEND_DIR / "foghorn.db"))
 
 
 def connect(db_path: str | os.PathLike[str] | None = None) -> sqlite3.Connection:
     """Open a connection with row access + FK enforcement, schema ensured.
 
     Pass ``":memory:"`` or a tmp path in tests; pass nothing in app code to use
-    ``DEFAULT_DB_PATH``.
+    the default (``FOGHORN_DB_PATH`` or ``<backend>/foghorn.db``).
     """
-    target: str | os.PathLike[str] = DEFAULT_DB_PATH if db_path is None else db_path
+    target: str | os.PathLike[str] = default_db_path() if db_path is None else db_path
     conn = sqlite3.connect(target)
     conn.row_factory = sqlite3.Row
     # FK enforcement is per-connection in SQLite and off by default.
