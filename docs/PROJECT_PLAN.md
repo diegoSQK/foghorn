@@ -75,6 +75,8 @@ Originally scoped to SFJAZZ; pivoted to Bird & Beckett after SFJAZZ proved Cloud
 
 `backend/scrapers/keys_jazz_bistro.py` ([#5](https://github.com/diegoSQK/foghorn/issues/5)) and `mr_tipples.py` ([#7](https://github.com/diegoSQK/foghorn/issues/7)). Each is its own issue so they can be claimed independently. Each must implement the same `ScrapedShow` interface and be CLI-runnable per the scraper convention. Frontend list page now shows all three venues' shows interleaved by date. (Bird & Beckett shipped as part of 2.1; SFJAZZ deferred.)
 
+✅ **Keys Jazz Bistro (#5) shipped May 2026** — see [Keys Jazz Bistro scraper](SHIPPED.md#keys-jazz-bistro-scraper-phase-22a-may-2026). HTML scrape of the venue's WordPress `/upcoming-shows/` page; plain `httpx`+`bs4`, no playwright. Collapse this 2.2 entry to a single `✅ Shipped` line once Mr. Tipple's (#7) lands.
+
 #### 2.3 Daily refresh scheduler (P1)
 
 Tracked under [#8](https://github.com/diegoSQK/foghorn/issues/8). Wire APScheduler into the backend process so all configured scrapers run once nightly (target: 04:00 PT, low traffic). Log per-venue counts + duration. Surface a `GET /api/health/scrape` endpoint that returns `last_run_at`, per-venue counts, and any per-venue errors from the last run. Phase 2 done = open the page tomorrow morning and see fresh shows across all three jazz venues.
