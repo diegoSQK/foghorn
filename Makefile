@@ -1,4 +1,4 @@
-.PHONY: gate backend-gate frontend-gate install scrape backend-run frontend-run
+.PHONY: gate backend-gate frontend-gate frontend-test install scrape backend-run frontend-run
 
 # Full lint / type / test gate across both packages. Runs the backend half
 # then the frontend half; make stops at the first target that exits non-zero.
@@ -14,6 +14,13 @@ backend-gate:
 # issues that lint misses.
 frontend-gate:
 	cd frontend && npm run typecheck && npm run lint && npm run build
+
+# Playwright e2e suite. Deliberately NOT part of `make gate` — it's slower and
+# needs a browser binary. Opt-in locally and a dedicated CI job. Installs the
+# Chromium build if missing (no-op when cached), then runs frontend/tests/
+# against a mock backend (see frontend/tests/README.md).
+frontend-test:
+	cd frontend && npx playwright install chromium && npm run test:e2e
 
 # Install both halves' dependencies. Run inside an activated Python venv
 # locally; CI installs into the runner's setup-python environment.

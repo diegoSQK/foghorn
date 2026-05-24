@@ -15,6 +15,12 @@ node_modules/
 .next/
 out/
 
+# Playwright (e2e test artifacts)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
 # SQLite (foghorn's local store, starting Phase 1.2)
 *.db
 *.sqlite
