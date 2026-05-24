@@ -39,7 +39,19 @@ The PM thread runs steps 1–4. Steps 5–6 are typically a manual handoff today
 3. **Bump versions.** Update the version field in each of your project's version files (e.g., `backend/pyproject.toml`, `frontend/package.json`, `Cargo.toml`, `package.json` at root, etc.). Always together if locked across packages.
 4. **Open the release PR.** Title: `Release v0.X.Y`. Body: copy of the CHANGELOG entry. PM auto-merge once green.
 5. **Tag the merge commit.** From a local terminal: `git fetch origin && git tag v0.X.Y origin/main && git push origin v0.X.Y`.
-6. **Mirror to GitHub Releases** (optional). `gh release create v0.X.Y --title "v0.X.Y" --notes-file <(awk '/^## v0.X.Y/,/^## v/' docs/CHANGELOG.md | head -n -1)` or paste the CHANGELOG section into the GitHub Releases UI on github.com.
+6. **Mirror to GitHub Releases** (optional). Extract the version's CHANGELOG section and feed it to `gh release create`:
+
+   ```bash
+   gh release create v0.X.Y --title "v0.X.Y" --notes-file <(
+     awk '/^## v0\.X\.Y/{p=1; print; next}
+          p && /^## v[0-9]+\.[0-9]+\.[0-9]+/{exit}
+          p' docs/CHANGELOG.md
+   )
+   ```
+
+   (Substitute the actual version for `v0\.X\.Y`.) The awk starts printing at the version heading and stops at the next `## vX.Y.Z` heading; works on macOS and Linux. **Don't use `head -n -1`** — that's GNU-only and silently produces empty notes on macOS / BSD (`head: illegal line count -- -1`), and `gh release create` will still create the release with no description.
+
+   If you're editing an existing release whose notes ended up wrong, swap `create` for `edit` and the rest of the command works unchanged. Alternative: just paste the CHANGELOG section into the GitHub Releases UI on github.com.
 
 Steps 5 and 6 happen outside the PM thread today because most agent-runtime GitHub tooling doesn't include tag/release creation. The `gh` CLI handles both in two seconds from any terminal where the user is authenticated. If your runtime gains a tag-create tool, fold these steps back into the ritual.
 
