@@ -103,9 +103,9 @@ The friend-tracking surface — the headline feature for the primary user. The f
 
 Shipped May 2026 — see [Watchlist data model, UI, and token-based matching](SHIPPED.md#watchlist-data-model-ui-and-token-based-matching-phase-41-may-2026). Single-tenant `watchlist` table keyed on `canonical_name`; `GET/POST/DELETE /api/watchlist` + `?watchlist=true` filter on `/api/shows` (empty watchlist → `[]`). Token-bag matching (`repo/performer_match.py`) is now the shared performer matcher (also powers 3.3). Frontend: `+`/`✓` add buttons on every performer, a `/watchlist` route (reusing FilterBar), and a `Watchlist (N)` nav count. CORS added for the client mutations.
 
-#### 4.2 Watchlist digest (P2)
+#### 4.2 Watchlist digest (P2) ✅
 
-A `/api/watchlist/digest` endpoint that returns next-N upcoming watchlist matches, suitable for a future cron-emailed digest. Email delivery itself stays deferred.
+Shipped May 2026 — see [Watchlist digest endpoint](SHIPPED.md#watchlist-digest-endpoint-phase-42-may-2026). `GET /api/watchlist/digest?days=14&limit=20` returns the next-N upcoming watchlist matches (each row + `watchlist_matches`), reusing the `?watchlist=true` filter. Read-only; email/push delivery stays deferred. **Phase 4 complete → with Phase 3, this is the v0.2.0 cut point** (PM-thread ritual).
 
 ### Phase 5 — Venue expansion
 
