@@ -179,12 +179,13 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         )
         params.append(f"%{filters.performer_canonical_substring}%")
     # HH:MM is zero-padded 24h, so lexical comparison is chronological.
+    # Early (< 21:00) and Late (>= 21:00) are exact complements — no gap.
     if filters.time_of_day == "early":
         clauses.append("s.start_local_time < ?")
         params.append("21:00")
     elif filters.time_of_day == "late":
         clauses.append("s.start_local_time >= ?")
-        params.append("22:00")
+        params.append("21:00")
 
     sql = (
         f"SELECT {', '.join('s.' + c.strip() for c in _SHOW_COLUMNS.split(','))} "
