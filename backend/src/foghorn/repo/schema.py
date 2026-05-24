@@ -60,6 +60,26 @@ CREATE TABLE IF NOT EXISTS show_performers (
 CREATE INDEX IF NOT EXISTS idx_shows_start_utc ON shows(start_utc);
 CREATE INDEX IF NOT EXISTS idx_shows_local_date ON shows(start_local_date);
 CREATE INDEX IF NOT EXISTS idx_show_performers_performer ON show_performers(performer_id);
+
+-- One row per scrape run (scheduled nightly or manual `make scrape`), with a
+-- per-venue breakdown child table. Trimmed to the most recent N runs on insert
+-- (Phase 2.3). The scrape-health endpoint reads the latest run.
+CREATE TABLE IF NOT EXISTS scrape_runs (
+    id           INTEGER PRIMARY KEY,
+    started_at   TEXT NOT NULL,
+    finished_at  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scrape_run_venues (
+    scrape_run_id  INTEGER NOT NULL REFERENCES scrape_runs(id),
+    venue_slug     TEXT NOT NULL,
+    started_at     TEXT NOT NULL,
+    finished_at    TEXT NOT NULL,
+    created        INTEGER NOT NULL,
+    updated        INTEGER NOT NULL,
+    errors_json    TEXT NOT NULL,
+    PRIMARY KEY (scrape_run_id, venue_slug)
+);
 """
 
 

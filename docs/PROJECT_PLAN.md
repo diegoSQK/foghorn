@@ -75,9 +75,9 @@ Originally scoped to SFJAZZ; pivoted to Bird & Beckett after SFJAZZ proved Cloud
 
 Shipped May 2026. **Keys Jazz Bistro (#5)** — HTML scrape of the venue's WordPress `/upcoming-shows/` page (plain `httpx`+`bs4`), see [Keys Jazz Bistro scraper](SHIPPED.md#keys-jazz-bistro-scraper-phase-22a-may-2026). **Mr. Tipple's (#7)** — Tribe Events REST API (also fills `ticket_url` + `price_text`), see [Mr. Tipple's scraper via the Tribe Events API](SHIPPED.md#mr-tipples-scraper-via-the-tribe-events-api-may-2026). (Bird & Beckett shipped as the 2.1 pilot; SFJAZZ deferred.) All three venues now interleave by date on the frontend.
 
-#### 2.3 Daily refresh scheduler (P1)
+#### 2.3 Daily refresh scheduler (P1) ✅
 
-Tracked under [#8](https://github.com/diegoSQK/foghorn/issues/8). Wire APScheduler into the backend process so all configured scrapers run once nightly (target: 04:00 PT, low traffic). Log per-venue counts + duration. Surface a `GET /api/health/scrape` endpoint that returns `last_run_at`, per-venue counts, and any per-venue errors from the last run. Phase 2 done = open the page tomorrow morning and see fresh shows across all three jazz venues.
+Shipped May 2026 — see [Daily refresh scheduler and scrape-health endpoint](SHIPPED.md#daily-refresh-scheduler-and-scrape-health-endpoint-phase-23-may-2026). APScheduler `BackgroundScheduler` runs all registered scrapers nightly at 04:00 PT; `make scrape` shares the same `run_scrape` unit so manual runs are recorded too. `GET /api/health/scrape` surfaces the last run's per-venue counts + errors (503 until the first run). **Phase 2 is complete (2.1 + 2.2 + 2.3) — this is the v0.1.0 release-cut point** per "Suggested sequencing"; the cut itself is a PM-thread ritual (`RELEASE_PROCESS.md`).
 
 ### Phase 3 — Filtering & search
 

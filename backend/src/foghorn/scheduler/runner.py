@@ -1,0 +1,144 @@
+"""Nightly scrape runner + the APScheduler wiring around it.
+
+`run_scrape` is the unit of work shared by the scheduler and `make scrape`: it
+runs every registered scraper through ingest, captures a per-venue result, and
+records one `scrape_runs` row (trimmed to the last N). It never raises on a
+per-venue failure — the failure is captured in that venue's `errors` so one bad
+venue can't take down the run or the scheduler thread.
+
+**Scheduler choice: `BackgroundScheduler`, not `AsyncIOScheduler`.** The job is
+synchronous and blocking (httpx fetches + SQLite writes); running it on a
+background thread keeps it off the FastAPI event loop. Each run opens its own
+SQLite connection in that thread, satisfying sqlite3's `check_same_thread`.
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+import sqlite3
+from collections.abc import Callable
+from datetime import UTC, datetime
+
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+
+from foghorn.ingest.pipeline import ingest_scraped_shows
+from foghorn.models import ScrapedShow, ScrapeRun, ScrapeRunVenue
+from foghorn.repo import db
+from foghorn.repo import scrape_runs as scrape_runs_repo
+from foghorn.repo import venues as venues_repo
+from foghorn.repo.seed_venues import seed
+from foghorn.scrapers import REGISTERED_SCRAPERS
+
+logger = logging.getLogger("foghorn.scheduler")
+
+# 04:00 America/Los_Angeles — low-traffic, after most West Coast venues have
+# settled the next day's listings.
+SCRAPE_HOUR = 4
+SCRAPE_TZ = "America/Los_Angeles"
+JOB_ID = "nightly_scrape"
+DISABLE_ENV = "FOGHORN_DISABLE_SCHEDULER"
+
+ScraperMap = dict[str, Callable[[], list[ScrapedShow]]]
+
+
+def _now() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def run_scrape(
+    conn: sqlite3.Connection,
+    scrapers: ScraperMap | None = None,
+    *,
+    keep_runs: int = scrape_runs_repo.DEFAULT_KEEP,
+) -> ScrapeRun:
+    """Run every scraper through ingest and record the run. ``scrapers``
+    defaults to ``REGISTERED_SCRAPERS`` (injectable for tests)."""
+    if scrapers is None:
+        scrapers = REGISTERED_SCRAPERS
+    seed(conn)  # ensure venues exist before ingest
+    run_started = _now()
+    venue_results: list[ScrapeRunVenue] = []
+    for slug, scrape in scrapers.items():
+        venue_started = _now()
+        created = updated = 0
+        errors: list[str] = []
+        venue = venues_repo.get_by_slug(conn, slug)
+        if venue is None:
+            errors.append(f"no seeded venue for slug {slug!r}")
+        else:
+            try:
+                result = ingest_scraped_shows(conn, venue, scrape())
+                created, updated = result.created, result.updated
+                errors = list(result.errors)
+            except Exception as exc:
+                # Isolate a venue-level failure (scraper raised, network, etc.).
+                errors.append(f"{type(exc).__name__}: {exc}")
+        venue_finished = _now()
+        logger.info(
+            "scrape.venue",
+            extra={
+                "venue": slug,
+                "created": created,
+                "updated": updated,
+                "errors": len(errors),
+            },
+        )
+        venue_results.append(
+            ScrapeRunVenue(
+                venue_slug=slug,
+                started_at=venue_started,
+                finished_at=venue_finished,
+                created=created,
+                updated=updated,
+                errors=errors,
+            )
+        )
+    run = ScrapeRun(
+        started_at=run_started, finished_at=_now(), venues=venue_results
+    )
+    stored = scrape_runs_repo.record_run(conn, run, keep=keep_runs)
+    total_errors = sum(len(v.errors) for v in venue_results)
+    logger.info(
+        "scrape.run",
+        extra={"venues": len(venue_results), "errors": total_errors},
+    )
+    return stored
+
+
+def scheduled_scrape() -> None:
+    """Entry point APScheduler invokes — owns its own connection (it runs on a
+    background thread)."""
+    conn = db.connect()
+    try:
+        run_scrape(conn)
+    finally:
+        conn.close()
+
+
+def build_scheduler() -> BackgroundScheduler:
+    scheduler = BackgroundScheduler(timezone=SCRAPE_TZ)
+    scheduler.add_job(
+        scheduled_scrape,
+        CronTrigger(hour=SCRAPE_HOUR, minute=0, timezone=SCRAPE_TZ),
+        id=JOB_ID,
+        replace_existing=True,
+    )
+    return scheduler
+
+
+def start_scheduler() -> BackgroundScheduler | None:
+    """Start the nightly scheduler, unless disabled (e.g. in tests via
+    ``FOGHORN_DISABLE_SCHEDULER``). Returns the running scheduler, or ``None``
+    when disabled."""
+    if os.environ.get(DISABLE_ENV):
+        logger.info("scheduler.disabled", extra={"env": DISABLE_ENV})
+        return None
+    scheduler = build_scheduler()
+    scheduler.start()
+    logger.info(
+        "scheduler.started",
+        extra={"job": JOB_ID, "hour": SCRAPE_HOUR, "tz": SCRAPE_TZ},
+    )
+    return scheduler
