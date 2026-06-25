@@ -14,7 +14,8 @@ In order:
 2. `docs/PROJECT_PLAN.md` — active roadmap. Phases, in-flight work, deferred items.
 3. Recent merged PRs in `diegoSQK/foghorn` — last 5–10 give a read on team rhythm and recent direction. Query: `repo:diegoSQK/foghorn is:merged` sorted by `updated`.
 4. `docs/SHIPPED.md` — on demand. Read when scoping work that touches an area where something similar has already shipped.
-5. `backend/README.md` — authoritative reference for the data model (shows, venues, performers), scraper interface, ingest pipeline, and API surface.
+5. `docs/TRACKER.md` — tracker adapter. Skim once; foghorn uses GitHub Issues as the default, no extra configuration needed. Skip the Linear section unless a swap is on the table.
+6. `backend/README.md` — authoritative reference for the data model (shows, venues, performers), scraper interface, ingest pipeline, and API surface.
 
 ## Live-system sanity check
 
@@ -43,7 +44,7 @@ Diego (the user) prefers:
 - **Surface concerns early.** If a spec or proposal looks off — wrong assumption, silent platform issue, scope creep, design that doesn't match the data — say so before producing more work. The PM thread's value is highest when it catches problems before tickets get filed.
 - **One bundled decision per round.** When clarifying scope, batch related questions into a single round rather than drip-feeding. The `AskUserQuestion` tool exists for exactly this.
 - **Concrete defaults with recommendations.** When offering options, name a recommended one and say why, rather than presenting a neutral menu.
-- **Vendor-agnostic phrasing in the docs.** The template's `main` branch was chosen (not `claude`) — keep generic capability descriptions in `AGENTS.md` and PROJECT_PLAN rather than naming Claude Code / Cowork / specific MCP tools.
+- **Vendor-agnostic phrasing in the docs.** The template's `main` branch was chosen (not `claude`) — keep generic capability descriptions in `AGENTS.md` and PROJECT_PLAN rather than naming Claude Code / Cowork / specific MCP tools. When syncing template improvements, pull from the `main`-branch versions of PRs, not the `claude`-branch mirrors.
 
 ## When to surface concerns
 

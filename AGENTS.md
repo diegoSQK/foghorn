@@ -1,6 +1,6 @@
 # foghorn — Agent Onboarding
 
-You are working on foghorn, a Bay Area local music & jazz show aggregator that scrapes venue calendars and surfaces shows filtered by region, performer, and a personal friend-watchlist. The team is small: one user, a PM thread for strategy and doc maintenance, coding agents that pick up work from GitHub Issues or from ad-hoc dogfooding, and zero or more domain-agent roles described below. The "Roles and iteration loops" section below describes who does what and how work moves through the system; read that first if you're new to the repo. "Where things live" lists the canonical docs.
+You are working on foghorn, a Bay Area local music & jazz show aggregator that scrapes venue calendars and surfaces shows filtered by region, performer, and a personal friend-watchlist. The team is small: one user, a PM thread for strategy and doc maintenance, coding agents that pick up work from the work tracker (GitHub Issues by default — the tracker is pluggable; see `docs/TRACKER.md`) or from ad-hoc dogfooding, and zero or more domain-agent roles described below. The "Roles and iteration loops" section below describes who does what and how work moves through the system; read that first if you're new to the repo. "Where things live" lists the canonical docs.
 
 ## Roles and iteration loops
 
@@ -14,20 +14,28 @@ For a fresh PM thread starting cold, see `docs/PM_THREAD_BOOTSTRAP.md` for the f
 
 **Edit policy.** The PM thread writes to repo files **only through the GitHub API** (`create_branch` → `push_files` → `create_pull_request` → `merge_pull_request`). Specifically, **do not use** local-filesystem write tools on anything under the repo — those tools write to the user's local clone, which is a live working directory where coding agents or the user may be operating at any time. Filesystem writes leave uncommitted edits there, which confuse `git status` for whoever is working in that tree and can conflict on `git pull` if anything else has touched those files. Reads through local-filesystem tools are fine; writes go through the GitHub API.
 
-**Loop.** Read state (PROJECT_PLAN, recent PRs via GitHub access, live data via project-specific tooling) → identify gap or design question → propose / discuss with user → if the next step is work, file a GitHub Issue with a complete ticket body (Why / Scope / Acceptance / Test plan / Not in scope / When you ship) → coding agent picks it up. For doc-only changes (PROJECT_PLAN updates, SHIPPED.md compaction, AGENTS.md edits), the PM thread opens its own PR via the API workflow above and auto-merges once green.
+**Loop.** Read state (PROJECT_PLAN, recent PRs via GitHub access, live data via project-specific tooling) → identify gap or design question → propose / discuss with user → if the next step is work, file a ticket in the work tracker (a GitHub Issue by default; see `docs/TRACKER.md`) with a complete ticket body (Why / Scope / Acceptance / Test plan / Not in scope / When you ship) → coding agent picks it up. For doc-only changes (PROJECT_PLAN updates, SHIPPED.md compaction, AGENTS.md edits), the PM thread opens its own PR via the API workflow above and auto-merges once green.
 
 ### Coding agents
 
 Agents that pick up work and ship via PRs. Two work sources:
 
-1. **GitHub Issues** — the PM thread queues tickets here. The issue body is the spec; pick one matching the agent's scope.
+1. **The work tracker** (GitHub Issues by default) — the PM thread queues tickets here. The ticket body is the spec; pick one matching the agent's scope.
 2. **Ad-hoc dogfooding** — running the app surfaces friction or correctness bugs; the coding agent files a small precision-fix PR directly without going through an issue first.
 
-**Claim signal.** When picking up a GitHub Issue, add the `claimed` label before starting implementation. This signals to other coding agents that the issue is already being worked — **don't pick up issues already labeled `claimed`** unless the user has explicitly told you to take over (e.g., the previous agent is stuck or has been told to stop). Ad-hoc dogfooding PRs skip this step since there's no issue to claim. Closing the issue via `Closes #N` on PR merge takes it out of the candidate pool naturally; the `claimed` label persists on the closed issue but doesn't matter at that point.
+**Claim signal.** Claiming is an *optimistic-concurrency protocol*, not a single label. Adding a label is idempotent and non-atomic, so two agents can both read an issue as unclaimed, both add the `claimed` label (both adds "succeed," neither gets a "you lost" signal), and both work the same issue. Making a double-claim *visible* isn't enough — you also need a deterministic way to resolve the race. Since the tracker offers no compare-and-swap on labels, the protocol is claim → re-read → fixed-rule tiebreak:
 
-Coding agents may work in isolated git worktrees off `main`, or directly in the user's main working tree. The loop and conventions are the same either way. In the main tree, the working tree may be dirty between iterations by design — don't clean up aggressively.
+1. **Identity.** At startup each agent generates a short random id (e.g. `a7f3`), stable for its session, and uses it in every claim.
+2. **Stake the claim.** Confirm the issue has no winning claim (per step 3), then post a claim comment — `claim: <agent-id> @ <ISO-8601 timestamp>` — and add the `claimed` label. The comment is the authoritative ownership record; the label is just an at-a-glance filter.
+3. **Re-read before starting.** Wait ~30–60s, re-fetch the issue's comments, and apply **earliest claim wins** (tiebreak: timestamp, then lowest comment id). The winner proceeds; everyone else posts `release: <agent-id>` and picks another ticket. **The re-read plus deterministic tiebreak is the part that makes this safe — don't simplify it back to just adding a label.**
+4. **Respect winning claims.** Don't pick up an issue with a winning, un-released claim unless the human lead says to take over (e.g. the previous agent is stuck or was told to stop).
+5. **Release on abandon.** If you stop without merging, post `release: <agent-id>` and drop the `claimed` label if no other claim remains. Closing via `Closes #N` on PR merge removes the issue from the pool naturally.
 
-**Loop.** Find an open issue (skip ones labeled `claimed`) or notice a friction → add the `claimed` label if claiming an issue → set up the workspace (worktree or main tree) → implement → run the full lint / type / test gate before every commit (project-specific — see Commands below) → push atomic commits (`git add` by file name, not `-A`) → open a PR with `Closes #N` in the description when an issue exists (so it auto-closes on merge) → auto-merge the PR once CI is green.
+Identity lives in the claim *comment* because when all agents authenticate as the same git-host user, the assignee field can't tell them apart. If your setup gives each agent a distinct tracker account, the assignee field becomes a viable claim record instead — and some trackers (e.g. Linear) collapse the whole race into a single native field; see `docs/TRACKER.md`. Ad-hoc dogfooding PRs skip claiming entirely since there's no issue to claim.
+
+**Coding agents work in an isolated git worktree off `main` by default — set one up before starting, every time, and do not begin work in the user's main working tree.** The shared main tree is single-HEAD: concurrent `git checkout`s in it collide, and a branch switch under another agent can land your commit on the wrong branch or leave their work stranded. The main tree is a narrow exception, used only when you're certain you're the only agent active *and* the user has explicitly asked you to work there directly; in that case the working tree may be dirty between iterations by design — don't clean up aggressively.
+
+**Loop.** Find an open issue (skip ones with a winning claim) or notice a friction → claim it per the claim-signal protocol above (stake, then re-read tiebreak) → set up an isolated worktree (the default — see the workspace rule above) → implement → run the full lint / type / test gate before every commit (project-specific — see Commands below) → push atomic commits (`git add` by file name, not `-A`) → open a PR that resolves the ticket on merge (GitHub: `Closes #N` in the description; other trackers map this differently — see `docs/TRACKER.md`) → auto-merge the PR once CI is green.
 
 **Ship-time docs convention.** In the same PR that lands the feature, append the as-shipped narrative to `docs/SHIPPED.md` as a new section, and collapse the corresponding entry in `docs/PROJECT_PLAN.md` to a one-line `✅ Shipped <month year> — see [anchor](SHIPPED.md#anchor)` reference. Two files instead of one, same atomicity. **Don't restructure other docs** — cross-doc reorganization, compaction passes, and AGENTS.md edits are the PM thread's job, not the shipping agent's.
 
@@ -44,10 +52,11 @@ None at present. foghorn's surface is the website itself — users browse the sh
 - `docs/CHANGELOG.md` — indexed version history. One section per release tag, with anchor links into SHIPPED.md. Cut at release events per `RELEASE_PROCESS.md`.
 - `docs/RELEASE_PROCESS.md` — release cadence (event-triggered) + version policy (semver-locked) + the ritual the PM thread runs each release. Read once to internalize; reference at release-cut time.
 - `docs/PM_THREAD_BOOTSTRAP.md` — bootstrap procedure for a fresh PM thread starting cold. Reading list, live-system sanity check, project-specific strategic context.
+- `docs/TRACKER.md` — tracker adapter. The five operations the working model needs from a work tracker, mapped to GitHub Issues (default) and Linear. Read the section for your tracker; you don't need both. foghorn uses GitHub Issues as-default; no extra configuration required.
 - `docs/SETUP.md` — environment configuration: repo + GitHub PAT + label creation + filling in template placeholders. One-time setup reference.
 - `docs/EXAMPLES.md` — worked examples (issue ticket, SHIPPED entry, PROJECT_PLAN phase) drawn from a real project, with annotations on shape.
 - `backend/README.md` — authoritative reference for the backend's data model (shows, venues, performers), scraper interface, ingest pipeline, and API surface. Filled in across Phase 1.
-- **GitHub Issues** — the work-item tracker. Issues are queued/claimed/closed via labels and state. The issue body is the ticket spec; the PR closes the issue on merge via `Closes #N`. See the **GitHub Issue Labels** section below for the label set.
+- **The work tracker** — where work items live (GitHub Issues by default; pluggable — see `docs/TRACKER.md`). Tickets are queued / claimed / resolved; the ticket body is the spec; a merged PR resolves its ticket. The default GitHub-Issues mechanics use labels + `Closes #N` (see the **GitHub Issue Labels** section below); Linear and other trackers map the same operations to native fields and PR linking.
 
 ## Project Shape
 
@@ -103,6 +112,8 @@ When a show is wrong (missing, duplicated, mis-attributed, wrong time), inspect 
 
 ## GitHub Issue Labels
 
+*The labels below are the GitHub-Issues mechanism for triage and coordination. On a tracker with native fields (e.g. Linear), the equivalents aren't labels — see `docs/TRACKER.md` for the mapping.*
+
 Issues in this repo are triaged along two label dimensions plus a coordination signal. The PM thread applies priority and type at ticket-filing time; coding agents add the `claimed` signal when starting work and typically don't touch priority or type.
 
 **Priority** — what each tier means (the README's `Recommended GitHub Issue labels` table has the color codes used at setup time):
@@ -120,7 +131,7 @@ Issues in this repo are triaged along two label dimensions plus a coordination s
 
 **Coordination signal:**
 
-- `claimed` — a coding agent has started implementation. Don't pick up issues already labeled `claimed` unless the user has explicitly told you to take over (see the Coding agents section above for the full claim flow). Ad-hoc dogfooding PRs skip this label since there's no issue to claim.
+- `claimed` — an at-a-glance filter showing an issue has an active claim. It is **not** the authoritative ownership record — the `claim: <agent-id> @ <timestamp>` comment is, because label-adds are idempotent and non-atomic and so can't resolve a two-agent race. See Coding agents → **Claim signal** for the full optimistic-concurrency protocol (identity → stake → re-read tiebreak). Don't pick up an issue with a winning, un-released claim unless the human lead says to take over. Ad-hoc dogfooding PRs skip this label since there's no issue to claim.
 
 The complete current set is whatever `gh label list` returns; the categories above are stable. New labels added on demand follow the same `dimension:value` shape (`priority:p0`, `type:phase`, etc.) for parseability — e.g. `area:backend`, `area:scraper`, `status:blocked`.
 
