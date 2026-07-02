@@ -1,9 +1,10 @@
-"""Seed the four Phase 2 jazz venues.
+"""Seed the scraped venue set (the Phase 2 jazz four + the venue-expansion
+batch).
 
 Idempotent by construction: ``venues.upsert`` keys on ``slug``, so calling
-``seed`` repeatedly converges to exactly these rows without duplicating. The
-``calendar_url`` for each venue is a placeholder until its Phase 2.x scraper
-ticket discovers and sets the real one.
+``seed`` repeatedly converges to exactly these rows without duplicating. A
+``calendar_url`` is a placeholder until the venue's scraper discovers and sets
+the real one.
 
 Runnable standalone: ``python -m foghorn.repo.seed_venues`` seeds the default DB.
 """
@@ -64,6 +65,41 @@ SEED_VENUES: list[Venue] = [
         # mrtipplessf.com; the scraper reads its Tribe Events REST API.
         website_url="https://mrtipplessf.com",
         calendar_url="https://mrtipplessf.com/calendar/",
+    ),
+    # --- Venue-expansion batch (June 2026) ---
+    Venue(
+        slug="black_cat",
+        name="Black Cat",
+        neighborhood="Tenderloin",
+        region="SF",
+        address="400 Eddy St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.blackcatsf.com",
+        # The scraper reads the Turntable Tickets performance API behind this
+        # calendar — see scrapers/black_cat.
+        calendar_url="https://blackcatsf.turntabletickets.com/calendar",
+    ),
+    Venue(
+        slug="ocean_ale_house",
+        name="Ocean Ale House",
+        neighborhood="Ingleside",
+        region="SF",
+        address="1314 Ocean Ave, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://oceanalehouse.com",
+        # The site is client-rendered; the scraper reads the schedule TSV the
+        # events page itself fetches — see scrapers/ocean_ale_house.
+        calendar_url="https://oceanalehouse.com/events/",
+    ),
+    Venue(
+        slug="boom_boom_room",
+        name="Boom Boom Room",
+        neighborhood="Fillmore",
+        region="SF",
+        address="1601 Fillmore St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://boomboomroom.com",
+        calendar_url="https://boomboomroom.com/events/",
     ),
 ]
 

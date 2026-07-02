@@ -16,10 +16,20 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from foghorn.models import ScrapedShow
-from foghorn.scrapers import bird_and_beckett, keys_jazz_bistro, mr_tipples
+from foghorn.scrapers import (
+    bird_and_beckett,
+    black_cat,
+    boom_boom_room,
+    keys_jazz_bistro,
+    mr_tipples,
+    ocean_ale_house,
+)
 
 REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     bird_and_beckett.VENUE_SLUG: bird_and_beckett.scrape,
+    black_cat.VENUE_SLUG: black_cat.scrape,
+    boom_boom_room.VENUE_SLUG: boom_boom_room.scrape,
     keys_jazz_bistro.VENUE_SLUG: keys_jazz_bistro.scrape,
     mr_tipples.VENUE_SLUG: mr_tipples.scrape,
+    ocean_ale_house.VENUE_SLUG: ocean_ale_house.scrape,
 }
