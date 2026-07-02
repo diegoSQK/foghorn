@@ -34,6 +34,11 @@ class Venue(BaseModel):
     tz: str  # IANA, e.g. "America/Los_Angeles"
     website_url: str | None = None
     calendar_url: str
+    # Venue-default genre (Phase 7.1): the coarse booking lean ("jazz", "rock",
+    # "funk", "eclectic"). Kept TEXT-loose rather than a Literal so adding a
+    # value is a seed edit, not a schema change; a per-show override is a later
+    # phase (7.2).
+    genre: str | None = None
 
 
 class Performer(BaseModel):
@@ -112,6 +117,7 @@ class ShowFilters(BaseModel):
     watchlist_token_bags: list[list[str]] | None = None
     region: Region | None = None
     neighborhood: str | None = None  # case-insensitive exact match on venue
+    genre: str | None = None  # case-insensitive exact match on venue genre
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
     time_of_day: Literal["early", "late"] | None = None
 

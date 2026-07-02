@@ -18,6 +18,7 @@ class VenueView(BaseModel):
     name: str
     neighborhood: str | None
     region: str | None
+    genre: str | None
 
 
 @router.get("/api/venues", response_model=list[VenueView])
@@ -31,7 +32,11 @@ def list_venues() -> list[VenueView]:
     # seeded but deferred (Cloudflare) with no scraper, so it's excluded here.
     return [
         VenueView(
-            slug=v.slug, name=v.name, neighborhood=v.neighborhood, region=v.region
+            slug=v.slug,
+            name=v.name,
+            neighborhood=v.neighborhood,
+            region=v.region,
+            genre=v.genre,
         )
         for v in venues
         if v.slug in REGISTERED_SCRAPERS

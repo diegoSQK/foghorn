@@ -36,6 +36,7 @@ class VenueView(BaseModel):
     name: str
     neighborhood: str | None
     region: str | None
+    genre: str | None
 
 
 class PerformerView(BaseModel):
@@ -79,6 +80,7 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
             name=venue.name,
             neighborhood=venue.neighborhood,
             region=venue.region,
+            genre=venue.genre,
         ),
         start_local_date=show.start_local_date,
         start_local_time=show.start_local_time,
@@ -113,6 +115,7 @@ def build_show_views(
     performer_query_canonical: str | None = None,
     region: Region | None = None,
     neighborhood: str | None = None,
+    genre: str | None = None,
     watchlist: bool = False,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
@@ -134,6 +137,7 @@ def build_show_views(
         watchlist_token_bags=watchlist_bags,
         region=region,
         neighborhood=neighborhood,
+        genre=genre,
     )
     shows = shows_repo.list(conn, filters)
     venues_by_id = {v.id: v for v in venues_repo.list_all(conn)}
@@ -165,6 +169,9 @@ def list_shows(
     ),
     neighborhood: str | None = Query(
         default=None, description="venue neighborhood (case-insensitive exact)"
+    ),
+    genre: str | None = Query(
+        default=None, description="venue-default genre (case-insensitive exact)"
     ),
     watchlist: str | None = Query(
         default=None, description="'true' to filter to watchlist matches"
@@ -200,6 +207,7 @@ def list_shows(
             performer_query_canonical=performer_canonical or None,
             region=reg,
             neighborhood=neighborhood or None,
+            genre=genre or None,
             watchlist=watchlist == "true",
         )
     finally:

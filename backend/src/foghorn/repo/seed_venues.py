@@ -29,6 +29,7 @@ SEED_VENUES: list[Venue] = [
         tz="America/Los_Angeles",
         website_url="https://www.sfjazz.org",
         calendar_url=_TBD,
+        genre="jazz",
     ),
     Venue(
         slug="keys_jazz_bistro",
@@ -41,6 +42,7 @@ SEED_VENUES: list[Venue] = [
         # Set by Phase 2.2a. The scraper parses the forward-looking
         # /upcoming-shows/ page — see scrapers/keys_jazz_bistro.
         calendar_url="https://keysjazzbistro.com/upcoming-shows/",
+        genre="jazz",
     ),
     Venue(
         slug="bird_and_beckett",
@@ -53,6 +55,7 @@ SEED_VENUES: list[Venue] = [
         # Set by Phase 2.1 (the pilot venue). The scraper reads the public
         # Google Calendar .ics behind this page — see scrapers/bird_and_beckett.
         calendar_url="https://birdbeckett.com/events/",
+        genre="jazz",
     ),
     Venue(
         slug="mr_tipples",
@@ -65,6 +68,7 @@ SEED_VENUES: list[Venue] = [
         # mrtipplessf.com; the scraper reads its Tribe Events REST API.
         website_url="https://mrtipplessf.com",
         calendar_url="https://mrtipplessf.com/calendar/",
+        genre="jazz",
     ),
     # --- Venue-expansion batch (June 2026) ---
     Venue(
@@ -78,6 +82,7 @@ SEED_VENUES: list[Venue] = [
         # The scraper reads the Turntable Tickets performance API behind this
         # calendar — see scrapers/black_cat.
         calendar_url="https://blackcatsf.turntabletickets.com/calendar",
+        genre="jazz",
     ),
     Venue(
         slug="ocean_ale_house",
@@ -90,6 +95,8 @@ SEED_VENUES: list[Venue] = [
         # The site is client-rendered; the scraper reads the schedule TSV the
         # events page itself fetches — see scrapers/ocean_ale_house.
         calendar_url="https://oceanalehouse.com/events/",
+        # Jazz-leaning but genuinely mixed bookings (jazz, DJ nights, rock).
+        genre="eclectic",
     ),
     Venue(
         slug="boom_boom_room",
@@ -100,6 +107,7 @@ SEED_VENUES: list[Venue] = [
         tz="America/Los_Angeles",
         website_url="https://boomboomroom.com",
         calendar_url="https://boomboomroom.com/events/",
+        genre="funk",
     ),
 ]
 

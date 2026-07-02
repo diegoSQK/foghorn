@@ -183,6 +183,9 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         # Neighborhoods are short distinct strings; case-insensitive exact match.
         clauses.append("v.neighborhood = ? COLLATE NOCASE")
         params.append(filters.neighborhood)
+    if filters.genre:
+        clauses.append("v.genre = ? COLLATE NOCASE")
+        params.append(filters.genre)
     if filters.from_date:
         clauses.append("s.start_local_date >= ?")
         params.append(filters.from_date)

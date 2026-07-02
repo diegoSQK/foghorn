@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS venues (
     address       TEXT,
     tz            TEXT NOT NULL,
     website_url   TEXT,
-    calendar_url  TEXT NOT NULL
+    calendar_url  TEXT NOT NULL,
+    genre         TEXT
 );
 
 CREATE TABLE IF NOT EXISTS performers (
@@ -93,6 +94,18 @@ CREATE TABLE IF NOT EXISTS scrape_run_venues (
 
 
 def init_schema(conn: sqlite3.Connection) -> None:
-    """Create all tables and indexes if they don't already exist."""
+    """Create all tables and indexes if they don't already exist, then apply
+    additive column migrations (CREATE TABLE IF NOT EXISTS skips existing
+    tables, so columns added after a DB was first created need an explicit
+    ALTER)."""
     conn.executescript(SCHEMA_SQL)
+    _add_column_if_missing(conn, "venues", "genre", "TEXT")
     conn.commit()
+
+
+def _add_column_if_missing(
+    conn: sqlite3.Connection, table: str, column: str, decl: str
+) -> None:
+    existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
