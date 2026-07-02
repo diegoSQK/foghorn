@@ -16,7 +16,7 @@ from foghorn.repo.performer_match import token_match_sql
 _SHOW_COLUMNS = (
     "id, venue_id, start_utc, start_local_date, start_local_time, "
     "doors_local_time, headliner_canonical, ticket_url, price_text, "
-    "source_url, scraped_at"
+    "source_url, scraped_at, source"
 )
 
 
@@ -33,6 +33,7 @@ def _row_to_show(row: sqlite3.Row) -> Show:
         price_text=row["price_text"],
         source_url=row["source_url"],
         scraped_at=row["scraped_at"],
+        source=row["source"],
     )
 
 
@@ -103,8 +104,8 @@ def upsert(
         """
         INSERT INTO shows (venue_id, start_utc, start_local_date, start_local_time,
                            doors_local_time, headliner_canonical, ticket_url,
-                           price_text, source_url, scraped_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           price_text, source_url, scraped_at, source)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(venue_id, start_local_date, start_local_time, headliner_canonical)
         DO UPDATE SET
             start_utc        = excluded.start_utc,
@@ -112,7 +113,8 @@ def upsert(
             ticket_url       = excluded.ticket_url,
             price_text       = excluded.price_text,
             source_url       = excluded.source_url,
-            scraped_at       = excluded.scraped_at
+            scraped_at       = excluded.scraped_at,
+            source           = excluded.source
         """,
         (
             show.venue_id,
@@ -125,6 +127,7 @@ def upsert(
             show.price_text,
             show.source_url,
             show.scraped_at,
+            show.source,
         ),
     )
     stored = get_by_natural_key(
@@ -244,3 +247,28 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         assert show.id is not None
         show.performers = _load_performers(conn, show.id)
     return shows
+
+
+def get_by_id(conn: sqlite3.Connection, show_id: int) -> Show | None:
+    row = conn.execute(
+        f"SELECT {_SHOW_COLUMNS} FROM shows WHERE id = ?", (show_id,)
+    ).fetchone()
+    if row is None:
+        return None
+    show = _row_to_show(row)
+    assert show.id is not None
+    show.performers = _load_performers(conn, show.id)
+    return show
+
+
+def delete_manual(conn: sqlite3.Connection, show_id: int) -> bool:
+    """Delete a manually-entered show (and its bill rows). Refuses scraped
+    rows — a scraper would just recreate them on the next run, so deleting
+    them through the API would silently un-stick. Returns True if deleted."""
+    row = conn.execute("SELECT source FROM shows WHERE id = ?", (show_id,)).fetchone()
+    if row is None or row["source"] != "manual":
+        return False
+    conn.execute("DELETE FROM show_performers WHERE show_id = ?", (show_id,))
+    conn.execute("DELETE FROM shows WHERE id = ?", (show_id,))
+    conn.commit()
+    return True

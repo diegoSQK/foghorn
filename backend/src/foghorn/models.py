@@ -45,6 +45,9 @@ class Venue(BaseModel):
     # value is a seed edit, not a schema change; a per-show override is a later
     # phase (7.2).
     genre: str | None = None
+    # "seed" = from seed_venues (scraped or planned); "manual" = created by
+    # the user through POST /api/events for a venue foghorn doesn't track.
+    source: Literal["seed", "manual"] = "seed"
 
 
 class Performer(BaseModel):
@@ -89,6 +92,9 @@ class Show(BaseModel):
     price_text: str | None = None
     source_url: str
     scraped_at: str  # ISO 8601 UTC
+    # "scrape" = written by the ingest pipeline from a venue scraper;
+    # "manual" = user-entered via POST /api/events (deletable through the API).
+    source: Literal["scrape", "manual"] = "scrape"
     performers: list[ShowPerformer] = Field(default_factory=list)
 
 

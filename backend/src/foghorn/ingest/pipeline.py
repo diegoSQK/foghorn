@@ -11,6 +11,7 @@ from __future__ import annotations
 import sqlite3
 import unicodedata
 from datetime import UTC, datetime
+from typing import Literal
 from zoneinfo import ZoneInfo
 
 from foghorn.models import (
@@ -41,13 +42,19 @@ def canonicalize(name: str) -> str:
     return " ".join(spaced.split())
 
 
-def _to_show(venue: Venue, scraped: ScrapedShow, scraped_at: str) -> Show:
+def _to_show(
+    venue: Venue,
+    scraped: ScrapedShow,
+    scraped_at: str,
+    source: Literal["scrape", "manual"] = "scrape",
+) -> Show:
     """Build a persistable ``Show`` from a ``ScrapedShow``, applying the venue
     tz to the naive local times to derive ``start_utc``."""
     tz = ZoneInfo(venue.tz)
     start_local = scraped.start_local.replace(tzinfo=tz)
     assert venue.id is not None  # caller resolves the venue before ingest
     return Show(
+        source=source,
         venue_id=venue.id,
         start_utc=start_local.astimezone(UTC).isoformat(),
         start_local_date=scraped.start_local.strftime("%Y-%m-%d"),
@@ -118,19 +125,24 @@ def _build_bill(
 
 
 def ingest_scraped_shows(
-    conn: sqlite3.Connection, venue: Venue, scraped: list[ScrapedShow]
+    conn: sqlite3.Connection,
+    venue: Venue,
+    scraped: list[ScrapedShow],
+    source: Literal["scrape", "manual"] = "scrape",
 ) -> IngestResult:
     """Normalize, dedupe, and persist a venue's scraped shows.
 
     Counts a show as ``created`` if no row existed for its natural key,
     ``updated`` otherwise. Per-show failures land in ``errors`` and the batch
-    continues.
+    continues. ``source="manual"`` marks user-entered events (POST
+    /api/events), which reuse this exact path — same normalization, same
+    natural-key dedup — but stay deletable through the API.
     """
     result = IngestResult(venue_slug=venue.slug)
     scraped_at = datetime.now(UTC).isoformat()
     for record in scraped:
         try:
-            show = _to_show(venue, record, scraped_at)
+            show = _to_show(venue, record, scraped_at, source)
             existing = shows_repo.get_by_natural_key(
                 conn,
                 show.venue_id,

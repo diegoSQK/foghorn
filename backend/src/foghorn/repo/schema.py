@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS venues (
     tz            TEXT NOT NULL,
     website_url   TEXT,
     calendar_url  TEXT NOT NULL,
-    genre         TEXT
+    genre         TEXT,
+    source        TEXT NOT NULL DEFAULT 'seed'  -- 'seed' | 'manual'
 );
 
 CREATE TABLE IF NOT EXISTS performers (
@@ -48,6 +49,7 @@ CREATE TABLE IF NOT EXISTS shows (
     price_text           TEXT,
     source_url           TEXT NOT NULL,
     scraped_at           TEXT NOT NULL,
+    source               TEXT NOT NULL DEFAULT 'scrape',  -- 'scrape' | 'manual'
     UNIQUE (venue_id, start_local_date, start_local_time, headliner_canonical)
 );
 
@@ -104,6 +106,8 @@ def init_schema(conn: sqlite3.Connection) -> None:
     _add_column_if_missing(conn, "venues", "genre", "TEXT")
     _add_column_if_missing(conn, "performers", "origin", "TEXT")
     _add_column_if_missing(conn, "performers", "origin_source", "TEXT")
+    _add_column_if_missing(conn, "venues", "source", "TEXT NOT NULL DEFAULT 'seed'")
+    _add_column_if_missing(conn, "shows", "source", "TEXT NOT NULL DEFAULT 'scrape'")
     conn.commit()
 
 

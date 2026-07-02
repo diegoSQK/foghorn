@@ -46,6 +46,8 @@ class PerformerView(BaseModel):
 
 
 class ShowView(BaseModel):
+    id: int
+    source: str  # 'scrape' | 'manual' — manual rows are user-deletable
     venue: VenueView
     start_local_date: str
     start_local_time: str
@@ -78,7 +80,10 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
         # Defensive: every ingested show has a headliner, but never 500 if not.
         else PerformerView(display=show.headliner_canonical, canonical=show.headliner_canonical)
     )
+    assert show.id is not None  # read paths always return persisted rows
     return ShowView(
+        id=show.id,
+        source=show.source,
         venue=VenueView(
             slug=venue.slug,
             name=venue.name,

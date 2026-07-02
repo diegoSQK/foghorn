@@ -43,6 +43,9 @@ export default async function RootLayout({
           <Link href="/watchlist" className="hover:underline">
             Watchlist{count > 0 ? ` (${count})` : ""}
           </Link>
+          <Link href="/add" className="hover:underline">
+            Add event
+          </Link>
         </nav>
         {children}
       </body>

@@ -12,6 +12,8 @@ export type PerformerView = {
 };
 
 export type ShowView = {
+  id: number;
+  source: "scrape" | "manual";
   venue: {
     slug: string;
     name: string;

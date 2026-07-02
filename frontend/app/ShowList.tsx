@@ -3,6 +3,7 @@
 // comes from the server-computed `watchlistCanon` set.
 
 import AddToWatchlistButton from "./AddToWatchlistButton";
+import RemoveEventButton from "./RemoveEventButton";
 import type { ShowView } from "./lib/api";
 
 // Subtle inline badge for heuristically/hand-tagged local acts. Touring gets
@@ -73,6 +74,17 @@ export default function ShowList({
                       canonicalName={show.headliner.canonical}
                       initiallyOn={watchlistCanon.has(show.headliner.canonical)}
                     />
+                    {show.source === "manual" && (
+                      <>
+                        <span
+                          className="ml-1 rounded-full border border-sky-300 px-1.5 py-px align-middle text-[10px] font-medium uppercase tracking-wide text-sky-700 dark:border-sky-800 dark:text-sky-400"
+                          title="You added this event manually"
+                        >
+                          added by you
+                        </span>
+                        <RemoveEventButton showId={show.id} />
+                      </>
+                    )}
                   </span>
                   <span className="shrink-0 text-sm tabular-nums text-zinc-500 dark:text-zinc-400">
                     {formatTime(show.start_local_time)}
