@@ -99,6 +99,32 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="kilowatt",
+        name="Kilowatt",
+        neighborhood="Mission",
+        region="SF",
+        address="3160 16th St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.kilowattbar.com",
+        # The scraper reads the Dice.fm events API via the venue's public
+        # widget key — see scrapers/kilowatt.
+        calendar_url="https://www.kilowattbar.com/events",
+        genre="rock",
+    ),
+    Venue(
+        slug="the_knockout",
+        name="The Knockout",
+        neighborhood="Mission",
+        region="SF",
+        address="3223 Mission St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://theknockoutsf.com",
+        # Squarespace calendar-collection month JSON; the older /calendar
+        # collection is stale test data — see scrapers/the_knockout.
+        calendar_url="https://theknockoutsf.com/calendar2",
+        genre="rock",
+    ),
+    Venue(
         slug="bottom_of_the_hill",
         name="Bottom of the Hill",
         neighborhood="Potrero Hill",
