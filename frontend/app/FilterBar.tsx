@@ -9,16 +9,11 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import GenreFilter from "./GenreFilter";
 import LocationFilter from "./LocationFilter";
 import PerformerSearch from "./PerformerSearch";
+import type { VenueOption } from "./lib/api";
 import { addDaysISO, thisWeekend, todayISO } from "./lib/dates";
-
-type VenueOption = {
-  slug: string;
-  name: string;
-  neighborhood?: string | null;
-  region?: string | null;
-};
 
 function chipClass(active: boolean): string {
   return `rounded-full border px-3 py-1 text-sm transition-colors ${
@@ -153,6 +148,8 @@ export default function FilterBar({ venues }: { venues: VenueOption[] }) {
       </div>
 
       <LocationFilter venues={venues} />
+
+      <GenreFilter venues={venues} />
 
       <fieldset className="flex flex-wrap gap-x-4 gap-y-2">
         <legend className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">

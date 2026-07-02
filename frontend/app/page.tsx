@@ -35,6 +35,7 @@ export default async function Home({
   const performerQuery = first(sp.performer_query);
   const region = first(sp.region);
   const neighborhood = first(sp.neighborhood);
+  const genre = first(sp.genre);
 
   const query = new URLSearchParams({ from, to });
   if (venues) query.set("venues", venues);
@@ -44,6 +45,7 @@ export default async function Home({
   if (performerQuery) query.set("performer_query", performerQuery);
   if (region) query.set("region", region);
   if (neighborhood) query.set("neighborhood", neighborhood);
+  if (genre) query.set("genre", genre);
 
   const [shows, allVenues, watchlist] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),

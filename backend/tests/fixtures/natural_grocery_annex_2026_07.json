@@ -1,0 +1,205 @@
+{
+  "events": [
+    {
+      "id": 12928,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "The Annex Sessions: Chris Trinidad&#8217;s Chroma Tonic",
+      "start_date": "2026-07-01 18:00:00",
+      "end_date": "2026-07-01 20:30:00",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/the-annex-sessions-chris-trinidads-chroma-tonic/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 12939,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "The Annex Sessions: Marina Lavalle and Pedro Rosales",
+      "start_date": "2026-07-08 18:00:00",
+      "end_date": "2026-07-08 20:30:00",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/the-annex-sessions-marina-la-valle-and-pedro-rosales/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 12815,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "The Annex Sessions: The Key System",
+      "start_date": "2026-07-08 20:30:00",
+      "end_date": "2026-07-08 22:30:00",
+      "cost": "$10",
+      "website": "https://www.eventbrite.com/e/the-key-system-at-the-annex-tickets-1000000000",
+      "url": "https://naturalgrocery.com/event/the-annex-sessions-the-key-system/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 12904,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "Mini Wine Tasting: Bistue Cellars",
+      "start_date": "2026-07-09 17:00:00",
+      "end_date": "2026-07-09 18:30:00",
+      "cost": "$5",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/mini-wine-tasting-bistue-cellars/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 12251,
+      "all_day": true,
+      "hide_from_listings": false,
+      "title": "The Annex Sessions: No Music Tonight",
+      "start_date": "2026-07-13 00:00:00",
+      "end_date": "2026-07-13 23:59:59",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/the-annex-sessions-no-music-tonight-4/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 12395,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "The Annex Sessions: Modupue Wednesday",
+      "start_date": "2026-07-15 18:00:00",
+      "end_date": "2026-07-15 20:30:00",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/the-annex-sessions-modupue-wednesday-5/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 99001,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "Live at the Berkeley Store: Farmers Market Duo",
+      "start_date": "2026-07-16 18:00:00",
+      "end_date": "2026-07-16 20:00:00",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/live-at-the-berkeley-store-farmers-market-duo/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 115,
+        "venue": "Natural Grocery Berkeley",
+        "slug": "berkeley-store",
+        "city": "Berkeley"
+      }
+    },
+    {
+      "id": 12941,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "The Annex Sessions: Carlos Caminos, Jesse Torre, Mellissa Cruz",
+      "start_date": "2026-07-22 18:00:00",
+      "end_date": "2026-07-22 20:30:00",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/the-annex-sessions-carlos-caminos-jesse-torre-mellissa-cruz/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 12842,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "Charged Particles with Tod Dickow",
+      "start_date": "2026-07-29 18:00:00",
+      "end_date": "2026-07-29 20:30:00",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/charged-particles-with-tod-dickow/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 12391,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "The Annex Sessions: Ruben Hurtado &#038; Orestes Vilato",
+      "start_date": "2026-08-05 18:00:00",
+      "end_date": "2026-08-05 20:30:00",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/the-annex-sessions-ruben-hurtado-orestes-vilato/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    },
+    {
+      "id": 12844,
+      "all_day": false,
+      "hide_from_listings": false,
+      "title": "The Annex Sessions: The Shadow Band",
+      "start_date": "2026-10-21 18:00:00",
+      "end_date": "2026-10-21 20:30:00",
+      "cost": "",
+      "website": "",
+      "url": "https://naturalgrocery.com/event/the-annex-sessions-the-shadow-band/",
+      "timezone": "UTC-7",
+      "venue": {
+        "id": 114,
+        "venue": "The Annex",
+        "slug": "annex",
+        "city": "El Cerrito"
+      }
+    }
+  ],
+  "rest_url": "https://naturalgrocery.com/wp-json/tribe/events/v1/events/?page=1&per_page=50&start_date=2026-01-01 00:00:00&end_date=2026-12-31 23:59:59&status=publish",
+  "total": 11,
+  "total_pages": 1
+}

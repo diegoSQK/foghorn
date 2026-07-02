@@ -23,6 +23,7 @@ from foghorn.scrapers import (
     keys_jazz_bistro,
     madrone_art_bar,
     mr_tipples,
+    natural_grocery_annex,
     ocean_ale_house,
 )
 
@@ -33,5 +34,6 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     keys_jazz_bistro.VENUE_SLUG: keys_jazz_bistro.scrape,
     madrone_art_bar.VENUE_SLUG: madrone_art_bar.scrape,
     mr_tipples.VENUE_SLUG: mr_tipples.scrape,
+    natural_grocery_annex.VENUE_SLUG: natural_grocery_annex.scrape,
     ocean_ale_house.VENUE_SLUG: ocean_ale_house.scrape,
 }

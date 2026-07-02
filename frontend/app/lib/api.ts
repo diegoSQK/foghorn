@@ -12,6 +12,7 @@ export type ShowView = {
     name: string;
     neighborhood: string | null;
     region: string | null;
+    genre: string | null;
   };
   start_local_date: string;
   start_local_time: string;
@@ -28,6 +29,7 @@ export type VenueOption = {
   name: string;
   neighborhood: string | null;
   region: string | null;
+  genre: string | null;
 };
 
 export type WatchlistEntry = {

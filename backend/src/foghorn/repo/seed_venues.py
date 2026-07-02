@@ -99,6 +99,21 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="natural_grocery_annex",
+        name="El Cerrito Natural Grocery Annex",
+        neighborhood="El Cerrito",
+        region="East Bay",
+        # The grocery store is 10367; the Annex performance space next door is
+        # 10387 (per the venue's own Tribe venue record).
+        address="10387 San Pablo Ave, El Cerrito, CA",
+        tz="America/Los_Angeles",
+        website_url="https://naturalgrocery.com/annex/",
+        # The scraper reads the company-wide Tribe Events REST API and keeps
+        # only events at the Annex — see scrapers/natural_grocery_annex.
+        calendar_url="https://naturalgrocery.com/events/",
+        genre="jazz",
+    ),
+    Venue(
         slug="madrone_art_bar",
         name="Madrone Art Bar",
         neighborhood="NoPa",
