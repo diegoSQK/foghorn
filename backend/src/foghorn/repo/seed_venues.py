@@ -99,6 +99,32 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="the_independent",
+        name="The Independent",
+        neighborhood="NoPa",
+        region="SF",
+        address="628 Divisadero St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.theindependentsf.com",
+        # The homepage renders the full TicketWeb "tw-" show list server-side
+        # — see scrapers/the_independent (+ _ticketweb_calendar helper).
+        calendar_url="https://www.theindependentsf.com/",
+        genre="rock",
+    ),
+    Venue(
+        slug="cafe_du_nord",
+        name="Cafe du Nord",
+        neighborhood="Castro",
+        region="SF",
+        address="2174 Market St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://cafedunord.com",
+        # Same TicketWeb template, paginated; also bills shows at the attached
+        # Swedish American Hall — see scrapers/cafe_du_nord.
+        calendar_url="https://cafedunord.com/calendar/",
+        genre="rock",
+    ),
+    Venue(
         slug="dna_lounge",
         name="DNA Lounge",
         neighborhood="SoMa",
