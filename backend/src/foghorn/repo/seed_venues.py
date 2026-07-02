@@ -99,6 +99,30 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="fox_theater_oakland",
+        name="Fox Theater Oakland",
+        neighborhood="Uptown",
+        region="East Bay",
+        address="1807 Telegraph Ave, Oakland, CA",
+        tz="America/Los_Angeles",
+        website_url="https://thefoxoakland.com",
+        # Server-rendered APE listing — see scrapers/fox_theater_oakland
+        # (+ _ape_listing helper, shared with the Greek).
+        calendar_url="https://thefoxoakland.com/listing/",
+        genre="rock",
+    ),
+    Venue(
+        slug="greek_theatre_berkeley",
+        name="Greek Theatre Berkeley",
+        neighborhood="UC Berkeley",
+        region="East Bay",
+        address="2001 Gayley Rd, Berkeley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://thegreekberkeley.com",
+        calendar_url="https://thegreekberkeley.com/event-listing/",
+        genre="rock",
+    ),
+    Venue(
         slug="the_independent",
         name="The Independent",
         neighborhood="NoPa",
