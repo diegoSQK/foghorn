@@ -21,6 +21,9 @@ from foghorn.scrapers import (
     black_cat,
     boom_boom_room,
     bottom_of_the_hill,
+    california_jazz_conservatory,
+    gilman_924,
+    ivy_room,
     keys_jazz_bistro,
     kilowatt,
     madrone_art_bar,
@@ -29,6 +32,7 @@ from foghorn.scrapers import (
     ocean_ale_house,
     rickshaw_stop,
     the_knockout,
+    yoshis,
 )
 
 REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
@@ -36,6 +40,9 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     black_cat.VENUE_SLUG: black_cat.scrape,
     boom_boom_room.VENUE_SLUG: boom_boom_room.scrape,
     bottom_of_the_hill.VENUE_SLUG: bottom_of_the_hill.scrape,
+    california_jazz_conservatory.VENUE_SLUG: california_jazz_conservatory.scrape,
+    gilman_924.VENUE_SLUG: gilman_924.scrape,
+    ivy_room.VENUE_SLUG: ivy_room.scrape,
     keys_jazz_bistro.VENUE_SLUG: keys_jazz_bistro.scrape,
     kilowatt.VENUE_SLUG: kilowatt.scrape,
     madrone_art_bar.VENUE_SLUG: madrone_art_bar.scrape,
@@ -44,4 +51,5 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     ocean_ale_house.VENUE_SLUG: ocean_ale_house.scrape,
     rickshaw_stop.VENUE_SLUG: rickshaw_stop.scrape,
     the_knockout.VENUE_SLUG: the_knockout.scrape,
+    yoshis.VENUE_SLUG: yoshis.scrape,
 }

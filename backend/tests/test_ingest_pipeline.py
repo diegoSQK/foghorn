@@ -141,3 +141,27 @@ def test_bad_show_is_isolated_in_errors(conn: sqlite3.Connection) -> None:
     assert result.created == 0
     assert result.updated == 0
     assert len(result.errors) == 1
+
+
+def test_duplicate_billing_collapses_to_first_occurrence(
+    conn: sqlite3.Connection, venue: Venue
+) -> None:
+    # Venues sometimes repeat an act on the bill (headliner listed again in
+    # support, or "TBA" filling several slots). The bill must dedupe by
+    # performer rather than violating the show_performers PK.
+    result = ingest_scraped_shows(
+        conn,
+        venue,
+        [
+            _scraped(
+                "TBA",
+                datetime(2026, 9, 2, 19, 45),
+                support=["TBA", "Opener A", "TBA", "Opener A"],
+            )
+        ],
+    )
+    assert result.errors == []
+    assert result.created == 1
+    [show] = shows_repo.list(conn, ShowFilters())
+    got = [(p.role, p.position, p.display_name) for p in show.performers]
+    assert got == [("headliner", 0, "TBA"), ("support", 1, "Opener A")]

@@ -87,7 +87,13 @@ def _build_bill(
             position=0,
         )
     )
-    for position, support_raw in enumerate(scraped.support_raw, start=1):
+    # Venues sometimes bill the same act twice (the headliner repeated in the
+    # support list, or a placeholder like "TBA" filling several slots). The
+    # show_performers PK is (show_id, performer_id), so keep only the first
+    # occurrence of each performer — earliest billing position wins.
+    seen_ids = {headliner.id}
+    position = 1
+    for support_raw in scraped.support_raw:
         support = performers_repo.upsert(
             conn,
             Performer(
@@ -95,6 +101,9 @@ def _build_bill(
                 canonical_name=canonicalize(support_raw),
             ),
         )
+        if support.id in seen_ids:
+            continue
+        seen_ids.add(support.id)
         bill.append(
             ShowPerformer(
                 performer_id=support.id,
@@ -104,6 +113,7 @@ def _build_bill(
                 position=position,
             )
         )
+        position += 1
     return bill
 
 

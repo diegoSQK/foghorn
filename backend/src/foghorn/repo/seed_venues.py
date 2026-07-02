@@ -150,6 +150,58 @@ SEED_VENUES: list[Venue] = [
         genre="rock",
     ),
     Venue(
+        slug="yoshis",
+        name="Yoshi's",
+        neighborhood="Jack London Square",
+        region="East Bay",
+        address="510 Embarcadero West, Oakland, CA",
+        tz="America/Los_Angeles",
+        website_url="https://yoshis.com",
+        # The scraper POSTs the fullCalendar JSON feed behind this page (one
+        # entry per set) and joins prices from the HTML — see scrapers/yoshis.
+        calendar_url="https://yoshis.com/events/default/calendar",
+        genre="jazz",
+    ),
+    Venue(
+        slug="california_jazz_conservatory",
+        name="California Jazz Conservatory",
+        neighborhood="Downtown Berkeley",
+        region="East Bay",
+        address="2087 Addison St, Berkeley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://jazzschool.org",
+        # The school's dedicated public-concerts subdomain (classes never
+        # appear there) — see scrapers/california_jazz_conservatory.
+        calendar_url="https://concerts.jazzschool.org/",
+        genre="jazz",
+    ),
+    Venue(
+        slug="ivy_room",
+        name="Ivy Room",
+        neighborhood="Albany",
+        region="East Bay",
+        address="860 San Pablo Ave, Albany, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.ivyroom.com",
+        # The scraper reads Venuepilot's public GraphQL API (the site itself
+        # is a JS widget shell) — see scrapers/ivy_room.
+        calendar_url="https://www.ivyroom.com/shows",
+        genre="rock",
+    ),
+    Venue(
+        slug="gilman_924",
+        name="924 Gilman",
+        neighborhood="West Berkeley",
+        region="East Bay",
+        address="924 Gilman St, Berkeley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.924gilman.org",
+        # The collective's ShowSlinger ticketing listing (the Wix site's
+        # calendar is client-rendered) — see scrapers/gilman_924.
+        calendar_url="https://app.showslinger.com/e1/460/924-gilman/8c96699fd6",
+        genre="rock",
+    ),
+    Venue(
         slug="natural_grocery_annex",
         name="El Cerrito Natural Grocery Annex",
         neighborhood="El Cerrito",
