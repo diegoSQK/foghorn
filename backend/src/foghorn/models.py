@@ -20,6 +20,12 @@ from pydantic import BaseModel, ConfigDict, Field
 # validated at construction time rather than silently writing typos to the DB.
 Region = Literal["SF", "East Bay", "Peninsula", "South Bay"]
 Role = Literal["headliner", "support"]
+# Performer origin (v1 of local/touring tagging). No scraped source publishes
+# this — it's inferred (heuristic bootstrap) or hand-set; None = unknown.
+# "regional" (touring-the-West-Coast-but-Bay-based) deferred until the two-way
+# split proves too coarse.
+Origin = Literal["local", "touring"]
+OriginSource = Literal["heuristic", "manual"]
 
 
 class Venue(BaseModel):
@@ -48,6 +54,10 @@ class Performer(BaseModel):
     id: int | None = None
     display_name: str
     canonical_name: str
+    # Local/touring tag. origin_source records who set it: the heuristic
+    # bootstrap never overwrites a "manual" row.
+    origin: Origin | None = None
+    origin_source: OriginSource | None = None
 
 
 class ShowPerformer(BaseModel):
@@ -59,6 +69,7 @@ class ShowPerformer(BaseModel):
     canonical_name: str
     role: Role
     position: int  # display order on the bill; headliner is 0
+    origin: Origin | None = None  # denormalized from performers for read-back
 
 
 class Show(BaseModel):
@@ -118,6 +129,9 @@ class ShowFilters(BaseModel):
     region: Region | None = None
     neighborhood: str | None = None  # case-insensitive exact match on venue
     genre: str | None = None  # case-insensitive exact match on venue genre
+    # A show matches if ANY performer on the bill carries this origin tag
+    # (same any-performer semantics as the watchlist filter).
+    origin: Origin | None = None
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
     time_of_day: Literal["early", "late"] | None = None
 

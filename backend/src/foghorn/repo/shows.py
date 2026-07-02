@@ -41,7 +41,8 @@ def _load_performers(
 ) -> builtins.list[ShowPerformer]:
     rows = conn.execute(
         """
-        SELECT sp.performer_id, p.display_name, p.canonical_name, sp.role, sp.position
+        SELECT sp.performer_id, p.display_name, p.canonical_name, p.origin,
+               sp.role, sp.position
         FROM show_performers sp
         JOIN performers p ON p.id = sp.performer_id
         WHERE sp.show_id = ?
@@ -54,6 +55,7 @@ def _load_performers(
             performer_id=row["performer_id"],
             display_name=row["display_name"],
             canonical_name=row["canonical_name"],
+            origin=row["origin"],
             role=row["role"],
             position=row["position"],
         )
@@ -186,6 +188,16 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
     if filters.genre:
         clauses.append("v.genre = ? COLLATE NOCASE")
         params.append(filters.genre)
+    if filters.origin:
+        # Any-performer semantics, like the watchlist: a touring headliner
+        # with a local opener matches origin=local (the opener is the reason
+        # a support-local user would go).
+        clauses.append(
+            "EXISTS (SELECT 1 FROM show_performers spo "
+            "JOIN performers po ON po.id = spo.performer_id "
+            "WHERE spo.show_id = s.id AND po.origin = ?)"
+        )
+        params.append(filters.origin)
     if filters.from_date:
         clauses.append("s.start_local_date >= ?")
         params.append(filters.from_date)

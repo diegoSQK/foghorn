@@ -36,6 +36,7 @@ export default async function Home({
   const region = first(sp.region);
   const neighborhood = first(sp.neighborhood);
   const genre = first(sp.genre);
+  const origin = first(sp.origin);
 
   const query = new URLSearchParams({ from, to });
   if (venues) query.set("venues", venues);
@@ -46,6 +47,7 @@ export default async function Home({
   if (region) query.set("region", region);
   if (neighborhood) query.set("neighborhood", neighborhood);
   if (genre) query.set("genre", genre);
+  if (origin === "local" || origin === "touring") query.set("origin", origin);
 
   const [shows, allVenues, watchlist] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
@@ -73,7 +75,17 @@ export default async function Home({
       ) : (
         <>
           <Suspense fallback={null}>
-            <FilterBar venues={allVenues ?? []} />
+            <FilterBar
+              venues={allVenues ?? []}
+              showOriginFilter={
+                Boolean(origin) ||
+                shows.some(
+                  (s) =>
+                    s.headliner.origin !== null ||
+                    s.support.some((p) => p.origin !== null),
+                )
+              }
+            />
           </Suspense>
 
           {shows.length === 0 ? (

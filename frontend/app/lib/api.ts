@@ -4,7 +4,12 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
-export type PerformerView = { display: string; canonical: string };
+export type PerformerView = {
+  display: string;
+  canonical: string;
+  // Local/touring tag (heuristic or hand-set); null = unknown.
+  origin: "local" | "touring" | null;
+};
 
 export type ShowView = {
   venue: {

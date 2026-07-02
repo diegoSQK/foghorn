@@ -16,7 +16,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from foghorn.ingest.pipeline import canonicalize
-from foghorn.models import Region, Show, ShowFilters, Venue
+from foghorn.models import Origin, Region, Show, ShowFilters, Venue
 from foghorn.repo import db
 from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
@@ -42,6 +42,7 @@ class VenueView(BaseModel):
 class PerformerView(BaseModel):
     display: str
     canonical: str
+    origin: str | None = None  # 'local' | 'touring' | None (unknown)
 
 
 class ShowView(BaseModel):
@@ -58,7 +59,9 @@ class ShowView(BaseModel):
 
 def _to_view(show: Show, venue: Venue) -> ShowView:
     support = [
-        PerformerView(display=p.display_name, canonical=p.canonical_name)
+        PerformerView(
+            display=p.display_name, canonical=p.canonical_name, origin=p.origin
+        )
         for p in show.performers
         if p.role == "support"
     ]
@@ -69,6 +72,7 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
         PerformerView(
             display=headliner_performer.display_name,
             canonical=headliner_performer.canonical_name,
+            origin=headliner_performer.origin,
         )
         if headliner_performer is not None
         # Defensive: every ingested show has a headliner, but never 500 if not.
@@ -116,6 +120,7 @@ def build_show_views(
     region: Region | None = None,
     neighborhood: str | None = None,
     genre: str | None = None,
+    origin: Origin | None = None,
     watchlist: bool = False,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
@@ -138,6 +143,7 @@ def build_show_views(
         region=region,
         neighborhood=neighborhood,
         genre=genre,
+        origin=origin,
     )
     shows = shows_repo.list(conn, filters)
     venues_by_id = {v.id: v for v in venues_repo.list_all(conn)}
@@ -173,6 +179,9 @@ def list_shows(
     genre: str | None = Query(
         default=None, description="venue-default genre (case-insensitive exact)"
     ),
+    origin: str | None = Query(
+        default=None, description="local | touring (any performer on the bill)"
+    ),
     watchlist: str | None = Query(
         default=None, description="'true' to filter to watchlist matches"
     ),
@@ -196,6 +205,13 @@ def list_shows(
     # Narrow region to a known value; unknown values are ignored, not a 400.
     reg: Region | None = next((r for r in _REGIONS if r == region), None)
 
+    # Narrow origin the same way (mirrors time_of_day).
+    org: Origin | None = None
+    if origin == "local":
+        org = "local"
+    elif origin == "touring":
+        org = "touring"
+
     conn = db.connect()
     try:
         return build_show_views(
@@ -208,6 +224,7 @@ def list_shows(
             region=reg,
             neighborhood=neighborhood or None,
             genre=genre or None,
+            origin=org,
             watchlist=watchlist == "true",
         )
     finally:

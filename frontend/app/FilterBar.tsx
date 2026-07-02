@@ -11,6 +11,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import GenreFilter from "./GenreFilter";
 import LocationFilter from "./LocationFilter";
+import OriginFilter from "./OriginFilter";
 import PerformerSearch from "./PerformerSearch";
 import type { VenueOption } from "./lib/api";
 import { addDaysISO, thisWeekend, todayISO } from "./lib/dates";
@@ -26,7 +27,15 @@ function chipClass(active: boolean): string {
 const inputClass =
   "rounded-md border border-zinc-300 bg-transparent px-2 py-1 text-sm text-zinc-900 dark:border-zinc-700 dark:text-zinc-100";
 
-export default function FilterBar({ venues }: { venues: VenueOption[] }) {
+export default function FilterBar({
+  venues,
+  showOriginFilter = false,
+}: {
+  venues: VenueOption[];
+  // Origin tags cover only part of the catalog; the server component sets
+  // this when tagged performers exist in the result (or ?origin= is active).
+  showOriginFilter?: boolean;
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const pathname = usePathname(); // keep filters on the current route (/ or /watchlist)
@@ -150,6 +159,8 @@ export default function FilterBar({ venues }: { venues: VenueOption[] }) {
       <LocationFilter venues={venues} />
 
       <GenreFilter venues={venues} />
+
+      {showOriginFilter && <OriginFilter />}
 
       <fieldset className="flex flex-wrap gap-x-4 gap-y-2">
         <legend className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">

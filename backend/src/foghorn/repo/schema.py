@@ -31,7 +31,9 @@ CREATE TABLE IF NOT EXISTS venues (
 CREATE TABLE IF NOT EXISTS performers (
     id              INTEGER PRIMARY KEY,
     display_name    TEXT NOT NULL,
-    canonical_name  TEXT NOT NULL UNIQUE
+    canonical_name  TEXT NOT NULL UNIQUE,
+    origin          TEXT,  -- 'local' | 'touring' | NULL (unknown)
+    origin_source   TEXT   -- 'heuristic' | 'manual' | NULL
 );
 
 CREATE TABLE IF NOT EXISTS shows (
@@ -100,6 +102,8 @@ def init_schema(conn: sqlite3.Connection) -> None:
     ALTER)."""
     conn.executescript(SCHEMA_SQL)
     _add_column_if_missing(conn, "venues", "genre", "TEXT")
+    _add_column_if_missing(conn, "performers", "origin", "TEXT")
+    _add_column_if_missing(conn, "performers", "origin_source", "TEXT")
     conn.commit()
 
 

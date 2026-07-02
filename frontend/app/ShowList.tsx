@@ -5,6 +5,21 @@
 import AddToWatchlistButton from "./AddToWatchlistButton";
 import type { ShowView } from "./lib/api";
 
+// Subtle inline badge for heuristically/hand-tagged local acts. Touring gets
+// no badge — local is the tag worth surfacing, and unknown must not read as
+// "not local".
+function LocalBadge({ origin }: { origin: "local" | "touring" | null }) {
+  if (origin !== "local") return null;
+  return (
+    <span
+      className="ml-1 rounded-full border border-emerald-300 px-1.5 py-px align-middle text-[10px] font-medium uppercase tracking-wide text-emerald-700 dark:border-emerald-800 dark:text-emerald-400"
+      title="Likely a local act (inferred from gigging patterns)"
+    >
+      local
+    </span>
+  );
+}
+
 function formatDate(isoDate: string): string {
   const [year, month, day] = isoDate.split("-").map(Number);
   const date = new Date(year, month - 1, day); // local — no tz shift
@@ -52,6 +67,7 @@ export default function ShowList({
                 <div className="flex items-baseline justify-between gap-4">
                   <span className="font-medium">
                     {show.headliner.display}
+                    <LocalBadge origin={show.headliner.origin} />
                     <AddToWatchlistButton
                       displayName={show.headliner.display}
                       canonicalName={show.headliner.canonical}
@@ -69,6 +85,7 @@ export default function ShowList({
                       <span key={performer.canonical}>
                         {j > 0 ? ", " : ""}
                         {performer.display}
+                        <LocalBadge origin={performer.origin} />
                         <AddToWatchlistButton
                           displayName={performer.display}
                           canonicalName={performer.canonical}

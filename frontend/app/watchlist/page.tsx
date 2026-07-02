@@ -37,6 +37,7 @@ export default async function WatchlistPage({
   const region = first(sp.region);
   const neighborhood = first(sp.neighborhood);
   const genre = first(sp.genre);
+  const origin = first(sp.origin);
 
   const query = new URLSearchParams({ from, to, watchlist: "true" });
   if (venues) query.set("venues", venues);
@@ -47,6 +48,7 @@ export default async function WatchlistPage({
   if (region) query.set("region", region);
   if (neighborhood) query.set("neighborhood", neighborhood);
   if (genre) query.set("genre", genre);
+  if (origin === "local" || origin === "touring") query.set("origin", origin);
 
   const [shows, allVenues, watchlist] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
@@ -82,7 +84,17 @@ export default async function WatchlistPage({
         <>
           <WatchlistChips entries={entries} />
           <Suspense fallback={null}>
-            <FilterBar venues={allVenues ?? []} />
+            <FilterBar
+              venues={allVenues ?? []}
+              showOriginFilter={
+                Boolean(origin) ||
+                shows.some(
+                  (s) =>
+                    s.headliner.origin !== null ||
+                    s.support.some((p) => p.origin !== null),
+                )
+              }
+            />
           </Suspense>
           {shows.length === 0 ? (
             <p className="text-zinc-500 dark:text-zinc-400">
