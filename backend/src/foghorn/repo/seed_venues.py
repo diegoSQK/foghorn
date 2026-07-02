@@ -99,6 +99,31 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="dna_lounge",
+        name="DNA Lounge",
+        neighborhood="SoMa",
+        region="SF",
+        address="375 Eleventh St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.dnalounge.com",
+        # The venue's self-published iCalendar feed — see scrapers/dna_lounge.
+        calendar_url="https://cdn.dnalounge.com/calendar/dnalounge.ics",
+        genre="electronic",
+    ),
+    Venue(
+        slug="cornerstone_berkeley",
+        name="Cornerstone Berkeley",
+        neighborhood="Downtown Berkeley",
+        region="East Bay",
+        address="2367 Shattuck Ave, Berkeley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.cornerstoneberkeley.com",
+        # Server-rendered JSON-LD Event blocks + Tixr offers; start times
+        # paired from the card markup — see scrapers/cornerstone_berkeley.
+        calendar_url="https://cornerstoneberkeley.com/events/",
+        genre="rock",
+    ),
+    Venue(
         slug="great_american_music_hall",
         name="Great American Music Hall",
         neighborhood="Tenderloin",

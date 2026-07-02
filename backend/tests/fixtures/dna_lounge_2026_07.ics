@@ -1,0 +1,477 @@
+BEGIN:VCALENDAR
+X-WR-CALNAME;VALUE=TEXT:DNA Lounge
+X-WR-CALDESC;VALUE=TEXT:Upcoming events at DNA Lounge:\n
+ 375 Eleventh Street\, San Francisco.
+X-WR-TIMEZONE;VALUE=TEXT:US/Pacific
+PRODID:-//dnalounge.com//calendar//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VTIMEZONE
+TZID:US/Pacific
+BEGIN:STANDARD
+TZOFFSETFROM:-0700
+RRULE:FREQ=YEARLY;UNTIL=20061029T090000Z;BYMONTH=10;BYDAY=-1SU
+DTSTART:19621028T020000
+TZNAME:PST
+TZOFFSETTO:-0800
+END:STANDARD
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0800
+RRULE:FREQ=YEARLY;UNTIL=19860427T100000Z;BYMONTH=4;BYDAY=-1SU
+DTSTART:19760425T020000
+TZNAME:PDT
+TZOFFSETTO:-0700
+END:DAYLIGHT
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0800
+RRULE:FREQ=YEARLY;UNTIL=20060402T100000Z;BYMONTH=4;BYDAY=1SU
+DTSTART:19870405T020000
+TZNAME:PDT
+TZOFFSETTO:-0700
+END:DAYLIGHT
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0800
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+DTSTART:20070311T020000
+TZNAME:PDT
+TZOFFSETTO:-0700
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0700
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+DTSTART:20071104T020000
+TZNAME:PST
+TZOFFSETTO:-0800
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:https://www.dnalounge.com/calendar/2026/06-27a.html
+DTSTAMP:20260607T220020Z
+SEQUENCE:1
+ORGANIZER;CN=DNA Lounge:https://www.dnalounge.com/
+LOCATION;ALTREP="https://www.dnalounge.com/directions/":
+ DNA Lounge: 375 Eleventh Street\, San Francisco\, CA 94103
+GEO:37.771007;-122.412694
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
+ X-APPLE-RADIUS=100;
+ X-TITLE=DNA Lounge:geo:37.771007,-122.412694
+SUMMARY:Kumta Family Experience
+DTSTART;TZID=US/Pacific:20260627T160000
+DURATION:PT5H
+URL:https://www.dnalounge.com/calendar/2026/06-27a.html
+X-THUMBNAIL:https://www.dnalounge.com/flyers/2026/06/27a.html
+DESCRIPTION;ALTREP="https://www.dnalounge.com/calendar/2026/06-27a.html":
+ Flavor Group presents\n
+ KUMTA FAMILY EXPERIENCE\n\n
+ Main Room:\n\n
+   Shortkut\n
+   Coflo\n
+   Winter Jendayi\n
+   Elephant Graveyard\n
+   KUMTA FAMILY BAND\n
+   ...plus special guests!\n\n
+ A gathering of worlds variety show featuring live music\, DJs\, street
+  dancers\, Afro Brazilian Capoeira\, indigenous medicine music\,
+  spoken word\, circus and more surprises.\n\n
+ All of these elements converge in a celebration that is part concert\,
+  part ceremony\, and all spectacle -- and all anchored by our family
+  band.\n\n
+ Watch and listen:\n
+   Winter Jendayi: Toda Mi Vida: https://youtu.be/tIWCn_IHEYs\n\n
+ hiphop. soul. metal. capoeira. indigenous medicine music.\n
+ 4pm - 9pm.\n
+ all ages.\n
+ FREE ADMISSION!
+CLASS:PUBLIC
+CATEGORIES:Performance
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER;RELATED=START:PT0M
+ACTION:AUDIO
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:https://www.dnalounge.com/calendar/2026/07-03.html
+DTSTAMP:20260628T220820Z
+SEQUENCE:3
+ORGANIZER;CN=DNA Lounge:https://www.dnalounge.com/
+LOCATION;ALTREP="https://www.dnalounge.com/directions/":
+ DNA Lounge: 375 Eleventh Street\, San Francisco\, CA 94103
+GEO:37.771007;-122.412694
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
+ X-APPLE-RADIUS=100;
+ X-TITLE=DNA Lounge:geo:37.771007,-122.412694
+SUMMARY:Perreo Eléctrico: Latin Rave
+DTSTART;TZID=US/Pacific:20260703T213000
+DURATION:PT2H30M
+URL:https://www.dnalounge.com/calendar/2026/07-03.html
+X-THUMBNAIL:https://www.dnalounge.com/flyers/2026/07/03.html
+DESCRIPTION;ALTREP="https://www.dnalounge.com/calendar/2026/07-03.html":
+ Main Room:\n\n
+   OtebNSolrac\n\n
+ Performing Live:\n\n
+   ROYALES\n\n
+ Perreo Eléctrico: The Latin Rave Experience pushing perreo and
+  underground Latin electronic music with live band\, Royales. Para la
+  cultura 🐕\n\n
+ techno. banda. house. corrido. reggaeton.\n
+ 9:30pm - 2:30am.\n
+ 18+ with ID.\n\n
+ $10 limited advance\;\n
+ $15 after\;\n
+ $22 door.\n\n
+ Buy tickets: https://www.dnalounge.com/calendar/2026/07-03.html
+CLASS:PUBLIC
+CATEGORIES:Performance
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER;RELATED=START:PT0M
+ACTION:AUDIO
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:https://www.dnalounge.com/calendar/2026/07-12.html
+DTSTAMP:20260612T020633Z
+SEQUENCE:4
+ORGANIZER;CN=DNA Lounge:https://www.dnalounge.com/
+LOCATION;ALTREP="https://www.dnalounge.com/directions/":
+ DNA Lounge: 375 Eleventh Street\, San Francisco\, CA 94103
+GEO:37.771007;-122.412694
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
+ X-APPLE-RADIUS=100;
+ X-TITLE=DNA Lounge:geo:37.771007,-122.412694
+SUMMARY:Conan The Barbarian: Movie Screening + Dance Party
+DTSTART;TZID=US/Pacific:20260712T193000
+DURATION:PT4H30M
+URL:https://www.dnalounge.com/calendar/2026/07-12.html
+X-THUMBNAIL:https://www.dnalounge.com/flyers/2026/07/12.html
+DESCRIPTION;ALTREP="https://www.dnalounge.com/calendar/2026/07-12.html":
+ Cyberdelia presents\n
+ CONAN THE BARBARIAN: MOVIE SCREENING + DANCE PARTY\n\n
+ Movie screening at 7:30pm\; dance party after!\n\n
+ With DJ:\n\n
+   Boblivion\n\n
+ Costume contest hosted by:\n\n
+   MC Kingfish (Hubba Hubba Revue)\n\n
+ With the Hubba Hubba Gogo Snake Cultists!\n\n
+ Join us for a screening of the 1982 classic\, Conan the Barbarian! \"A
+  powerful warrior seeks to avenge the genocide of his people and the
+  murder of his parents at the hands of a snake cult.\"\n\n
+ The breakout role for future Governor Arnold Schwarzenegger\, with
+  James Earl Jones bringing us an even more imposing villain as Thulsa
+  Doom than he did as Darth Vader\, this movie gorgeously reproduces
+  Frank Frazetta's iconic cover paintings of Robert E. Howard's books.
+  Directed by John Milius from a script by Oliver Stone.\n\n
+ Learn the Riddle of Steel! And of Flesh! Get drunk and punch out a
+  camel!\n\n
+ Costume contest!\n\n
+ Show us your Barbarian\, Hyborian Age and Snake Cult finery!\n\n
+ Movie Tickets and Seating Information:\n\n
+   General Admission tickets do not include guaranteed seating.\n\n
+ Reserved Seating: for the movie is sold by the chair. When these sell
+  out\, there is ample standing room.\n\n
+ Front Row VIP: A table for five right up front\, including admission
+  for five and bottle service.\n\n
+ VIP Booths: These are against the wall\, upstairs or downstairs and
+  include admission for 6\, 9 or 12\, depending\, plus bottle service.
+  These booths do not have an unimpeded view of the movie screen!\n\n
+ Buy tickets: https://www.dnalounge.com/calendar/2026/07-12.html\n\n
+ Watch and listen:\n
+   Conan The Barbarian: Movie Screening + Dance Party:
+  https://youtu.be/1kmudCPTrBs\n
+   Conan the Barbarian (1982): https://youtu.be/mwLBes2Gr8E\n\n
+ dungeon synth. metal.\n
+ doors @ 7:30pm\;\n
+ movie @ 8pm\;\n
+ party @ 10:30pm.\n
+ 18+ with ID.\n\n
+ Gen. Adm.: $15 limited advance\;\n
+ $22 after\;\n
+ Main Floor Seating: $20\, $25 limited advance\;\n
+ $30 after\;\n
+ $35 day of show.
+CLASS:PUBLIC
+CATEGORIES:Performance
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER;RELATED=START:PT0M
+ACTION:AUDIO
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:https://www.dnalounge.com/calendar/2026/07-21a.html
+DTSTAMP:20260619T015722Z
+SEQUENCE:1
+ORGANIZER;CN=DNA Lounge:https://www.dnalounge.com/
+LOCATION;ALTREP="https://www.dnalounge.com/directions/":
+ DNA Lounge: 375 Eleventh Street\, San Francisco\, CA 94103
+GEO:37.771007;-122.412694
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
+ X-APPLE-RADIUS=100;
+ X-TITLE=DNA Lounge:geo:37.771007,-122.412694
+SUMMARY:SF Game Development Meetup: Legal Essentials for Game Devs
+DTSTART;TZID=US/Pacific:20260721T173000
+DURATION:PT3H30M
+URL:https://www.dnalounge.com/calendar/2026/07-21a.html
+X-THUMBNAIL:https://www.dnalounge.com/flyers/2026/07/21a.html
+DESCRIPTION;ALTREP="https://www.dnalounge.com/calendar/2026/07-21a.html":
+ SF GAME DEVELOPMENT MEETUP: LEGAL ESSENTIALS FOR GAME DEVS\n\n
+ Speakers:\n\n
+   Joe Newman (Senior Legal Counsel at k-ID)\n
+   Jonathan Downing (Attorney & Storyteller at Tyz Law Group PC)\n\n
+ SF Game Development is excited to be featuring two incredible talks on
+  the legal essentials every game developer needs to know -- privacy\,
+  safety\, and intellectual property.\n\n
+ Whether you're a seasoned game developer\, an aspiring artist\, a
+  student\, or an indie creator\, this event is designed for you. Come
+  mingle with like-minded professionals and enthusiasts\, and enjoy
+  some pizza sponsored by SF Game Development.\n\n
+ Get Equipped With IP Tips & Tricks:\n
+ Jonathan Downing -- Attorney & Storyteller at Tyz Law Group PC\n\n
+ Intellectual property law can be complicated\, and there can be very
+  real consequences for getting things wrong. But by equipping yourself
+  with some basic understanding of the ins and outs of how this body of
+  law operates\, you can both avoid costly missteps and better protect
+  your work. Jonathan has been gaming since the days of blowing dust
+  out of NES cartridges and trying to figure out how to work a Power
+  Glove\, and combines that lifelong passion with over a decade of
+  experience in the video games legal space. An intellectual property
+  counselor with expertise in copyright across the entertainment and
+  technology spaces\, he's worked both in-house for a AAA game studio
+  and as outside counsel for developers and publishers of all shapes
+  and sizes. At Tyz Law Group\, he helps clients protect and enforce
+  their IP rights in an increasingly crowded market. (He never did
+  figure out how to work that Power Glove\, though.)\n\n
+ Kid's Privacy and Safety: Navigating Unprecedented Complexity\n
+ Joe Newman -- Senior Legal Counsel at k-ID\n\n
+ Today\, a frankly outrageous number of new laws and regulations are
+  targeting kids\, games\, and online interactions. Learn how a team of
+  gaming compliance veterans (and mega-nerds) have been rewriting the
+  compliance playbook for the whole tech industry. Joe has spent over a
+  decade in the video games industry working on kids' privacy and
+  safety issues -- at think tanks\, as in-house counsel for Electronic
+  Arts and Ubisoft\, and in private practice counseling everyone from
+  indie teams to some of the largest video game publishers in the
+  world. At k-ID\, he builds automated compliance solutions that scale
+  for the next generation of online services\, delivering meaningful
+  global compliance while empowering kids and teens everywhere.\n\n
+ Buy tickets: https://www.dnalounge.com/calendar/2026/07-21a.html\n\n
+ 5:30pm - 9pm.\n
+ 18+ with ID.\n\n
+ Free with RSVP.
+CLASS:PUBLIC
+CATEGORIES:Performance
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER;RELATED=START:PT0M
+ACTION:AUDIO
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:https://www.dnalounge.com/calendar/2026/08-15.html
+DTSTAMP:20260612T224555Z
+SEQUENCE:2
+ORGANIZER;CN=DNA Lounge:https://www.dnalounge.com/
+LOCATION;ALTREP="https://www.dnalounge.com/directions/":
+ DNA Lounge: 375 Eleventh Street\, San Francisco\, CA 94103
+GEO:37.771007;-122.412694
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
+ X-APPLE-RADIUS=100;
+ X-TITLE=DNA Lounge:geo:37.771007,-122.412694
+SUMMARY:Audiofreq + Code Black + Toneshifterz
+DTSTART;TZID=US/Pacific:20260815T210000
+DURATION:PT3H
+URL:https://www.dnalounge.com/calendar/2026/08-15.html
+X-THUMBNAIL:https://www.dnalounge.com/flyers/2026/08/15.html
+DESCRIPTION;ALTREP="https://www.dnalounge.com/calendar/2026/08-15.html":
+ Basscon & Vital present\n
+ AUDIOFREQ + CODE BLACK + TONESHIFTERZ\n\n
+ Main Room:\n\n
+   Audiofreq\n
+   Code Black\n
+   Toneshifterz\n
+   Plus guests\, TBA!\n\n
+ Australian hard dance heavyweights Audiofreq\, Code Black\, and
+  Toneshifterz unite for a special showcase of driving kicks\, energy\,
+  and full-throttle festival power. From Defqon.1 and Tomorrowland to
+  EDC Las Vegas\, Qlimax\, Mysteryland\, and beyond\, these artists
+  have helped take the Australian hardstyle sound to the world. Expect
+  a full-power journey through hardstyle\, hard dance\, and harder rave
+  energy built for true hard bass fans.\n\n
+ Buy tickets: https://www.dnalounge.com/calendar/2026/08-15.html\n\n
+ hardstyle. hard dance.\n
+ 9pm - 2:30am.\n
+ 21+ with ID.\n\n
+ $20\, $25\, $30 limited advance\;\n
+ $35 after\;\n
+ $35 day of show.
+CLASS:PUBLIC
+CATEGORIES:Performance
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER;RELATED=START:PT0M
+ACTION:AUDIO
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:https://www.dnalounge.com/calendar/2026/09-04d.html
+DTSTAMP:20260507T213022Z
+SEQUENCE:2
+ORGANIZER;CN=DNA Lounge:https://www.dnalounge.com/
+LOCATION;ALTREP="https://www.dnalounge.com/directions/":
+ DNA Lounge: 375 Eleventh Street\, San Francisco\, CA 94103
+GEO:37.771007;-122.412694
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
+ X-APPLE-RADIUS=100;
+ X-TITLE=DNA Lounge:geo:37.771007,-122.412694
+SUMMARY:Dark Sparkle
+DTSTART;TZID=US/Pacific:20260904T213000
+DURATION:PT2H30M
+URL:https://www.dnalounge.com/calendar/2026/09-04d.html
+DESCRIPTION;ALTREP="https://www.dnalounge.com/calendar/2026/09-04d.html":
+ DARK SPARKLE\n\n
+ Above DNA:\n\n
+   Miz Margo\n
+   Sage\n\n
+ Dazzle Room:\n\n
+   Chat Noir\n
+   Plus guests!\n\n
+ Since 1999 Dark Sparkle has provided a unique mix of everything from
+  goth to glam\, new wave to punk\, post-punk\, electronics\,
+  darkwave\, esoterica\, and the darker side of rock n roll. In
+  addition to the classics\, expect to hear new\, underplayed\, or
+  otherwise forgotten dark music that deserves your attention.\n\n
+ Watch and listen:\n
+   Dark Sparkle: https://youtu.be/b-qOMQJZnro\n\n
+ gothic. glam. new wave. post-punk.\n
+ 9:30pm - 2:30am.\n
+ 18+ with ID.\n\n
+ $10 advance\;\n
+ $15 door.
+CLASS:PUBLIC
+CATEGORIES:Performance
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER;RELATED=START:PT0M
+ACTION:AUDIO
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:https://www.dnalounge.com/calendar/2026/09-09d.html
+DTSTAMP:20260701T224104Z
+SEQUENCE:1
+ORGANIZER;CN=DNA Lounge:https://www.dnalounge.com/
+LOCATION;ALTREP="https://www.dnalounge.com/directions/":
+ DNA Lounge: 375 Eleventh Street\, San Francisco\, CA 94103
+GEO:37.771007;-122.412694
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
+ X-APPLE-RADIUS=100;
+ X-TITLE=DNA Lounge:geo:37.771007,-122.412694
+SUMMARY:16 Volt + Acumen Nation
+DTSTART;TZID=US/Pacific:20260909T190000
+DURATION:PT4H
+URL:https://www.dnalounge.com/calendar/2026/09-09d.html
+X-THUMBNAIL:https://www.dnalounge.com/flyers/2026/09/09d.html
+DESCRIPTION;ALTREP="https://www.dnalounge.com/calendar/2026/09-09d.html":
+ Performing Live:\n\n
+   16 VOLT\n
+   ACUMEN NATION\n
+   EVERYTHING GOES COLD\n\n
+ With DJ:\n\n
+   Starr Noir\n\n
+ As a celebration of the 30-Year anniversary of 16 Volt's \"Let Down
+  Crush\" and Acumen's \"Territory = Universe\" these Cold Wave icons
+  will be performing special album-focused sets in a rare return to the
+  Bay Area.\n\n
+ 16volt's founder\, songwriter\, lead vocalist\, programmer\, and
+  rhythm guitarist\, Eric Powell\, signed his first record deal in 1991
+  at a very young age and subsequently released three albums: including
+  the legendary LetDownCrush in 1996\, to widespread acclaim and
+  notoriety. With its roots originally planted firmly in the industrial
+  rock genre\, 16 Volt have remained a mainstay enjoying a worldwide
+  underground fanbase and successfully crossing over into genres for
+  decades.\n\n
+ Acumen Nation is an American industrial rock and coldwave band formed
+  in Chicago in 1988. Known for blending heavy metal guitars with
+  pulsating electronic beats\, they were founded by brothers Jason and
+  Ethan Novak. They are widely recognized as stalwarts of the Midwest
+  underground industrial scene. Their landmark album \"Territory =
+  Universe\" is celebrated for its dense\, layered production and heavy
+  guitar-driven electronic sound\n\n
+ Everything Goes Cold forcibly and indignantly amalgamates influences
+  from the full spectrum of classic American guitar-based industrial
+  music with a modern sensibility and foul attitude that makes the lead
+  singer of your favorite terror Ebm band look and smell like your
+  great-grandfather after a long day in the sun. Everything Goes Cold
+  will freeze you to death and tear your face off. Maybe they already
+  have. We're fairly certain you had more face before\, and you should
+  probably put on a coat.\n\n
+ industrial. cold wave.\n
+ doors @ 7pm\;\n
+ show @ 7:30pm.\n
+ all ages.\n
+ $22 limited advance\;\n
+ $31 after\;\n
+ $31 day of show.\n\n
+ Buy tickets: https://www.dnalounge.com/calendar/2026/09-09d.html\n\n
+ Watch and listen:\n
+   16 Volt: The Last Time: https://youtu.be/ivvOwFwWdUg\n
+   Everything Goes Cold: Nadir: https://youtu.be/e5q_Y3HJ76k
+CLASS:PUBLIC
+CATEGORIES:Performance
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER;RELATED=START:PT0M
+ACTION:AUDIO
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:https://www.dnalounge.com/calendar/2026/11-12.html
+DTSTAMP:20260611T181502Z
+SEQUENCE:0
+ORGANIZER;CN=DNA Lounge:https://www.dnalounge.com/
+LOCATION;ALTREP="https://www.dnalounge.com/directions/":
+ DNA Lounge: 375 Eleventh Street\, San Francisco\, CA 94103
+GEO:37.771007;-122.412694
+X-APPLE-STRUCTURED-LOCATION;VALUE=URI;
+ X-APPLE-RADIUS=100;
+ X-TITLE=DNA Lounge:geo:37.771007,-122.412694
+SUMMARY:Dennett
+DTSTART;TZID=US/Pacific:20261112T210000
+DURATION:PT3H
+URL:https://www.dnalounge.com/calendar/2026/11-12.html
+X-THUMBNAIL:https://www.dnalounge.com/flyers/2026/11/12.html
+DESCRIPTION;ALTREP="https://www.dnalounge.com/calendar/2026/11-12.html":
+ Bassrush and Vital present\n
+ DENNETT\n\n
+ Main Room:\n\n
+   Dennett\n
+   Plus guests\, TBA!\n\n
+ Dennett is an emerging bass music producer known for blending soaring
+  melodies with powerful low-end energy. Originally from Orange
+  County\, California\, and currently based in Tucson\, Arizona\,
+  Dennett has built a dedicated following through his emotionally
+  charged productions and dynamic live performances. His
+  forward-thinking approach to sound design and willingness to push
+  creative boundaries have helped him stand out in the electronic music
+  scene\, earning slots at events and festivals across the country.
+  With a growing catalog of releases and an unmistakable sound that
+  bridges melodic and bass music\, Dennett continues to establish
+  himself as one of the genre's rising artists to watch.\n\n
+ Buy tickets: https://www.dnalounge.com/calendar/2026/11-12.html\n\n
+ bass music. melodic bass.\n
+ 9pm - 2:30am.\n
+ 21+ with ID.\n\n
+ $10\, $15\, $20 limited advance\;\n
+ $25 after\;\n
+ $25 day of show.
+CLASS:PUBLIC
+CATEGORIES:Performance
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER;RELATED=START:PT0M
+ACTION:AUDIO
+END:VALARM
+END:VEVENT
+END:VCALENDAR
