@@ -8,6 +8,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 import GenreFilter from "./GenreFilter";
 import LocationFilter from "./LocationFilter";
@@ -63,6 +64,15 @@ export default function FilterBar({
   const isTonight = from === today && to === today;
   const isWeekend = from === weekend.from && to === weekend.to;
   const isNext7 = from === today && to === addDaysISO(today, 7);
+
+  // Mobile: everything below the search + quick chips collapses behind a
+  // "More filters" toggle so shows aren't pushed two screens down. Desktop
+  // (sm+) always shows the full panel; this state only matters under sm.
+  const [moreOpen, setMoreOpen] = useState(false);
+  const advancedActive =
+    ["region", "neighborhood", "genre", "origin", "venues"].filter((k) =>
+      params.get(k),
+    ).length + (params.get("from") || params.get("to") ? 1 : 0);
 
   function setRange(active: boolean, range: { from: string; to: string }): void {
     navigate(active ? { from: null, to: null } : range);
@@ -133,6 +143,19 @@ export default function FilterBar({
         </button>
       </div>
 
+      <button
+        type="button"
+        className="self-start text-sm text-zinc-500 underline hover:no-underline sm:hidden dark:text-zinc-400"
+        aria-expanded={moreOpen}
+        onClick={() => setMoreOpen((v) => !v)}
+      >
+        {moreOpen ? "Fewer filters" : "More filters"}
+        {!moreOpen && advancedActive > 0 ? ` (${advancedActive} active)` : ""}
+      </button>
+
+      <div
+        className={`${moreOpen ? "flex" : "hidden"} flex-col gap-4 sm:flex`}
+      >
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
           From
@@ -162,25 +185,48 @@ export default function FilterBar({
 
       {showOriginFilter && <OriginFilter />}
 
-      <fieldset className="flex flex-wrap gap-x-4 gap-y-2">
-        <legend className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Venues
-        </legend>
-        {venues.map((venue) => (
-          <label
-            key={venue.slug}
-            className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"
+      {/* 26 venues is too many to show unfolded — collapse behind a summary
+          that still reports the constraint. Auto-opens when a shared URL
+          arrives with a venue filter so the state is never hidden. */}
+      <details open={selected !== null} className="group">
+        <summary className="cursor-pointer select-none text-xs text-zinc-500 marker:text-zinc-400 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+          Venues{" "}
+          <span className="text-zinc-400 dark:text-zinc-500">
+            ·{" "}
+            {selected === null
+              ? `all ${venues.length}`
+              : `${selected.size} of ${venues.length}`}
+          </span>
+        </summary>
+        <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 md:grid-cols-3">
+          {venues.map((venue) => (
+            <label
+              key={venue.slug}
+              className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"
+            >
+              <input
+                type="checkbox"
+                checked={venueChecked(venue.slug)}
+                onChange={() => toggleVenue(venue.slug)}
+                className="h-4 w-4 shrink-0"
+              />
+              <span className="truncate" title={venue.name}>
+                {venue.name}
+              </span>
+            </label>
+          ))}
+        </div>
+        {selected !== null && (
+          <button
+            type="button"
+            onClick={() => navigate({ venues: null })}
+            className="mt-2 text-xs text-zinc-500 underline hover:no-underline dark:text-zinc-400"
           >
-            <input
-              type="checkbox"
-              checked={venueChecked(venue.slug)}
-              onChange={() => toggleVenue(venue.slug)}
-              className="h-4 w-4"
-            />
-            {venue.name}
-          </label>
-        ))}
-      </fieldset>
+            Show all venues
+          </button>
+        )}
+      </details>
+      </div>
 
       {params.toString().length > 0 && (
         <div>
