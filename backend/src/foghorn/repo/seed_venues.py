@@ -99,6 +99,47 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="medicine_for_nightmares",
+        name="Medicine for Nightmares",
+        neighborhood="Mission",
+        region="SF",
+        address="3036 24th St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://medicinefornightmares.com",
+        # Squarespace ?format=json events collection; the bookstore's calendar
+        # mixes the "Other Dimensions in Sound" creative-music series with
+        # non-music programming — see scrapers/medicine_for_nightmares.
+        calendar_url="https://medicinefornightmares.com/events",
+        genre="jazz",
+    ),
+    Venue(
+        slug="piedmont_piano",
+        name="Piedmont Piano Company",
+        neighborhood="Uptown",
+        region="East Bay",
+        address="1728 San Pablo Ave, Oakland, CA",
+        tz="America/Los_Angeles",
+        website_url="https://piedmontpiano.com",
+        # Squarespace ?format=json calendar collection — see
+        # scrapers/piedmont_piano.
+        calendar_url="https://piedmontpiano.com/calendar",
+        genre="jazz",
+    ),
+    Venue(
+        slug="center_for_new_music",
+        name="Center for New Music",
+        neighborhood="Tenderloin",
+        region="SF",
+        address="55 Taylor St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://centerfornewmusic.com",
+        # Server-rendered /event/ listing (custom post type; the RSS feed has
+        # no event dates) — see scrapers/center_for_new_music.
+        calendar_url="https://centerfornewmusic.com/event/",
+        # Contemporary/experimental/new-music programming.
+        genre="eclectic",
+    ),
+    Venue(
         slug="the_back_room",
         name="The Back Room",
         neighborhood="Downtown Berkeley",
