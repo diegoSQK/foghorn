@@ -8,6 +8,87 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Venue expansion batch: 13 new scrapers + genre facet (July 2026)
+
+A single feature-branch push (ad-hoc, user-directed — no per-venue tickets)
+that grew foghorn from 3 scraped venues to 16 and shipped the Phase 7.1 genre
+facet the new cross-genre diversity finally made meaningful. Built by parallel
+coding agents (one per 1–2 venues) in an isolated worktree, with central
+integration (registry, seed, docs) and a full-gate + live-scrape verification
+pass at each merge point. Full 16-venue live scrape at ship time: **870 shows,
+zero errors**, idempotent on re-run (0 created / 870 updated).
+
+**New venues and their data sources** — the scraper-interface flexibility the
+plan called for got exercised hard; almost every venue needed a different
+source shape:
+
+- **Black Cat** (SF, jazz) — Turntable Tickets performance API (JSON).
+- **Ocean Ale House** (SF, eclectic) — the schedule TSV on GitHub that the
+  client-rendered site itself fetches (`aspyrx/oah-content/events.tsv`);
+  no-year dates roll forward across New Year.
+- **Boom Boom Room** (SF, funk) — server-rendered rhp-events HTML with month
+  separators; doors + show times parsed.
+- **Madrone Art Bar** (SF, eclectic) — WordPress Tribe Events REST API (same
+  pattern as Mr. Tipple's). Known gap: recurring nights entered as all-day
+  Tribe events (~30/mo) carry no start time and are skipped.
+- **Bottom of the Hill** (SF, rock) — the venue's famous hand-maintained
+  static `calendar.html` (HTML 4.01 table, ISO-8859-1 with no charset header —
+  fetcher pins encoding); bills in top-billing order, doors/cover/stubmatic
+  links.
+- **Rickshaw Stop** (SF, rock) — SeeTickets white-label calendar: server-
+  rendered cards + nonce'd admin-ajax pagination (nonce fetched fresh each
+  run); headliner/support pre-split; non-music genres dropped.
+- **Kilowatt** (SF, rock) — Dice.fm events API via the public widget key in
+  the site's DiceEventListWidget config; fee-inclusive prices in cents.
+- **The Knockout** (SF, rock) — Squarespace calendar-collection
+  `GetItemsByMonth` JSON (the older `/calendar` collection is stale 2023 test
+  data — a trap for future re-scrapes); no ticket/price/doors published.
+- **Yoshi's** (Oakland, jazz) — the fullCalendar JSON feed behind the venue
+  calendar (one entry per *set*, so 7:30/9:30 shows land separately — better
+  than the HTML, which collapses them), prices joined from the HTML page
+  best-effort. Biggest single venue: 125 shows.
+- **California Jazz Conservatory** (Berkeley, jazz) — server-rendered
+  `concerts.jazzschool.org` listing + per-event pages for times (classes never
+  appear on that subdomain; movie nights dropped). VBO ticket widget means no
+  static ticket/price.
+- **Ivy Room** (Albany, rock) — Venuepilot public GraphQL API (`accountIds`
+  from `window.venuepilotSettings`); the Squarespace site is a JS shell.
+- **924 Gilman** (Berkeley, rock) — the collective's server-rendered
+  ShowSlinger ticketing listing (the Wix calendar is client-rendered with the
+  Wix Events app disabled). Unticketed shows outside ShowSlinger won't appear.
+- **El Cerrito Natural Grocery Annex** (El Cerrito, jazz) — company-wide Tribe
+  REST API filtered to events at the Annex venue record; "The Annex Sessions:"
+  prefix stripped. First venue to activate the **East Bay region chip**.
+
+**Blocked (no scrapeable calendar exists):**
+
+- **For The Record** (SF Cow Hollow hi-fi listening bar — *not* the Oakland
+  guess): one-page Squarespace site, all programming Instagram-only.
+- **Little Hill Lounge** (El Cerrito): calendar is a monthly flyer **JPEG** on
+  a one-page WordPress site; a former Tribe install was removed. Bandsintown
+  has it but 403s plain HTTP. Would need OCR or a headless browser.
+
+**Genre facet (Phase 7.1)** shipped alongside: `venues.genre` (TEXT, nullable)
+with an additive-column migration guard in `init_schema` (the first schema
+change against pre-existing DBs — `CREATE TABLE IF NOT EXISTS` skips existing
+tables, so there's now a `_add_column_if_missing` PRAGMA check), threaded
+through repo/API (`?genre=`, case-insensitive, AND-stacks with the other
+filters) and both venue payloads. Frontend `GenreFilter` chip row renders from
+the distinct genres in `/api/venues` (data-driven like the region chips;
+hidden below two genres). Current values: jazz ×8, rock ×6, eclectic ×2, funk.
+Distribution at ship: jazz 456 / rock 262 / eclectic 137 / funk 15.
+
+**Ingest fix surfaced by the full live run:** venues sometimes bill the same
+act twice (headliner repeated in the support list, or "TBA" filling several
+slots), violating the `show_performers (show_id, performer_id)` PK.
+`_build_bill` now dedupes by performer, earliest billing position wins —
+regression-tested. This was invisible with 3 venues and immediate with 16.
+
+Tests: 128 → 277 (every scraper has a trimmed-real-fixture suite with a
+pinned `today`). The venues-endpoint and seed tests now derive expectations
+from `SEED_VENUES` + `REGISTERED_SCRAPERS` instead of a hardcoded four-venue
+list, so future venue adds don't touch them.
+
 ## Aggregator evaluation spike (May 2026)
 
 Time-boxed research spike ([#29](https://github.com/diegoSQK/foghorn/issues/29))

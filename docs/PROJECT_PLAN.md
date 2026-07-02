@@ -38,7 +38,7 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md); version cut-points live in [CHANGELOG.md](CHANGELOG.md). Recently shipped: Phase 4.2 — watchlist digest endpoint (May 2026), see [SHIPPED.md](SHIPPED.md#watchlist-digest-endpoint-phase-42-may-2026). **v0.2.0** cut 2026-05-24 — see [CHANGELOG.md](CHANGELOG.md#v020--2026-05-24). (Previous: **v0.1.0** see [CHANGELOG.md](CHANGELOG.md#v010--2026-05-24).)
+Full chronological history lives in [SHIPPED.md](SHIPPED.md); version cut-points live in [CHANGELOG.md](CHANGELOG.md). Recently shipped: the venue-expansion batch — 13 new scrapers (3 → 16 venues, 870 shows) + the Phase 7.1 genre facet (July 2026), see [SHIPPED.md](SHIPPED.md#venue-expansion-batch-13-new-scrapers--genre-facet-july-2026). **v0.2.0** cut 2026-05-24 — see [CHANGELOG.md](CHANGELOG.md#v020--2026-05-24). (Previous: **v0.1.0** see [CHANGELOG.md](CHANGELOG.md#v010--2026-05-24).)
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -46,7 +46,7 @@ When a roadmap item ships, the agent that lands it appends the as-shipped narrat
 
 ## In flight
 
-*Nothing in flight. Phase 3 + Phase 4 just shipped (v0.2.0). Phase 5 (venue expansion — rock/indie + East Bay) is the next coherent block.*
+*Nothing in flight. The July 2026 venue-expansion batch (a user-directed feature-branch push) covered much of Phase 5's intent — 13 new venues across SF + East Bay, jazz + rock/indie — plus Phase 7.1 (genre). Remaining Phase 5 named venues (The Independent, The Chapel, Cornerstone, The New Parish, Freight & Salvage tier) are the next scraper block; see the venue-expansion SHIPPED entry for the per-platform scraping playbook that batch established.*
 
 ### Pending strategic decisions
 
@@ -114,15 +114,15 @@ Shipped May 2026 — see [Watchlist digest endpoint](SHIPPED.md#watchlist-digest
 
 ### Phase 5 — Venue expansion
 
-Add the rock / indie venues so foghorn covers both Diego's jazz-leaning use case and the broader Bay indie scene. Likely also pulls in **Phase 7.1** (venue-default genre) since genre filtering becomes meaningful with cross-genre diversity, and potentially **Bay Improviser ingest** once the discovery-posture decision is settled (see In flight → "Pending strategic decisions").
+Add the rock / indie venues so foghorn covers both Diego's jazz-leaning use case and the broader Bay indie scene. **Largely delivered by the July 2026 venue-expansion batch** — see [SHIPPED.md](SHIPPED.md#venue-expansion-batch-13-new-scrapers--genre-facet-july-2026) — which shipped 13 venues (SF: Black Cat, Ocean Ale House, Boom Boom Room, Madrone Art Bar, Bottom of the Hill, Rickshaw Stop, Kilowatt, The Knockout; East Bay: Yoshi's, California Jazz Conservatory, Ivy Room, 924 Gilman, Natural Grocery Annex) and pulled in Phase 7.1 (genre) as predicted. Bay Improviser ingest still awaits the discovery-posture decision (see In flight → "Pending strategic decisions").
 
-#### 5.1 Rock / indie venue batch (P2)
+#### 5.1 Rock / indie venue batch (P2) — partially shipped
 
-Hand-rolled scrapers for Bottom of the Hill, The Independent, The Chapel. Same pattern as Phase 2; one ticket per venue.
+Bottom of the Hill ✅ (July 2026 batch). Remaining: The Independent, The Chapel. Same pattern; one ticket per venue.
 
-#### 5.2 East Bay expansion (P2)
+#### 5.2 East Bay expansion (P2) — partially shipped
 
-Cornerstone Berkeley, Starline Social Club, The New Parish, Yoshi's (jazz). Same pattern.
+Yoshi's ✅, plus CJC / Ivy Room / 924 Gilman / Natural Grocery Annex (July 2026 batch). Remaining: Cornerstone Berkeley, Starline Social Club (verify still operating), The New Parish. Same pattern.
 
 ### Phase 6 — LLM-assisted scraping (deferred until Phase 5 is real)
 
@@ -134,9 +134,9 @@ Extend the foundational tagging skeleton (performers, region, neighborhood — a
 
 What's already in place that this builds on: performers are first-class entities in the schema (Phase 1.2), and the `show_performers` join captures headliner + support roles. Region + neighborhood are venue-level tags filterable via Phase 3.2. Phase 4's watchlist is the first user-facing surface that *reads* the performer-tagging layer for filtering. The sub-items below are the natural extensions of that pattern.
 
-#### 7.1 Venue-default genre (P2)
+#### 7.1 Venue-default genre (P2) ✅
 
-Add `venues.genre` (or a `venue_genres` join if a venue books multiple genres meaningfully — e.g. a club that splits indie + electronic). Backend: filter by genre on `GET /api/shows`. Frontend: genre chip alongside region. **Unblock condition:** Phase 5 has added enough venue diversity that the filter has more than one option (right now all three are jazz). Concretely, file alongside or right after Phase 5.1.
+Shipped July 2026 with the venue-expansion batch — see [SHIPPED entry](SHIPPED.md#venue-expansion-batch-13-new-scrapers--genre-facet-july-2026). Landed as a single `venues.genre` TEXT column (not a join — no venue has needed multi-genre yet) with the first additive-column migration guard, `?genre=` on `GET /api/shows`, and a data-driven genre chip row.
 
 #### 7.2 Per-show genre override (P2)
 
@@ -155,6 +155,8 @@ Performer-level genre / instrumentation / mood inferred by an LLM from the bill 
 ## Deferred / still-outstanding
 
 - **SFJAZZ scraper.** Originally the Phase 2.1 pilot. The calendar sits behind a Cloudflare managed challenge that 403s every plain HTTP client (polite `foghorn-scraper` UA and a browser UA both); the sitemap host in `robots.txt` 404s. Cloudflare-bypass was explicitly out of scope for the original ticket. **Unblock condition:** willingness to take on per-venue Playwright (headless browser) complexity, or discovery of a cleaner SFJAZZ data feed (sitemap, third-party calendar, public API). File a fresh ticket when unblocked; the dropped original is [#4](https://github.com/diegoSQK/foghorn/issues/4).
+- **For The Record scraper** (SF Cow Hollow hi-fi listening bar). One-page Squarespace site with no events collection; all programming is Instagram-only (@fortherecordsf). **Unblock condition:** the venue publishes a web calendar, or an Instagram-ingest capability is deliberately taken on.
+- **Little Hill Lounge scraper** (El Cerrito). Site (littlehillelcerrito.com) posts the calendar as a monthly flyer JPEG; a former Tribe Events install was removed; Bandsintown lists it but bot-blocks plain HTTP. **Unblock condition:** venue restores a structured calendar, or OCR/headless-browser ingest is deliberately taken on.
 - **DoTheBay ingest.** Spike-validated (May 2026) as engineering-ready (open JSON API, no anti-bot, ~87 music venues / 239 shows per sample week) but blocked by ToS — not a ticket, a permission/feed conversation with DoStuff/Noise Pop. **Unblock condition:** a permission or licensed feed arrangement.
 - **Travel-time ETAs** from home/work/studio addresses. Original requirement; deferred until the core calendar is solid. Map-provider decision (Google / Mapbox / ORS / coarse neighborhood table) deferred with it. **Unblock condition:** the core calendar is in regular use and "how long will it take to get there" is actually the friction point.
 - **Hosting / deployment.** Runs locally through Phases 1–5 minimum. **Unblock condition:** ready to share with friends, or want to view from a phone away from the laptop. Decision between Vercel + Python host vs. single VPS deferred to that point.
