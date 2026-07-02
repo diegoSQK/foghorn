@@ -99,6 +99,33 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="the_back_room",
+        name="The Back Room",
+        neighborhood="Downtown Berkeley",
+        region="East Bay",
+        address="1984 Bonita Ave, Berkeley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://backroommusic.com",
+        # Humanitix collection: JSON-LD + the tRPC events endpoint behind the
+        # "Load more" button — see scrapers/the_back_room.
+        calendar_url="https://collections.humanitix.com/the-back-room-calendar",
+        # Acoustic listening room: jazz, folk, classical, bluegrass.
+        genre="eclectic",
+    ),
+    Venue(
+        slug="guild_theatre",
+        name="Guild Theatre",
+        neighborhood="Menlo Park",
+        region="Peninsula",
+        address="949 El Camino Real, Menlo Park, CA",
+        tz="America/Los_Angeles",
+        website_url="https://guildtheatre.com",
+        # The homepage IS the calendar (JSON-LD blocks + card markup times);
+        # /events 404s — see scrapers/guild_theatre.
+        calendar_url="https://guildtheatre.com/",
+        genre="eclectic",
+    ),
+    Venue(
         slug="fox_theater_oakland",
         name="Fox Theater Oakland",
         neighborhood="Uptown",

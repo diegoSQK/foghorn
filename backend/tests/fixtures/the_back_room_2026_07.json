@@ -1,0 +1,130 @@
+[
+ {
+  "id": "6a35674d7df96ef076ecfc11",
+  "slug": "sedge-green-group",
+  "title": "Sedge Green Group",
+  "urls": {
+   "url": "https://events.humanitix.com/sedge-green-group?hxchl=hex-col",
+   "ticketsUrl": "https://events.humanitix.com/sedge-green-group/tickets?hxchl=hex-col"
+  },
+  "dates": {
+   "displayDate": "Fri, Jul 3, 8pm - 10pm PDT",
+   "titleDate": "3rd July",
+   "timeTagDate": "2026-07-03T20:00:00-0700"
+  },
+  "moreDatesCount": 0,
+  "currency": "USD"
+ },
+ {
+  "id": "69f900cc35aee0f29db4de02",
+  "slug": "blues-and-jazz-singers-jam-sessionjuly2026",
+  "title": "Blues & Jazz Singers Jam Session with Sam Rudin & Pamela Rose",
+  "urls": {
+   "url": "https://events.humanitix.com/blues-and-jazz-singers-jam-sessionjuly2026?hxchl=hex-col",
+   "ticketsUrl": "https://events.humanitix.com/blues-and-jazz-singers-jam-sessionjuly2026/tickets?hxchl=hex-col"
+  },
+  "dates": {
+   "displayDate": "Sun, Jul 12, 3pm - 5pm PDT",
+   "titleDate": "12th July",
+   "timeTagDate": "2026-07-12T15:00:00-0700"
+  },
+  "moreDatesCount": 0,
+  "currency": "USD"
+ },
+ {
+  "id": "69f4c6ed88cf1f872d13832d",
+  "slug": "subconscious-life",
+  "title": "Larry Ochs, Ben Davis, Darren Johnston, Lisa Mezzacappa - Subconscious Life",
+  "urls": {
+   "url": "https://events.humanitix.com/subconscious-life?hxchl=hex-col",
+   "ticketsUrl": "https://events.humanitix.com/subconscious-life/tickets?hxchl=hex-col"
+  },
+  "dates": {
+   "displayDate": "Thu, Jul 16, 8pm - 10pm PDT",
+   "titleDate": "16th July",
+   "timeTagDate": "2026-07-16T20:00:00-0700"
+  },
+  "moreDatesCount": 0,
+  "currency": "USD"
+ },
+ {
+  "id": "6a15e53b653a1743fa960484",
+  "slug": "mark-hummel-band-w-steve-freund",
+  "title": "Mark Hummel Band w/ Steve Freund",
+  "urls": {
+   "url": "https://events.humanitix.com/mark-hummel-band-w-steve-freund?hxchl=hex-col",
+   "ticketsUrl": "https://events.humanitix.com/mark-hummel-band-w-steve-freund/tickets?hxchl=hex-col"
+  },
+  "dates": {
+   "displayDate": "Sat, Jul 18, 8pm - 10pm PDT",
+   "titleDate": "18th July",
+   "timeTagDate": "2026-07-18T20:00:00-0700"
+  },
+  "moreDatesCount": 0,
+  "currency": "USD"
+ },
+ {
+  "id": "69dcf290b7ba37ac4d30fc2d",
+  "slug": "miss-maybell-and-her-ragtime-romeos",
+  "title": "Miss Maybell & Her Ragtime Romeos",
+  "urls": {
+   "url": "https://events.humanitix.com/miss-maybell-and-her-ragtime-romeos?hxchl=hex-col",
+   "ticketsUrl": "https://events.humanitix.com/miss-maybell-and-her-ragtime-romeos/tickets?hxchl=hex-col"
+  },
+  "dates": {
+   "displayDate": "Thu, Aug 6, 8pm - 10pm PDT",
+   "titleDate": "6th August",
+   "timeTagDate": "2026-08-06T20:00:00-0700"
+  },
+  "moreDatesCount": 0,
+  "currency": "USD"
+ },
+ {
+  "id": "69a0613bbc208a43fb43dbf3",
+  "slug": "newberry-and-verch",
+  "title": "Newberry & Verch",
+  "urls": {
+   "url": "https://events.humanitix.com/newberry-and-verch?hxchl=hex-col",
+   "ticketsUrl": "https://events.humanitix.com/newberry-and-verch/tickets?hxchl=hex-col"
+  },
+  "dates": {
+   "displayDate": "Thu, Oct 29, 7pm - 9pm PDT",
+   "titleDate": "29th October",
+   "timeTagDate": "2026-10-29T19:00:00-0700"
+  },
+  "moreDatesCount": 0,
+  "currency": "USD"
+ },
+ {
+  "id": "6a19af2a6baa813dbb986a84",
+  "slug": "my-darling-clementine-berkeley",
+  "title": "My Darling Clementine",
+  "urls": {
+   "url": "https://events.humanitix.com/my-darling-clementine-berkeley?hxchl=hex-col",
+   "ticketsUrl": "https://events.humanitix.com/my-darling-clementine-berkeley/tickets?hxchl=hex-col"
+  },
+  "dates": {
+   "displayDate": "Fri, Nov 6, 8pm - 10pm PST",
+   "titleDate": "6th November",
+   "timeTagDate": "2026-11-06T20:00:00-0800"
+  },
+  "moreDatesCount": 0,
+  "currency": "USD"
+ },
+ {
+  "id": "000000000000000000000001",
+  "slug": "an-evening-of-stand-up-comedy",
+  "title": "An Evening of Stand-Up Comedy",
+  "urls": {
+   "url": "https://events.humanitix.com/an-evening-of-stand-up-comedy?hxchl=hex-col",
+   "ticketsUrl": "https://events.humanitix.com/an-evening-of-stand-up-comedy/tickets?hxchl=hex-col"
+  },
+  "dates": {
+   "displayDate": "Sat, Aug 15, 8pm - 10pm PDT",
+   "titleDate": "15th August",
+   "timeTagDate": "2026-08-15T20:00:00-0700"
+  },
+  "moreDatesCount": 0,
+  "currency": "USD"
+ }
+]
