@@ -146,6 +146,10 @@ When a show goes off-venue-genre (a Coltrane tribute booked at a rock club). Sch
 
 Personal annotations on shows (`must-see`, `skip`, `saw last year`, `Diego's crew is on the bill`). Schema: `user_tags(user_id, show_id, tag)`, single-user shape consistent with Phase 4's watchlist. UI: per-show "add tag" affordance; tags surface as chips; filterable like other facets. **Unblock condition:** Phase 4 watchlist has proven out the single-user per-show metadata pattern. Likely the second user-facing tagging surface after the watchlist.
 
+#### 7.5 Performer origin: local/touring (P1) ✅
+
+Shipped July 2026 — see [Performer origin tagging v1](SHIPPED.md#performer-origin-tagging-v1-localtouring-july-2026). Performer-level `origin` tag with a conservative heuristic bootstrap (`make tag-origins`), permanent manual overrides, `?origin=` any-performer filter, and "(likely)" chips + local badges. Re-run the CLI as history accumulates; escalate to an LLM pass under 7.4 when heuristic coverage plateaus.
+
 #### 7.4 LLM-inferred metadata (P2, depends on Phase 6)
 
 Performer-level genre / instrumentation / mood inferred by an LLM from the bill + venue + any extracted text. Hand-curated genre tags (7.1–7.2) and the deterministic scraping baseline are the validation reference. Same doctrine as Phase 6 LLM-assisted scraping: defer until the deterministic version proves out, then layer this on as a scaling lever.

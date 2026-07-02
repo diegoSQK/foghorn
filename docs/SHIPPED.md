@@ -8,6 +8,38 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Performer origin tagging v1: local/touring (July 2026)
+
+The most mission-aligned facet — "show me local acts to support" — shipped as
+performer-level tags, since venues mix (Yoshi's books local trios between
+tours; big rooms put local openers under touring headliners). No scraped
+source publishes this, so v1 is **inference + correction**: a conservative
+heuristic bootstrap (`make tag-origins`, idempotent, safe after every scrape)
+scores each performer from evidence already in the DB — recurrence spread
+over weeks (consecutive-night touring runs deliberately don't count),
+multi-venue presence, venue booking priors (small nightly rooms ≈ local;
+Fox/Greek *headliners* ≈ touring; mixed rooms contribute nothing), and
+Ticketmaster/AXS headline slots — and only tags past a threshold, leaving
+everything else unknown. `PUT /api/performers/{canonical}/origin` records
+manual corrections as permanent (`origin_source='manual'`; the heuristic
+never overwrites them, and a stale heuristic tag clears when its evidence
+fades rather than fossilizing).
+
+`GET /api/shows?origin=local|touring` uses any-performer semantics (matching
+the watchlist): a touring headliner with a local opener matches `local`,
+because the opener is why a support-local user would go. Frontend: "Local
+acts"/"Touring" chips labeled "(likely)" that render only when tagged
+performers exist in the result set, and a subtle "local" badge on tagged
+names — touring gets no badge so unknown never reads as "not local".
+
+First live bootstrap over the 26-venue catalog: **153 local / 29 touring /
+1,144 unknown (86% deliberately untagged)**; spot check: touring 10/10,
+local ~9/10. Recurrence evidence compounds as scrape history accumulates
+(persisted shows outlive their dates), so coverage grows by re-running the
+CLI — and the deterministic scorer doubles as the validation baseline for a
+future Phase 7.4 LLM pass. "regional" (Bay-based but touring) deferred until
+the two-way split proves too coarse.
+
 ## Venue expansion batch: 23 new scrapers + genre facet (July 2026)
 
 A single feature-branch push (ad-hoc, user-directed — no per-venue tickets)
