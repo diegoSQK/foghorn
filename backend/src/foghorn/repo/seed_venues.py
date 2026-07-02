@@ -99,6 +99,34 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="great_american_music_hall",
+        name="Great American Music Hall",
+        neighborhood="Tenderloin",
+        region="SF",
+        address="859 O'Farrell St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://gamh.com",
+        # SeeTickets white-label calendar (GAMH markup flavor) — see
+        # scrapers/great_american_music_hall.
+        calendar_url="https://gamh.com/calendar/",
+        # Indie/roots/rock plus jazz and soul bookings; no single lean.
+        genre="eclectic",
+    ),
+    Venue(
+        slug="the_chapel",
+        name="The Chapel",
+        neighborhood="Mission",
+        region="SF",
+        address="777 Valencia St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://thechapelsf.com",
+        # SeeTickets white-label calendar (same flavor as Rickshaw Stop);
+        # covers the whole complex incl. Curio + outdoor stage — see
+        # scrapers/the_chapel.
+        calendar_url="https://thechapelsf.com/calendar/",
+        genre="rock",
+    ),
+    Venue(
         slug="kilowatt",
         name="Kilowatt",
         neighborhood="Mission",
