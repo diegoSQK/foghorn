@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import GenreFilter from "./GenreFilter";
 import LocationFilter from "./LocationFilter";
@@ -64,6 +64,46 @@ export default function FilterBar({
   const isTonight = from === today && to === today;
   const isWeekend = from === weekend.from && to === weekend.to;
   const isNext7 = from === today && to === addDaysISO(today, 7);
+
+  // The date inputs hold local drafts and commit on blur/Enter rather than
+  // navigating on every change event. A native date input fires `change` for
+  // each segment as you type (month, day, every year digit), so committing
+  // per-change navigates mid-edit — the refetch re-renders the controlled
+  // input and snaps it back before the date is finished. Drafts re-sync when
+  // the URL changes from outside (quick chips, back button, shared links).
+  const [draftFrom, setDraftFrom] = useState(from);
+  const [draftTo, setDraftTo] = useState(to);
+  useEffect(() => setDraftFrom(from), [from]);
+  useEffect(() => setDraftTo(to), [to]);
+
+  // Complete, plausible date. Typing a year digit-by-digit passes through
+  // "0002-…"/"0020-…" as technically valid dates; don't commit those.
+  function isSaneDate(value: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) && value >= "2000-01-01";
+  }
+
+  // Committing one end drags the other along instead of blocking (min/max
+  // constraints made it impossible to move a range forward: "from" couldn't
+  // pass the current "to").
+  function commitFrom(): void {
+    if (!isSaneDate(draftFrom)) {
+      setDraftFrom(from);
+      return;
+    }
+    navigate({ from: draftFrom, to: draftFrom > to ? draftFrom : to });
+  }
+
+  function commitTo(): void {
+    if (!isSaneDate(draftTo)) {
+      setDraftTo(to);
+      return;
+    }
+    navigate({ from: draftTo < from ? draftTo : from, to: draftTo });
+  }
+
+  function blurOnEnter(e: React.KeyboardEvent<HTMLInputElement>): void {
+    if (e.key === "Enter") e.currentTarget.blur(); // blur commits
+  }
 
   // Mobile: everything below the search + quick chips collapses behind a
   // "More filters" toggle so shows aren't pushed two screens down. Desktop
@@ -161,9 +201,10 @@ export default function FilterBar({
           From
           <input
             type="date"
-            value={from}
-            max={to}
-            onChange={(e) => navigate({ from: e.target.value || null })}
+            value={draftFrom}
+            onChange={(e) => setDraftFrom(e.target.value)}
+            onBlur={commitFrom}
+            onKeyDown={blurOnEnter}
             className={inputClass}
           />
         </label>
@@ -171,9 +212,10 @@ export default function FilterBar({
           To
           <input
             type="date"
-            value={to}
-            min={from}
-            onChange={(e) => navigate({ to: e.target.value || null })}
+            value={draftTo}
+            onChange={(e) => setDraftTo(e.target.value)}
+            onBlur={commitTo}
+            onKeyDown={blurOnEnter}
             className={inputClass}
           />
         </label>
