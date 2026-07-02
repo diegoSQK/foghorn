@@ -99,6 +99,31 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="bottom_of_the_hill",
+        name="Bottom of the Hill",
+        neighborhood="Potrero Hill",
+        region="SF",
+        address="1233 17th St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.bottomofthehill.com",
+        # Hand-maintained static HTML calendar — see scrapers/bottom_of_the_hill.
+        calendar_url="https://www.bottomofthehill.com/calendar.html",
+        genre="rock",
+    ),
+    Venue(
+        slug="rickshaw_stop",
+        name="Rickshaw Stop",
+        neighborhood="Hayes Valley",
+        region="SF",
+        address="155 Fell St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://rickshawstop.com",
+        # SeeTickets white-label calendar (server-rendered + nonce'd AJAX
+        # pagination) — see scrapers/rickshaw_stop.
+        calendar_url="https://rickshawstop.com/calendar/",
+        genre="rock",
+    ),
+    Venue(
         slug="natural_grocery_annex",
         name="El Cerrito Natural Grocery Annex",
         neighborhood="El Cerrito",
