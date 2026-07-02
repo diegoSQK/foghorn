@@ -99,6 +99,20 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="madrone_art_bar",
+        name="Madrone Art Bar",
+        neighborhood="NoPa",
+        region="SF",
+        address="500 Divisadero St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://madroneartbar.com",
+        # The scraper reads the site's Tribe Events REST API — see
+        # scrapers/madrone_art_bar.
+        calendar_url="https://madroneartbar.com/calendar/",
+        # Funk/soul/disco DJ parties + live bands; no single genre lean.
+        genre="eclectic",
+    ),
+    Venue(
         slug="boom_boom_room",
         name="Boom Boom Room",
         neighborhood="Fillmore",

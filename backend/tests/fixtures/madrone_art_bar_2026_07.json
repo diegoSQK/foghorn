@@ -1,0 +1,149 @@
+{
+  "events": [
+    {
+      "id": 13011,
+      "title": "Brazilian Wax",
+      "all_day": true,
+      "hide_from_listings": false,
+      "start_date": "2026-07-02 04:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/brazilian-wax-2-2026-02-11-2026-07-08/"
+    },
+    {
+      "id": 18361,
+      "title": "Brazilian Disco",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-02 21:30:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/brazilian-disco-7-2026-07-02/"
+    },
+    {
+      "id": 17873,
+      "title": "Motown on Mondays",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-06 19:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "https://www.eventbrite.com/e/motown-on-mondays-tickets-1392987917359",
+      "url": "https://madroneartbar.com/event/motown-on-mondays-79-2025-12-01-2026-04-27/2026-07-06/"
+    },
+    {
+      "id": 11573,
+      "title": "LIVE MODEL TUESDAY SKETCH",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-07 18:30:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "$15",
+      "website": "https://www.sketchboard.co/",
+      "url": "https://madroneartbar.com/event/livemodelsketch-2026-06-23/2026-07-07/"
+    },
+    {
+      "id": 17837,
+      "title": "Karaoke",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-07 21:30:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/glitter-tears-karaoke-18-2026-02-04-2026-02-04-2026-04-07-2026-04-21/2026-07-07/"
+    },
+    {
+      "id": 19135,
+      "title": "PRIVATE EVENT",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-11 14:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/private-event/"
+    },
+    {
+      "id": 19049,
+      "title": "WORLD CUP: QUARTER FINAL",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-11 16:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/world-cup-quarter-final-3/"
+    },
+    {
+      "id": 11586,
+      "title": "HEAVY SOUNDS",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-11 19:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/heavy-sounds-2025-12-13/2026-07-11/"
+    },
+    {
+      "id": 11587,
+      "title": "STRAIGHTEN IT OUT",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-11 21:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/straighten-it-out-2025-12-13-2026-07-11/"
+    },
+    {
+      "id": 18953,
+      "title": "SPIKE SPINS OSCAR&#8217;S JAZZ RECORDS",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-22 18:30:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/spike-spins-oscars-jazz-records-2/"
+    },
+    {
+      "id": 18972,
+      "title": "Madrone Community Book Sale 📚",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-25 12:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/madrone-community-book-sale-%f0%9f%93%9a/"
+    },
+    {
+      "id": 18943,
+      "title": "SF Ed Fund &#8211; Summer Fundraiser",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-07-30 17:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "$15.00",
+      "website": "https://pro.gofundme.com/event/ylc-summer-social/e815086",
+      "url": "https://madroneartbar.com/event/sf-ed-funds-young-leaders-council-summer-fundraiser/"
+    },
+    {
+      "id": 18777,
+      "title": "Pop Life",
+      "all_day": false,
+      "hide_from_listings": false,
+      "start_date": "2026-10-03 21:00:00",
+      "timezone": "America/Los_Angeles",
+      "cost": "",
+      "website": "",
+      "url": "https://madroneartbar.com/event/the-pr-mj-experience-2026-02-07-2026-07-04-2026-08-01/2026-10-03/"
+    }
+  ],
+  "total": 13,
+  "total_pages": 1
+}
