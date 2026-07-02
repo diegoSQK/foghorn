@@ -38,7 +38,7 @@ See `AGENTS.md` → "Project Shape" / "Architecture Debugging Map" / "Convention
 
 ## Shipped
 
-Full chronological history lives in [SHIPPED.md](SHIPPED.md); version cut-points live in [CHANGELOG.md](CHANGELOG.md). Recently shipped: the venue-expansion batch — 13 new scrapers (3 → 16 venues, 870 shows) + the Phase 7.1 genre facet (July 2026), see [SHIPPED.md](SHIPPED.md#venue-expansion-batch-13-new-scrapers--genre-facet-july-2026). **v0.2.0** cut 2026-05-24 — see [CHANGELOG.md](CHANGELOG.md#v020--2026-05-24). (Previous: **v0.1.0** see [CHANGELOG.md](CHANGELOG.md#v010--2026-05-24).)
+Full chronological history lives in [SHIPPED.md](SHIPPED.md); version cut-points live in [CHANGELOG.md](CHANGELOG.md). Recently shipped: the venue-expansion batch — 23 new scrapers (3 → 26 venues, 1,192 shows) + the Phase 7.1 genre facet (July 2026), see [SHIPPED.md](SHIPPED.md#venue-expansion-batch-23-new-scrapers--genre-facet-july-2026). **v0.2.0** cut 2026-05-24 — see [CHANGELOG.md](CHANGELOG.md#v020--2026-05-24). (Previous: **v0.1.0** see [CHANGELOG.md](CHANGELOG.md#v010--2026-05-24).)
 
 When a roadmap item ships, the agent that lands it appends the as-shipped narrative to SHIPPED.md and collapses the inline status block in the Forward roadmap below to a one-line `✅ Shipped` reference with an anchor link. Structural reorganization and periodic compaction of these docs is the PM thread's responsibility, not the shipping agent's.
 
@@ -46,7 +46,7 @@ When a roadmap item ships, the agent that lands it appends the as-shipped narrat
 
 ## In flight
 
-*Nothing in flight. The July 2026 venue-expansion batch (a user-directed feature-branch push) covered much of Phase 5's intent — 13 new venues across SF + East Bay, jazz + rock/indie — plus Phase 7.1 (genre). Remaining Phase 5 named venues (The Independent, The Chapel, Cornerstone, The New Parish, Freight & Salvage tier) are the next scraper block; see the venue-expansion SHIPPED entry for the per-platform scraping playbook that batch established.*
+*Nothing in flight. The July 2026 venue-expansion batch (a user-directed feature-branch push) delivered Phase 5's intent and beyond — 23 new venues across SF, East Bay, and the Peninsula — plus Phase 7.1 (genre). The next scraper block is the sweep's easy leftovers (UC Theatre, Bimbo's, Neck of the Woods, Warfield, August Hall, Club Deluxe, Club Fox, Thee Stork Club, The New Parish) plus a Ticketmaster Discovery API spike for the Live Nation rooms (Fillmore, Regency); see the venue-expansion SHIPPED entry for the per-platform scraping playbook.*
 
 ### Pending strategic decisions
 
@@ -114,15 +114,15 @@ Shipped May 2026 — see [Watchlist digest endpoint](SHIPPED.md#watchlist-digest
 
 ### Phase 5 — Venue expansion
 
-Add the rock / indie venues so foghorn covers both Diego's jazz-leaning use case and the broader Bay indie scene. **Largely delivered by the July 2026 venue-expansion batch** — see [SHIPPED.md](SHIPPED.md#venue-expansion-batch-13-new-scrapers--genre-facet-july-2026) — which shipped 13 venues (SF: Black Cat, Ocean Ale House, Boom Boom Room, Madrone Art Bar, Bottom of the Hill, Rickshaw Stop, Kilowatt, The Knockout; East Bay: Yoshi's, California Jazz Conservatory, Ivy Room, 924 Gilman, Natural Grocery Annex) and pulled in Phase 7.1 (genre) as predicted. Bay Improviser ingest still awaits the discovery-posture decision (see In flight → "Pending strategic decisions").
+Add the rock / indie venues so foghorn covers both Diego's jazz-leaning use case and the broader Bay indie scene. **Largely delivered by the July 2026 venue-expansion batch** — see [SHIPPED.md](SHIPPED.md#venue-expansion-batch-23-new-scrapers--genre-facet-july-2026) — which shipped 23 venues (SF: Black Cat, Ocean Ale House, Boom Boom Room, Madrone Art Bar, Bottom of the Hill, Rickshaw Stop, Kilowatt, The Knockout, The Independent, Cafe du Nord, GAMH, The Chapel, DNA Lounge; East Bay: Yoshi's, California Jazz Conservatory, Ivy Room, 924 Gilman, Natural Grocery Annex, Cornerstone, Fox Theater, Greek Theatre, The Back Room; Peninsula: Guild Theatre) and pulled in Phase 7.1 (genre) as predicted. Bay Improviser ingest still awaits the discovery-posture decision (see In flight → "Pending strategic decisions").
 
-#### 5.1 Rock / indie venue batch (P2) — partially shipped
+#### 5.1 Rock / indie venue batch (P2) ✅
 
-Bottom of the Hill ✅ (July 2026 batch). Remaining: The Independent, The Chapel. Same pattern; one ticket per venue.
+Bottom of the Hill, The Independent, The Chapel all shipped (July 2026 batch), plus Rickshaw Stop, Kilowatt, The Knockout, Cafe du Nord, GAMH, DNA Lounge beyond the original scope.
 
-#### 5.2 East Bay expansion (P2) — partially shipped
+#### 5.2 East Bay expansion (P2) ✅
 
-Yoshi's ✅, plus CJC / Ivy Room / 924 Gilman / Natural Grocery Annex (July 2026 batch). Remaining: Cornerstone Berkeley, Starline Social Club (verify still operating), The New Parish. Same pattern.
+Yoshi's, Cornerstone Berkeley, The New Parish → shipped except New Parish (TicketWeb widget API — in the next-block leftovers); Starline Social Club appears closed (July 2026 sweep). Also shipped beyond scope: CJC, Ivy Room, 924 Gilman, Natural Grocery Annex, Fox Theater, Greek Theatre, The Back Room.
 
 ### Phase 6 — LLM-assisted scraping (deferred until Phase 5 is real)
 
@@ -136,7 +136,7 @@ What's already in place that this builds on: performers are first-class entities
 
 #### 7.1 Venue-default genre (P2) ✅
 
-Shipped July 2026 with the venue-expansion batch — see [SHIPPED entry](SHIPPED.md#venue-expansion-batch-13-new-scrapers--genre-facet-july-2026). Landed as a single `venues.genre` TEXT column (not a join — no venue has needed multi-genre yet) with the first additive-column migration guard, `?genre=` on `GET /api/shows`, and a data-driven genre chip row.
+Shipped July 2026 with the venue-expansion batch — see [SHIPPED entry](SHIPPED.md#venue-expansion-batch-23-new-scrapers--genre-facet-july-2026). Landed as a single `venues.genre` TEXT column (not a join — no venue has needed multi-genre yet) with the first additive-column migration guard, `?genre=` on `GET /api/shows`, and a data-driven genre chip row.
 
 #### 7.2 Per-show genre override (P2)
 

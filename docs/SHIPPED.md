@@ -8,15 +8,16 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
-## Venue expansion batch: 13 new scrapers + genre facet (July 2026)
+## Venue expansion batch: 23 new scrapers + genre facet (July 2026)
 
 A single feature-branch push (ad-hoc, user-directed — no per-venue tickets)
-that grew foghorn from 3 scraped venues to 16 and shipped the Phase 7.1 genre
+that grew foghorn from 3 scraped venues to 26 and shipped the Phase 7.1 genre
 facet the new cross-genre diversity finally made meaningful. Built by parallel
 coding agents (one per 1–2 venues) in an isolated worktree, with central
 integration (registry, seed, docs) and a full-gate + live-scrape verification
-pass at each merge point. Full 16-venue live scrape at ship time: **870 shows,
-zero errors**, idempotent on re-run (0 created / 870 updated).
+pass at each merge point. Full 26-venue live scrape at ship time: **1,192
+shows, zero errors** (SF 871 / East Bay 295 / Peninsula 26), idempotent on
+re-run.
 
 **New venues and their data sources** — the scraper-interface flexibility the
 plan called for got exercised hard; almost every venue needed a different
@@ -60,6 +61,39 @@ source shape:
   REST API filtered to events at the Annex venue record; "The Annex Sessions:"
   prefix stripped. First venue to activate the **East Bay region chip**.
 
+A second wave, targeted by a scrapability sweep of ~36 remaining venues,
+added ten more (two shared-template parser families did the heavy lifting):
+
+- **The Independent** + **Cafe du Nord** (SF, rock) — one shared
+  `_ticketweb_calendar` helper for the TicketWeb "tw-" WordPress template.
+  Cafe du Nord's hidden per-event dialogs supply dates/doors/prices; Swedish
+  American Hall shows bill under cafe_du_nord.
+- **Great American Music Hall** (eclectic) + **The Chapel** (rock) — the
+  SeeTickets white-label platform Rickshaw Stop established, in two markup
+  flavors; sports watch parties and "Private Event" hold cards dropped.
+- **Fox Theater Oakland** + **Greek Theatre Berkeley** (East Bay, rock) — one
+  shared `_ape_listing` helper for their common APE template.
+- **DNA Lounge** (SF, electronic) — the venue's self-published **.ics feed**,
+  the cleanest source in the batch. First "electronic" genre venue.
+- **Cornerstone Berkeley** (rock) — server-rendered JSON-LD + Tixr; startDate
+  is date-only so times come from adjacent card markup (skips loudly if the
+  markup shifts).
+- **The Back Room** (Berkeley, eclectic listening room) — Humanitix JSON-LD
+  merged with the public tRPC events endpoint behind the "Load more" button.
+- **Guild Theatre** (Menlo Park, eclectic) — homepage JSON-LD + card times.
+  **First Peninsula venue** — activates the third region chip.
+
+Sweep verdicts worth keeping (see the deferred list for blocked venues):
+Freight & Salvage and The Midway sit behind Cloudflare; The Fillmore is a
+Live Nation JS shell (a **Ticketmaster Discovery API spike** would cover it
+and Regency Ballroom); El Rio is JS-only; Eli's Mile High/Golden Bull have
+dead sites; Starline Social Club appears closed. Still-easy leftovers for a
+future wave: The UC Theatre, Bimbo's 365, Neck of the Woods, The Warfield,
+August Hall (all TicketWeb/static families), Club Deluxe, Club Fox (Redwood
+City), Thee Stork Club (SeeTickets), The New Parish (TicketWeb widget API).
+North Bay (Mystic Theatre — SeeTickets, Sweetwater, HopMonk) needs a "North
+Bay" region enum value first.
+
 **Blocked (no scrapeable calendar exists):**
 
 - **For The Record** (SF Cow Hollow hi-fi listening bar — *not* the Oakland
@@ -75,8 +109,8 @@ tables, so there's now a `_add_column_if_missing` PRAGMA check), threaded
 through repo/API (`?genre=`, case-insensitive, AND-stacks with the other
 filters) and both venue payloads. Frontend `GenreFilter` chip row renders from
 the distinct genres in `/api/venues` (data-driven like the region chips;
-hidden below two genres). Current values: jazz ×8, rock ×6, eclectic ×2, funk.
-Distribution at ship: jazz 456 / rock 262 / eclectic 137 / funk 15.
+hidden below two genres). Current values: jazz ×8, rock ×12, eclectic ×5, electronic, funk.
+Distribution at ship: jazz 455 / rock 441 / eclectic 213 / electronic 68 / funk 15.
 
 **Ingest fix surfaced by the full live run:** venues sometimes bill the same
 act twice (headliner repeated in the support list, or "TBA" filling several
@@ -84,7 +118,7 @@ slots), violating the `show_performers (show_id, performer_id)` PK.
 `_build_bill` now dedupes by performer, earliest billing position wins —
 regression-tested. This was invisible with 3 venues and immediate with 16.
 
-Tests: 128 → 277 (every scraper has a trimmed-real-fixture suite with a
+Tests: 128 → 394 (every scraper has a trimmed-real-fixture suite with a
 pinned `today`). The venues-endpoint and seed tests now derive expectations
 from `SEED_VENUES` + `REGISTERED_SCRAPERS` instead of a hardcoded four-venue
 list, so future venue adds don't touch them.
