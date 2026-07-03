@@ -26,6 +26,7 @@ export default function AddEventForm({ venues }: { venues: VenueOption[] }) {
   const [time, setTime] = useState("20:00");
   const [price, setPrice] = useState("");
   const [link, setLink] = useState("");
+  const [genre, setGenre] = useState("");
   const [isJam, setIsJam] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +55,7 @@ export default function AddEventForm({ venues }: { venues: VenueOption[] }) {
         price_text: price.trim() || null,
         source_url: link.trim() || null,
         event_type: isJam ? "jam" : "show",
+        genre: genre.trim() || null,
       };
       if (known !== null) body.venue_slug = known.slug;
       else
@@ -179,6 +181,23 @@ export default function AddEventForm({ venues }: { venues: VenueOption[] }) {
             placeholder="$15"
             className={inputClass}
           />
+        </label>
+        <label className={labelClass}>
+          Genre (optional)
+          <input
+            list="genre-names"
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            placeholder="jazz"
+            className={inputClass}
+          />
+          <datalist id="genre-names">
+            {[...new Set(venues.map((v) => v.genre).filter(Boolean))].map(
+              (g) => (
+                <option key={g} value={g ?? ""} />
+              ),
+            )}
+          </datalist>
         </label>
         <label className={`${labelClass} grow`}>
           Event link (optional — flyer, IG post, artist site)

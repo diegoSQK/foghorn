@@ -5,6 +5,7 @@
 import AddToWatchlistButton from "./AddToWatchlistButton";
 import RemoveEventButton from "./RemoveEventButton";
 import type { ShowView } from "./lib/api";
+import { genreBadgeClass } from "./lib/ui";
 
 // Subtle inline badge for heuristically/hand-tagged local acts. Touring gets
 // no badge — local is the tag worth surfacing, and unknown must not read as
@@ -126,6 +127,14 @@ export default function ShowList({
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   {show.venue.name}
                   {show.venue.neighborhood ? ` · ${show.venue.neighborhood}` : ""}
+                  {show.genre && (
+                    <>
+                      {" "}
+                      <span className={genreBadgeClass(show.genre)}>
+                        {show.genre}
+                      </span>
+                    </>
+                  )}
                   {show.price_text ? ` · ${show.price_text}` : ""}
                   {show.ticket_url ? (
                     <>

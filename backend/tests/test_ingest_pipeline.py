@@ -218,3 +218,45 @@ def test_event_type_filter(conn: sqlite3.Connection, venue: Venue) -> None:
     assert [s.headliner_canonical for s in jams] == ["open jam mondays"]
     shows_only = shows_repo.list(conn, ShowFilters(event_type="show"))
     assert [s.headliner_canonical for s in shows_only] == ["some band"]
+
+
+def test_genre_normalization() -> None:
+    from foghorn.ingest.pipeline import normalize_genre
+
+    assert normalize_genre("Rock / Indie") == "rock"
+    assert normalize_genre("Hip-Hop") == "hip-hop"
+    assert normalize_genre("Soul/Funk") == "funk"
+    assert normalize_genre("JAZZ") == "jazz"
+    assert normalize_genre("Other Content") is None
+    assert normalize_genre("") is None
+    assert normalize_genre(None) is None
+    # "indie pop" hits the more specific pop before rock? Order check: pop
+    # precedes indie in the table, so "Indie Pop" buckets as pop.
+    assert normalize_genre("Indie Pop") == "pop"
+
+
+def test_manual_genre_kept_verbatim_when_unmapped(
+    conn: sqlite3.Connection, venue: Venue
+) -> None:
+    scraped = ScrapedShow(
+        venue_slug=venue.slug,
+        headliner_raw="Noise Set",
+        start_local=datetime(2026, 6, 12, 20, 0),
+        source_url="https://example.com/n",
+        genre="Harsh Noise Wall",
+    )
+    # As a scrape: unmapped genre drops to None (venue default applies).
+    ingest_scraped_shows(conn, venue, [scraped])
+    [show] = shows_repo.list(conn, ShowFilters())
+    assert show.genre_override is None
+    # As a manual entry: the user's word is kept (lowercased).
+    manual = ScrapedShow(
+        venue_slug=venue.slug,
+        headliner_raw="Noise Set Two",
+        start_local=datetime(2026, 6, 13, 20, 0),
+        source_url="https://example.com/n2",
+        genre="Harsh Noise Wall",
+    )
+    ingest_scraped_shows(conn, venue, [manual], source="manual")
+    by_name = {s.headliner_canonical: s for s in shows_repo.list(conn, ShowFilters())}
+    assert by_name["noise set two"].genre_override == "harsh noise wall"

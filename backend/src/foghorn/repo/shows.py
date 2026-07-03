@@ -16,7 +16,7 @@ from foghorn.repo.performer_match import token_match_sql
 _SHOW_COLUMNS = (
     "id, venue_id, start_utc, start_local_date, start_local_time, "
     "doors_local_time, headliner_canonical, ticket_url, price_text, "
-    "source_url, scraped_at, source, event_type"
+    "source_url, scraped_at, source, event_type, genre_override"
 )
 
 
@@ -35,6 +35,7 @@ def _row_to_show(row: sqlite3.Row) -> Show:
         scraped_at=row["scraped_at"],
         source=row["source"],
         event_type=row["event_type"],
+        genre_override=row["genre_override"],
     )
 
 
@@ -105,8 +106,9 @@ def upsert(
         """
         INSERT INTO shows (venue_id, start_utc, start_local_date, start_local_time,
                            doors_local_time, headliner_canonical, ticket_url,
-                           price_text, source_url, scraped_at, source, event_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           price_text, source_url, scraped_at, source, event_type,
+                           genre_override)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(venue_id, start_local_date, start_local_time, headliner_canonical)
         DO UPDATE SET
             start_utc        = excluded.start_utc,
@@ -116,7 +118,8 @@ def upsert(
             source_url       = excluded.source_url,
             scraped_at       = excluded.scraped_at,
             source           = excluded.source,
-            event_type       = excluded.event_type
+            event_type       = excluded.event_type,
+            genre_override   = excluded.genre_override
         """,
         (
             show.venue_id,
@@ -131,6 +134,7 @@ def upsert(
             show.scraped_at,
             show.source,
             show.event_type,
+            show.genre_override,
         ),
     )
     stored = get_by_natural_key(
@@ -192,7 +196,9 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         clauses.append("v.neighborhood = ? COLLATE NOCASE")
         params.append(filters.neighborhood)
     if filters.genre:
-        clauses.append("v.genre = ? COLLATE NOCASE")
+        # Layered genre resolution: the per-show override wins, else the
+        # venue's default lean.
+        clauses.append("COALESCE(s.genre_override, v.genre) = ? COLLATE NOCASE")
         params.append(filters.genre)
     if filters.origin:
         # Any-performer semantics, like the watchlist: a touring headliner

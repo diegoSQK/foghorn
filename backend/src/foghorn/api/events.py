@@ -55,6 +55,9 @@ class ManualEvent(BaseModel):
     price_text: str | None = None
     # Jam sessions are mostly hand-entered — this is where they come in.
     event_type: EventType = "show"
+    # Per-show genre; normalized to the coarse vocabulary where it maps, kept
+    # verbatim otherwise. Empty = the venue's default genre applies.
+    genre: str | None = None
     # Where the user learned about the show (flyer link, IG post, artist
     # site); becomes the row's provenance like a scraper's source_url.
     source_url: str | None = None
@@ -126,6 +129,7 @@ def create_event(event: ManualEvent) -> ManualEventView:
             price_text=event.price_text,
             source_url=event.source_url or MANUAL_SOURCE_URL,
             event_type=event.event_type,
+            genre=event.genre,
         )
         result = ingest_scraped_shows(conn, venue, [scraped], source="manual")
         if result.errors:

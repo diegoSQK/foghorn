@@ -90,3 +90,32 @@ def test_genre_stacks_with_region(client: TestClient) -> None:
 def test_show_rows_carry_venue_genre(client: TestClient) -> None:
     row = next(r for r in _june(client) if r["venue"]["slug"] == "boom_boom_room")
     assert row["venue"]["genre"] == "funk"
+
+
+def test_genre_override_wins_over_venue_default(client: TestClient) -> None:
+    # ocean_ale_house is seeded "eclectic"; a show with a per-source genre of
+    # "Rock / Indie" must surface under the rock filter, not eclectic.
+    conn = db.connect()
+    venue = venues_repo.get_by_slug(conn, "ocean_ale_house")
+    assert venue is not None
+    ingest_scraped_shows(
+        conn,
+        venue,
+        [
+            ScrapedShow(
+                venue_slug="ocean_ale_house",
+                headliner_raw="Overridden Act",
+                start_local=dt.datetime(2026, 6, 20, 20, 0),
+                source_url="https://example.com/o",
+                genre="Rock / Indie",
+            )
+        ],
+    )
+    conn.close()
+    assert "Overridden Act" in _headliners(_june(client, genre="rock"))
+    assert "Overridden Act" not in _headliners(_june(client, genre="eclectic"))
+
+
+def test_show_rows_carry_resolved_genre(client: TestClient) -> None:
+    row = next(r for r in _june(client) if r["venue"]["slug"] == "boom_boom_room")
+    assert row["genre"] == "funk"  # no override -> venue default resolves

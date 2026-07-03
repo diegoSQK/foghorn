@@ -61,6 +61,60 @@ def infer_event_type(scraped: ScrapedShow) -> Literal["show", "jam"]:
     return "jam" if _JAM_TITLE_RE.search(scraped.headliner_raw) else "show"
 
 
+# Source genre strings → the coarse genre vocabulary (Phase 7.2). Sources are
+# free-text ("Rock / Indie", "Hip-Hop", "Soul/Funk"); first matching keyword
+# wins, ordered so the more specific buckets are checked before "rock". Junk
+# and catch-all values ("Other Content") normalize to None — the venue's
+# default genre applies then.
+_GENRE_KEYWORDS: list[tuple[str, str]] = [
+    ("jazz", "jazz"),
+    ("blues", "blues"),
+    ("funk", "funk"),
+    ("soul", "funk"),
+    ("r&b", "funk"),
+    ("disco", "funk"),
+    ("hip-hop", "hip-hop"),
+    ("hip hop", "hip-hop"),
+    ("rap", "hip-hop"),
+    ("electronic", "electronic"),
+    ("techno", "electronic"),
+    ("house", "electronic"),
+    ("edm", "electronic"),
+    ("dance", "electronic"),
+    ("dj", "electronic"),
+    ("folk", "folk"),
+    ("country", "country"),
+    ("americana", "country"),
+    ("bluegrass", "folk"),
+    ("latin", "latin"),
+    ("salsa", "latin"),
+    ("cumbia", "latin"),
+    ("reggae", "world"),
+    ("world", "world"),
+    ("pop", "pop"),
+    ("indie", "rock"),
+    ("punk", "rock"),
+    ("metal", "rock"),
+    ("emo", "rock"),
+    ("garage", "rock"),
+    ("psych", "rock"),
+    ("alternative", "rock"),
+    ("rock", "rock"),
+]
+
+
+def normalize_genre(raw: str | None) -> str | None:
+    """Map a source's free-text genre to the coarse vocabulary, or None when
+    the string carries no usable signal."""
+    if raw is None:
+        return None
+    lowered = raw.lower()
+    for keyword, bucket in _GENRE_KEYWORDS:
+        if keyword in lowered:
+            return bucket
+    return None
+
+
 def _to_show(
     venue: Venue,
     scraped: ScrapedShow,
@@ -72,9 +126,16 @@ def _to_show(
     tz = ZoneInfo(venue.tz)
     start_local = scraped.start_local.replace(tzinfo=tz)
     assert venue.id is not None  # caller resolves the venue before ingest
+    # Scraper genre strings are held to the coarse vocabulary (junk → venue
+    # default); a manual entry's genre is kept verbatim (lowercased) when it
+    # doesn't map — the user meant what they typed.
+    genre_override = normalize_genre(scraped.genre)
+    if genre_override is None and source == "manual" and scraped.genre:
+        genre_override = scraped.genre.strip().lower() or None
     return Show(
         source=source,
         event_type=infer_event_type(scraped),
+        genre_override=genre_override,
         venue_id=venue.id,
         start_utc=start_local.astimezone(UTC).isoformat(),
         start_local_date=scraped.start_local.strftime("%Y-%m-%d"),

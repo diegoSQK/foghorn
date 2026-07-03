@@ -49,6 +49,9 @@ class ShowView(BaseModel):
     id: int
     source: str  # 'scrape' | 'manual' — manual rows are user-deletable
     event_type: str  # 'show' | 'jam'
+    # Resolved genre: the per-show override when the source published one,
+    # else the venue's default lean. None when neither is known.
+    genre: str | None
     venue: VenueView
     start_local_date: str
     start_local_time: str
@@ -86,6 +89,7 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
         id=show.id,
         source=show.source,
         event_type=show.event_type,
+        genre=show.genre_override or venue.genre,
         venue=VenueView(
             slug=venue.slug,
             name=venue.name,

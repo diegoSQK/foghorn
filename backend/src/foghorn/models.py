@@ -100,6 +100,10 @@ class Show(BaseModel):
     # "manual" = user-entered via POST /api/events (deletable through the API).
     source: Literal["scrape", "manual"] = "scrape"
     event_type: EventType = "show"
+    # Per-show genre (Phase 7.2), normalized at ingest from sources that
+    # publish per-event genre. Genre resolution is layered: this override
+    # wins, else the venue's default genre. None = no per-show signal.
+    genre_override: str | None = None
     performers: list[ShowPerformer] = Field(default_factory=list)
 
 
@@ -123,6 +127,10 @@ class ScrapedShow(BaseModel):
     # None = not stated by the source; ingest then infers from unambiguous
     # title patterns ("jam session", "open jam", …). An explicit value wins.
     event_type: EventType | None = None
+    # The source's verbatim per-event genre string, when it publishes one
+    # (SeeTickets cards, Dice tags, …). Normalized to the coarse vocabulary at
+    # ingest; junk values normalize to None (venue default applies).
+    genre: str | None = None
 
 
 class ShowFilters(BaseModel):
@@ -142,7 +150,9 @@ class ShowFilters(BaseModel):
     watchlist_token_bags: list[list[str]] | None = None
     region: Region | None = None
     neighborhood: str | None = None  # case-insensitive exact match on venue
-    genre: str | None = None  # case-insensitive exact match on venue genre
+    # Case-insensitive exact match on the show's *resolved* genre:
+    # COALESCE(show.genre_override, venue.genre).
+    genre: str | None = None
     # A show matches if ANY performer on the bill carries this origin tag
     # (same any-performer semantics as the watchlist filter).
     origin: Origin | None = None

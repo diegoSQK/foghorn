@@ -15,6 +15,9 @@ export type ShowView = {
   id: number;
   source: "scrape" | "manual";
   event_type: "show" | "jam";
+  // Resolved genre: per-show override if the source published one, else the
+  // venue's default lean.
+  genre: string | null;
   venue: {
     slug: string;
     name: string;

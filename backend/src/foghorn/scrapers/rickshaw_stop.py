@@ -218,6 +218,7 @@ def parse_html(
             ScrapedShow(
                 venue_slug=VENUE_SLUG,
                 headliner_raw=headliners[0],
+                genre=genre or None,
                 support_raw=support,
                 start_local=dt.datetime.combine(show_date, start_time),
                 doors_local=(
