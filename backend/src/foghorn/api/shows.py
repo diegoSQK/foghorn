@@ -16,7 +16,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from foghorn.ingest.pipeline import canonicalize
-from foghorn.models import Origin, Region, Show, ShowFilters, Venue
+from foghorn.models import EventType, Origin, Region, Show, ShowFilters, Venue
 from foghorn.repo import db
 from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
@@ -48,6 +48,7 @@ class PerformerView(BaseModel):
 class ShowView(BaseModel):
     id: int
     source: str  # 'scrape' | 'manual' — manual rows are user-deletable
+    event_type: str  # 'show' | 'jam'
     venue: VenueView
     start_local_date: str
     start_local_time: str
@@ -84,6 +85,7 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
     return ShowView(
         id=show.id,
         source=show.source,
+        event_type=show.event_type,
         venue=VenueView(
             slug=venue.slug,
             name=venue.name,
@@ -126,6 +128,7 @@ def build_show_views(
     neighborhood: str | None = None,
     genre: str | None = None,
     origin: Origin | None = None,
+    event_type: EventType | None = None,
     watchlist: bool = False,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
@@ -149,6 +152,7 @@ def build_show_views(
         neighborhood=neighborhood,
         genre=genre,
         origin=origin,
+        event_type=event_type,
     )
     shows = shows_repo.list(conn, filters)
     venues_by_id = {v.id: v for v in venues_repo.list_all(conn)}
@@ -187,6 +191,9 @@ def list_shows(
     origin: str | None = Query(
         default=None, description="local | touring (any performer on the bill)"
     ),
+    type: str | None = Query(
+        default=None, description="show | jam (default: both)"
+    ),
     watchlist: str | None = Query(
         default=None, description="'true' to filter to watchlist matches"
     ),
@@ -217,6 +224,12 @@ def list_shows(
     elif origin == "touring":
         org = "touring"
 
+    etype: EventType | None = None
+    if type == "show":
+        etype = "show"
+    elif type == "jam":
+        etype = "jam"
+
     conn = db.connect()
     try:
         return build_show_views(
@@ -230,6 +243,7 @@ def list_shows(
             neighborhood=neighborhood or None,
             genre=genre or None,
             origin=org,
+            event_type=etype,
             watchlist=watchlist == "true",
         )
     finally:

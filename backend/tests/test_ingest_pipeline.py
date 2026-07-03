@@ -165,3 +165,56 @@ def test_duplicate_billing_collapses_to_first_occurrence(
     [show] = shows_repo.list(conn, ShowFilters())
     got = [(p.role, p.position, p.display_name) for p in show.performers]
     assert got == [("headliner", 0, "TBA"), ("support", 1, "Opener A")]
+
+
+def test_event_type_inference_and_explicit_tag(
+    conn: sqlite3.Connection, venue: Venue
+) -> None:
+    result = ingest_scraped_shows(
+        conn,
+        venue,
+        [
+            _scraped("Sunday Blues Jam", datetime(2026, 6, 7, 18, 0)),
+            _scraped("Weekly Jam Session at the Annex", datetime(2026, 6, 8, 18, 0)),
+            _scraped("Pearl Jam Tribute Night", datetime(2026, 6, 9, 20, 0)),
+            _scraped("Regular Old Quartet", datetime(2026, 6, 10, 20, 0)),
+        ],
+    )
+    assert result.errors == []
+    by_name = {
+        s.headliner_canonical: s.event_type for s in shows_repo.list(conn, ShowFilters())
+    }
+    assert by_name["sunday blues jam"] == "jam"
+    assert by_name["weekly jam session at the annex"] == "jam"
+    # "jam" inside a band name must NOT trigger the heuristic.
+    assert by_name["pearl jam tribute night"] == "show"
+    assert by_name["regular old quartet"] == "show"
+
+    # An explicit scraper tag beats the title heuristic in both directions.
+    explicit = ScrapedShow(
+        venue_slug=venue.slug,
+        headliner_raw="Totally Normal Name",
+        start_local=datetime(2026, 6, 11, 20, 0),
+        source_url="https://example.com/x",
+        event_type="jam",
+    )
+    ingest_scraped_shows(conn, venue, [explicit])
+    listed = {
+        s.headliner_canonical: s.event_type for s in shows_repo.list(conn, ShowFilters())
+    }
+    assert listed["totally normal name"] == "jam"
+
+
+def test_event_type_filter(conn: sqlite3.Connection, venue: Venue) -> None:
+    ingest_scraped_shows(
+        conn,
+        venue,
+        [
+            _scraped("Open Jam Mondays", datetime(2026, 6, 1, 19, 0)),
+            _scraped("Some Band", datetime(2026, 6, 2, 20, 0)),
+        ],
+    )
+    jams = shows_repo.list(conn, ShowFilters(event_type="jam"))
+    assert [s.headliner_canonical for s in jams] == ["open jam mondays"]
+    shows_only = shows_repo.list(conn, ShowFilters(event_type="show"))
+    assert [s.headliner_canonical for s in shows_only] == ["some band"]

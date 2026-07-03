@@ -14,6 +14,7 @@ import GenreFilter from "./GenreFilter";
 import LocationFilter from "./LocationFilter";
 import OriginFilter from "./OriginFilter";
 import PerformerSearch from "./PerformerSearch";
+import TypeFilter from "./TypeFilter";
 import type { VenueOption } from "./lib/api";
 import { addDaysISO, thisWeekend, todayISO } from "./lib/dates";
 
@@ -110,8 +111,8 @@ export default function FilterBar({
   // (sm+) always shows the full panel; this state only matters under sm.
   const [moreOpen, setMoreOpen] = useState(false);
   const advancedActive =
-    ["region", "neighborhood", "genre", "origin", "venues"].filter((k) =>
-      params.get(k),
+    ["region", "neighborhood", "genre", "origin", "type", "venues"].filter(
+      (k) => params.get(k),
     ).length + (params.get("from") || params.get("to") ? 1 : 0);
 
   function setRange(active: boolean, range: { from: string; to: string }): void {
@@ -224,6 +225,8 @@ export default function FilterBar({
       <LocationFilter venues={venues} />
 
       <GenreFilter venues={venues} />
+
+      <TypeFilter />
 
       {showOriginFilter && <OriginFilter />}
 

@@ -27,6 +27,7 @@ export default function AddEventForm({ venues }: { venues: VenueOption[] }) {
   const [time, setTime] = useState("20:00");
   const [price, setPrice] = useState("");
   const [link, setLink] = useState("");
+  const [isJam, setIsJam] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +54,7 @@ export default function AddEventForm({ venues }: { venues: VenueOption[] }) {
         time,
         price_text: price.trim() || null,
         source_url: link.trim() || null,
+        event_type: isJam ? "jam" : "show",
       };
       if (known !== null) body.venue_slug = known.slug;
       else
@@ -189,6 +191,16 @@ export default function AddEventForm({ venues }: { venues: VenueOption[] }) {
           />
         </label>
       </div>
+
+      <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+        <input
+          type="checkbox"
+          checked={isJam}
+          onChange={(e) => setIsJam(e.target.checked)}
+          className="h-4 w-4"
+        />
+        This is a jam session
+      </label>
 
       {error && (
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>

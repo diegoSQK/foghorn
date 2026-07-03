@@ -16,7 +16,7 @@ from foghorn.repo.performer_match import token_match_sql
 _SHOW_COLUMNS = (
     "id, venue_id, start_utc, start_local_date, start_local_time, "
     "doors_local_time, headliner_canonical, ticket_url, price_text, "
-    "source_url, scraped_at, source"
+    "source_url, scraped_at, source, event_type"
 )
 
 
@@ -34,6 +34,7 @@ def _row_to_show(row: sqlite3.Row) -> Show:
         source_url=row["source_url"],
         scraped_at=row["scraped_at"],
         source=row["source"],
+        event_type=row["event_type"],
     )
 
 
@@ -104,8 +105,8 @@ def upsert(
         """
         INSERT INTO shows (venue_id, start_utc, start_local_date, start_local_time,
                            doors_local_time, headliner_canonical, ticket_url,
-                           price_text, source_url, scraped_at, source)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           price_text, source_url, scraped_at, source, event_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(venue_id, start_local_date, start_local_time, headliner_canonical)
         DO UPDATE SET
             start_utc        = excluded.start_utc,
@@ -114,7 +115,8 @@ def upsert(
             price_text       = excluded.price_text,
             source_url       = excluded.source_url,
             scraped_at       = excluded.scraped_at,
-            source           = excluded.source
+            source           = excluded.source,
+            event_type       = excluded.event_type
         """,
         (
             show.venue_id,
@@ -128,6 +130,7 @@ def upsert(
             show.source_url,
             show.scraped_at,
             show.source,
+            show.event_type,
         ),
     )
     stored = get_by_natural_key(
@@ -201,6 +204,9 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
             "WHERE spo.show_id = s.id AND po.origin = ?)"
         )
         params.append(filters.origin)
+    if filters.event_type:
+        clauses.append("s.event_type = ?")
+        params.append(filters.event_type)
     if filters.from_date:
         clauses.append("s.start_local_date >= ?")
         params.append(filters.from_date)

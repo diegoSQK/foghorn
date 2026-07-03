@@ -8,6 +8,7 @@ show is captured in ``IngestResult.errors`` and doesn't abort the batch.
 
 from __future__ import annotations
 
+import re
 import sqlite3
 import unicodedata
 from datetime import UTC, datetime
@@ -42,6 +43,24 @@ def canonicalize(name: str) -> str:
     return " ".join(spaced.split())
 
 
+# Unambiguous jam-session title patterns. Deliberately narrow — "jam" alone
+# would misfire on band names (Pearl Jam tributes, "Space Jam" parties); a
+# genre word or session/night/open framing is required. Sources that KNOW can
+# set ScrapedShow.event_type explicitly, which always wins over this.
+_JAM_TITLE_RE = re.compile(
+    r"\bjam\s+session\b|\bopen\s+jam\b|\bjam\s+night\b"
+    r"|\b(?:blues|funk|jazz|soul|latin)\s+jam\b",
+    re.IGNORECASE,
+)
+
+
+def infer_event_type(scraped: ScrapedShow) -> Literal["show", "jam"]:
+    """The scraper's explicit tag if set, else a conservative title check."""
+    if scraped.event_type is not None:
+        return scraped.event_type
+    return "jam" if _JAM_TITLE_RE.search(scraped.headliner_raw) else "show"
+
+
 def _to_show(
     venue: Venue,
     scraped: ScrapedShow,
@@ -55,6 +74,7 @@ def _to_show(
     assert venue.id is not None  # caller resolves the venue before ingest
     return Show(
         source=source,
+        event_type=infer_event_type(scraped),
         venue_id=venue.id,
         start_utc=start_local.astimezone(UTC).isoformat(),
         start_local_date=scraped.start_local.strftime("%Y-%m-%d"),

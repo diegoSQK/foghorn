@@ -26,6 +26,10 @@ Role = Literal["headliner", "support"]
 # split proves too coarse.
 Origin = Literal["local", "touring"]
 OriginSource = Literal["heuristic", "manual"]
+# Event type: a jam session is a different thing to plan around than a show
+# (you might bring your horn). Scrapers/manual entry can set it explicitly;
+# ingest infers it from unambiguous title patterns otherwise.
+EventType = Literal["show", "jam"]
 
 
 class Venue(BaseModel):
@@ -95,6 +99,7 @@ class Show(BaseModel):
     # "scrape" = written by the ingest pipeline from a venue scraper;
     # "manual" = user-entered via POST /api/events (deletable through the API).
     source: Literal["scrape", "manual"] = "scrape"
+    event_type: EventType = "show"
     performers: list[ShowPerformer] = Field(default_factory=list)
 
 
@@ -115,6 +120,9 @@ class ScrapedShow(BaseModel):
     ticket_url: str | None = None
     price_text: str | None = None
     source_url: str
+    # None = not stated by the source; ingest then infers from unambiguous
+    # title patterns ("jam session", "open jam", …). An explicit value wins.
+    event_type: EventType | None = None
 
 
 class ShowFilters(BaseModel):
@@ -138,6 +146,7 @@ class ShowFilters(BaseModel):
     # A show matches if ANY performer on the bill carries this origin tag
     # (same any-performer semantics as the watchlist filter).
     origin: Origin | None = None
+    event_type: EventType | None = None  # None = both shows and jams
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
     time_of_day: Literal["early", "late"] | None = None
 
