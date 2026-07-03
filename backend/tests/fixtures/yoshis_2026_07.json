@@ -1,0 +1,50 @@
+[
+  {
+    "title": "7:30PM KINDRED THE FAMILY SOUL<br/><a href=\"https://www.etix.com/ticket/p/46236417/kindred-the-family-soul-thu7226-oakland-yoshis\" target='_blank' class='calendarBuyTickets'>Buy Tickets</a>",
+    "start": "2026-07-02 19:30:00",
+    "end": "2026-07-02",
+    "eventOrder": 1,
+    "className": "Buy Tickets",
+    "url": "https://yoshis.com/events/buy-tickets/kindred-the-family-soul-7/detail"
+  },
+  {
+    "title": "9:30PM KINDRED THE FAMILY SOUL<br/><a href=\"https://www.etix.com/ticket/p/60885990/kindred-the-family-soul-thu7226-oakland-yoshis\" target='_blank' class='calendarBuyTickets'>Buy Tickets</a>",
+    "start": "2026-07-02 21:30:00",
+    "end": "2026-07-02",
+    "eventOrder": 2,
+    "className": "Buy Tickets",
+    "url": "https://yoshis.com/events/buy-tickets/kindred-the-family-soul-7/detail"
+  },
+  {
+    "title": "8:00PM PATRON LATIN RHYTHMS<br/><a class=\"gray-btn\" style=\"margin: 5px 0 10px 0;\">SOLD OUT</a>",
+    "start": "2026-07-03 20:00:00",
+    "end": "2026-07-03",
+    "eventOrder": 3,
+    "className": "Sold Out",
+    "url": "https://yoshis.com/events/sold-out/patron-latin-rhythms-1/detail"
+  },
+  {
+    "title": "7:00 PM BLUES EXPLOSION FEAT. THE DYNAMIC MISS FAYE CAROL, FILLMORE SLIM, LADY BIANCA & ALVON JOHNSON<br/><a href=\"https://www.etix.com/ticket/p/34063078/all-star-blues-revue-featfaye-carolfillmore-slimalvon-johnson-lady-bianca-sun7526-oakland-yoshis\" target='_blank' class='calendarBuyTickets'>Buy Tickets</a>",
+    "start": "2026-07-05 19:00:00",
+    "end": "2026-07-05",
+    "eventOrder": 4,
+    "className": "Buy Tickets",
+    "url": "https://yoshis.com/events/buy-tickets/all-star-blues-revue-feat-faye-carol-fillmore-slim-alvon-johnson-lady-bianca/detail"
+  },
+  {
+    "title": "8:00 PM MUSIC MONDAY INDIE NIGHT FEAT. RYAN ALLAY AND JORDYN DIEW<br/><a href=\"https://www.etix.com/ticket/p/77441411/music-monday-indie-night-featryan-allay-and-jordyn-diew-mon7626-oakland-yoshis\" target='_blank' class='calendarBuyTickets'>Buy Tickets</a>",
+    "start": "2026-07-06 20:00:00",
+    "end": "2026-07-06",
+    "eventOrder": 5,
+    "className": "Buy Tickets",
+    "url": "https://yoshis.com/events/buy-tickets/music-monday-indie-night-feat-ryan-allay-and-jordyn-diew/detail"
+  },
+  {
+    "title": "9:30PM SPYRO GYRA<br/><a href=\"https://www.etix.com/ticket/p/53632385/spyro-gyra-wed93026-oakland-yoshis\" target='_blank' class='calendarBuyTickets'>Buy Tickets</a>",
+    "start": "2026-09-30 21:30:00",
+    "end": "2026-09-30",
+    "eventOrder": 125,
+    "className": "Buy Tickets",
+    "url": "https://yoshis.com/events/buy-tickets/spyro-gyra-6/detail"
+  }
+]

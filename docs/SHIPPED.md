@@ -8,6 +8,241 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Layered genre resolution + performer-genre bootstrap (July 2026)
+
+Genre moved from a pure venue attribute to a three-layer resolution chain:
+**per-show override → headliner's performer-level genre → venue default** —
+in the `?genre=` filter SQL and the API's resolved `genre` field alike.
+
+- **Phase 7.2 (per-show override).** The SeeTickets scrapers were parsing
+  per-card genre to drop comedy and discarding it; it now threads into
+  `ScrapedShow.genre` and normalizes to the coarse vocabulary at ingest
+  ("Rock / Indie"→rock, "Other Content"→None). 92 shows picked up overrides
+  on the first re-scrape — Wolfmother at eclectic-default GAMH files under
+  rock, Valerie June (soul) at rock-default Chapel under funk. Manual entries
+  keep unmapped genres verbatim.
+- **Title-derived genre + wider jam patterns.** When neither source nor venue
+  says anything useful, an unambiguous genre word in the title fills the gap
+  (word-boundary matched, single-bucket only, curated venue leans never
+  second-guessed; B3/Hammond reads as jazz). Jam inference widened to
+  plurals, open mics, and organ sessions: 9 → 35 tagged jams.
+- **Phase 7.4 stage 1 (deterministic performer genre).** `performers.genre`
+  + `genre_source` with a unanimous-evidence bootstrap (`make tag-genres`)
+  over per-show overrides, venue leans, and performer-name keywords; mixed
+  evidence stays untagged. First run: 353/1,368 performers. Manual
+  corrections via `PUT /api/performers/{canonical}/genre` are permanent.
+  **The LLM stage for the remaining ~75% is deliberately deferred** — an
+  open decision about accepting an LLM dependency in the enrichment tier
+  (never ingest-of-record or serving); this deterministic layer is its
+  validation baseline if it proceeds.
+- **"Eclectic" demoted to honest absence**: no badge, no filter chip — it
+  resolves from a mixed-booking venue's default and says nothing about the
+  show. Every visible genre badge now carries signal.
+
+## Calendar views + UI polish arc (July 2026)
+
+The reading surface grew up alongside the data:
+
+- **Day / Week / Month views** (`?view=` + `?anchor=`, URL-driven like every
+  filter, which all apply across views). Day = the list scoped to one date
+  with prev/Today/next; Week = Mon–Sun columns (stacked on mobile); Month = a
+  classic grid, two headliners + "+N more" per cell, each cell linking into
+  Day view. Calendar views derive their window from the anchor, so the
+  list's date controls hide there.
+- **Teal accent system** in `lib/ui.ts` — one token file for chip/input/link/
+  button styles (collapsed five copy-pasted chipClass definitions), sticky
+  translucent nav, tinted filter card, filled genre badges (outline-only read
+  as gray at 10px), semantic badge colors (emerald local / amber jam / sky
+  added-by-you) kept distinct from the accent.
+- **Usability fixes from dogfooding:** the 26-venue checklist collapsed
+  behind a summary disclosure ("Venues · all 29") with a responsive grid;
+  mobile tucks advanced filters behind a "More filters" toggle (six shows
+  visible on the first screen, up from zero); date inputs hold drafts and
+  commit on blur — a native date input fires `change` per segment, so the
+  old commit-per-change navigated mid-edit and snapped the field back, and
+  the min/max cross-constraints blocked moving a range forward; the double
+  clear-× on the search bar (WebKit's native control next to ours — the
+  hide-it CSS gets stripped by the build minifier, so the input is now
+  `type="text"` + `role="searchbox"`).
+
+## Manual events + jam sessions (July 2026)
+
+Two features prompted by a coverage gap: following two real artists (Lisa
+Mezzacappa, Dillon Vado) showed that part of the local scene — house
+concerts, one-off spaces, Instagram-only venues, festival one-offs — will
+never be reachable by scrapers, and that jam sessions are a distinct thing a
+player plans around.
+
+**Manual events** (`POST /api/events`, `/add` in the UI, "Add event" in the
+nav). A manual event rides the exact scraped-ingest path — same
+canonicalization and natural-key dedup, so double entry is idempotent — but
+is stamped `shows.source='manual'`: deletable through the API (scraped rows
+refuse deletion since the next refresh would resurrect them) and badged
+"added by you" with a remove affordance in the list. The venue is an existing
+slug or a free-text new name; unknown names create `venues.source='manual'`
+rows that appear in `/api/venues` and every filter with no scraper attached.
+Provenance is preserved via an optional source link (flyer URL, IG post);
+`manual://user-entry` otherwise.
+
+**Jam sessions** (`shows.event_type`, `?type=show|jam`, Shows/Jam-sessions
+chips, amber "jam" badge). Tagging precedence: explicit scraper tag > the
+manual form's checkbox > a deliberately narrow ingest-time title heuristic
+("jam session" / "open jam" / "jam night" / "<genre> jam") that can't misfire
+on band names (Pearl Jam tribute stays a show — regression-tested). The
+heuristic alone surfaced 9 real July jams already in the scraped data (Boom
+Boom Room's funk jam, Ocean Ale House's weekly jazz jam, The Back Room's
+singers session, Madrone's Saturday jam).
+
+Both features are single-tenant/no-auth like the watchlist. ShowView now
+carries `id`, `source`, and `event_type`.
+
+## Performer origin tagging v1: local/touring (July 2026)
+
+The most mission-aligned facet — "show me local acts to support" — shipped as
+performer-level tags, since venues mix (Yoshi's books local trios between
+tours; big rooms put local openers under touring headliners). No scraped
+source publishes this, so v1 is **inference + correction**: a conservative
+heuristic bootstrap (`make tag-origins`, idempotent, safe after every scrape)
+scores each performer from evidence already in the DB — recurrence spread
+over weeks (consecutive-night touring runs deliberately don't count),
+multi-venue presence, venue booking priors (small nightly rooms ≈ local;
+Fox/Greek *headliners* ≈ touring; mixed rooms contribute nothing), and
+Ticketmaster/AXS headline slots — and only tags past a threshold, leaving
+everything else unknown. `PUT /api/performers/{canonical}/origin` records
+manual corrections as permanent (`origin_source='manual'`; the heuristic
+never overwrites them, and a stale heuristic tag clears when its evidence
+fades rather than fossilizing).
+
+`GET /api/shows?origin=local|touring` uses any-performer semantics (matching
+the watchlist): a touring headliner with a local opener matches `local`,
+because the opener is why a support-local user would go. Frontend: "Local
+acts"/"Touring" chips labeled "(likely)" that render only when tagged
+performers exist in the result set, and a subtle "local" badge on tagged
+names — touring gets no badge so unknown never reads as "not local".
+
+First live bootstrap over the 26-venue catalog: **153 local / 29 touring /
+1,144 unknown (86% deliberately untagged)**; spot check: touring 10/10,
+local ~9/10. Recurrence evidence compounds as scrape history accumulates
+(persisted shows outlive their dates), so coverage grows by re-running the
+CLI — and the deterministic scorer doubles as the validation baseline for a
+future Phase 7.4 LLM pass. "regional" (Bay-based but touring) deferred until
+the two-way split proves too coarse.
+
+## Venue expansion batch: 23 new scrapers + genre facet (July 2026)
+
+A single feature-branch push (ad-hoc, user-directed — no per-venue tickets)
+that grew foghorn from 3 scraped venues to 26 and shipped the Phase 7.1 genre
+facet the new cross-genre diversity finally made meaningful. Built by parallel
+coding agents (one per 1–2 venues) in an isolated worktree, with central
+integration (registry, seed, docs) and a full-gate + live-scrape verification
+pass at each merge point. Full 26-venue live scrape at ship time: **1,192
+shows, zero errors** (SF 871 / East Bay 295 / Peninsula 26), idempotent on
+re-run.
+
+**New venues and their data sources** — the scraper-interface flexibility the
+plan called for got exercised hard; almost every venue needed a different
+source shape:
+
+- **Black Cat** (SF, jazz) — Turntable Tickets performance API (JSON).
+- **Ocean Ale House** (SF, eclectic) — the schedule TSV on GitHub that the
+  client-rendered site itself fetches (`aspyrx/oah-content/events.tsv`);
+  no-year dates roll forward across New Year.
+- **Boom Boom Room** (SF, funk) — server-rendered rhp-events HTML with month
+  separators; doors + show times parsed.
+- **Madrone Art Bar** (SF, eclectic) — WordPress Tribe Events REST API (same
+  pattern as Mr. Tipple's). Known gap: recurring nights entered as all-day
+  Tribe events (~30/mo) carry no start time and are skipped.
+- **Bottom of the Hill** (SF, rock) — the venue's famous hand-maintained
+  static `calendar.html` (HTML 4.01 table, ISO-8859-1 with no charset header —
+  fetcher pins encoding); bills in top-billing order, doors/cover/stubmatic
+  links.
+- **Rickshaw Stop** (SF, rock) — SeeTickets white-label calendar: server-
+  rendered cards + nonce'd admin-ajax pagination (nonce fetched fresh each
+  run); headliner/support pre-split; non-music genres dropped.
+- **Kilowatt** (SF, rock) — Dice.fm events API via the public widget key in
+  the site's DiceEventListWidget config; fee-inclusive prices in cents.
+- **The Knockout** (SF, rock) — Squarespace calendar-collection
+  `GetItemsByMonth` JSON (the older `/calendar` collection is stale 2023 test
+  data — a trap for future re-scrapes); no ticket/price/doors published.
+- **Yoshi's** (Oakland, jazz) — the fullCalendar JSON feed behind the venue
+  calendar (one entry per *set*, so 7:30/9:30 shows land separately — better
+  than the HTML, which collapses them), prices joined from the HTML page
+  best-effort. Biggest single venue: 125 shows.
+- **California Jazz Conservatory** (Berkeley, jazz) — server-rendered
+  `concerts.jazzschool.org` listing + per-event pages for times (classes never
+  appear on that subdomain; movie nights dropped). VBO ticket widget means no
+  static ticket/price.
+- **Ivy Room** (Albany, rock) — Venuepilot public GraphQL API (`accountIds`
+  from `window.venuepilotSettings`); the Squarespace site is a JS shell.
+- **924 Gilman** (Berkeley, rock) — the collective's server-rendered
+  ShowSlinger ticketing listing (the Wix calendar is client-rendered with the
+  Wix Events app disabled). Unticketed shows outside ShowSlinger won't appear.
+- **El Cerrito Natural Grocery Annex** (El Cerrito, jazz) — company-wide Tribe
+  REST API filtered to events at the Annex venue record; "The Annex Sessions:"
+  prefix stripped. First venue to activate the **East Bay region chip**.
+
+A second wave, targeted by a scrapability sweep of ~36 remaining venues,
+added ten more (two shared-template parser families did the heavy lifting):
+
+- **The Independent** + **Cafe du Nord** (SF, rock) — one shared
+  `_ticketweb_calendar` helper for the TicketWeb "tw-" WordPress template.
+  Cafe du Nord's hidden per-event dialogs supply dates/doors/prices; Swedish
+  American Hall shows bill under cafe_du_nord.
+- **Great American Music Hall** (eclectic) + **The Chapel** (rock) — the
+  SeeTickets white-label platform Rickshaw Stop established, in two markup
+  flavors; sports watch parties and "Private Event" hold cards dropped.
+- **Fox Theater Oakland** + **Greek Theatre Berkeley** (East Bay, rock) — one
+  shared `_ape_listing` helper for their common APE template.
+- **DNA Lounge** (SF, electronic) — the venue's self-published **.ics feed**,
+  the cleanest source in the batch. First "electronic" genre venue.
+- **Cornerstone Berkeley** (rock) — server-rendered JSON-LD + Tixr; startDate
+  is date-only so times come from adjacent card markup (skips loudly if the
+  markup shifts).
+- **The Back Room** (Berkeley, eclectic listening room) — Humanitix JSON-LD
+  merged with the public tRPC events endpoint behind the "Load more" button.
+- **Guild Theatre** (Menlo Park, eclectic) — homepage JSON-LD + card times.
+  **First Peninsula venue** — activates the third region chip.
+
+Sweep verdicts worth keeping (see the deferred list for blocked venues):
+Freight & Salvage and The Midway sit behind Cloudflare; The Fillmore is a
+Live Nation JS shell (a **Ticketmaster Discovery API spike** would cover it
+and Regency Ballroom); El Rio is JS-only; Eli's Mile High/Golden Bull have
+dead sites; Starline Social Club appears closed. Still-easy leftovers for a
+future wave: The UC Theatre, Bimbo's 365, Neck of the Woods, The Warfield,
+August Hall (all TicketWeb/static families), Club Deluxe, Club Fox (Redwood
+City), Thee Stork Club (SeeTickets), The New Parish (TicketWeb widget API).
+North Bay (Mystic Theatre — SeeTickets, Sweetwater, HopMonk) needs a "North
+Bay" region enum value first.
+
+**Blocked (no scrapeable calendar exists):**
+
+- **For The Record** (SF Cow Hollow hi-fi listening bar — *not* the Oakland
+  guess): one-page Squarespace site, all programming Instagram-only.
+- **Little Hill Lounge** (El Cerrito): calendar is a monthly flyer **JPEG** on
+  a one-page WordPress site; a former Tribe install was removed. Bandsintown
+  has it but 403s plain HTTP. Would need OCR or a headless browser.
+
+**Genre facet (Phase 7.1)** shipped alongside: `venues.genre` (TEXT, nullable)
+with an additive-column migration guard in `init_schema` (the first schema
+change against pre-existing DBs — `CREATE TABLE IF NOT EXISTS` skips existing
+tables, so there's now a `_add_column_if_missing` PRAGMA check), threaded
+through repo/API (`?genre=`, case-insensitive, AND-stacks with the other
+filters) and both venue payloads. Frontend `GenreFilter` chip row renders from
+the distinct genres in `/api/venues` (data-driven like the region chips;
+hidden below two genres). Current values: jazz ×8, rock ×12, eclectic ×5, electronic, funk.
+Distribution at ship: jazz 455 / rock 441 / eclectic 213 / electronic 68 / funk 15.
+
+**Ingest fix surfaced by the full live run:** venues sometimes bill the same
+act twice (headliner repeated in the support list, or "TBA" filling several
+slots), violating the `show_performers (show_id, performer_id)` PK.
+`_build_bill` now dedupes by performer, earliest billing position wins —
+regression-tested. This was invisible with 3 venues and immediate with 16.
+
+Tests: 128 → 394 (every scraper has a trimmed-real-fixture suite with a
+pinned `today`). The venues-endpoint and seed tests now derive expectations
+from `SEED_VENUES` + `REGISTERED_SCRAPERS` instead of a hardcoded four-venue
+list, so future venue adds don't touch them.
+
 ## Aggregator evaluation spike (May 2026)
 
 Time-boxed research spike ([#29](https://github.com/diegoSQK/foghorn/issues/29))

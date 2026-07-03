@@ -18,6 +18,7 @@ class VenueView(BaseModel):
     name: str
     neighborhood: str | None
     region: str | None
+    genre: str | None
 
 
 @router.get("/api/venues", response_model=list[VenueView])
@@ -27,12 +28,17 @@ def list_venues() -> list[VenueView]:
         venues = venues_repo.list_all(conn)
     finally:
         conn.close()
-    # Only venues foghorn actively scrapes are useful filter options. SFJAZZ is
-    # seeded but deferred (Cloudflare) with no scraper, so it's excluded here.
+    # Venues foghorn actively scrapes, plus user-created manual venues (which
+    # have shows but no scraper). SFJAZZ — seeded but deferred with no scraper
+    # — stays excluded.
     return [
         VenueView(
-            slug=v.slug, name=v.name, neighborhood=v.neighborhood, region=v.region
+            slug=v.slug,
+            name=v.name,
+            neighborhood=v.neighborhood,
+            region=v.region,
+            genre=v.genre,
         )
         for v in venues
-        if v.slug in REGISTERED_SCRAPERS
+        if v.slug in REGISTERED_SCRAPERS or v.source == "manual"
     ]

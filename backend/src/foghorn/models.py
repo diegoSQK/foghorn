@@ -20,6 +20,16 @@ from pydantic import BaseModel, ConfigDict, Field
 # validated at construction time rather than silently writing typos to the DB.
 Region = Literal["SF", "East Bay", "Peninsula", "South Bay"]
 Role = Literal["headliner", "support"]
+# Performer origin (v1 of local/touring tagging). No scraped source publishes
+# this — it's inferred (heuristic bootstrap) or hand-set; None = unknown.
+# "regional" (touring-the-West-Coast-but-Bay-based) deferred until the two-way
+# split proves too coarse.
+Origin = Literal["local", "touring"]
+OriginSource = Literal["heuristic", "manual"]
+# Event type: a jam session is a different thing to plan around than a show
+# (you might bring your horn). Scrapers/manual entry can set it explicitly;
+# ingest infers it from unambiguous title patterns otherwise.
+EventType = Literal["show", "jam"]
 
 
 class Venue(BaseModel):
@@ -34,6 +44,14 @@ class Venue(BaseModel):
     tz: str  # IANA, e.g. "America/Los_Angeles"
     website_url: str | None = None
     calendar_url: str
+    # Venue-default genre (Phase 7.1): the coarse booking lean ("jazz", "rock",
+    # "funk", "eclectic"). Kept TEXT-loose rather than a Literal so adding a
+    # value is a seed edit, not a schema change; a per-show override is a later
+    # phase (7.2).
+    genre: str | None = None
+    # "seed" = from seed_venues (scraped or planned); "manual" = created by
+    # the user through POST /api/events for a venue foghorn doesn't track.
+    source: Literal["seed", "manual"] = "seed"
 
 
 class Performer(BaseModel):
@@ -43,6 +61,15 @@ class Performer(BaseModel):
     id: int | None = None
     display_name: str
     canonical_name: str
+    # Local/touring tag. origin_source records who set it: the heuristic
+    # bootstrap never overwrites a "manual" row.
+    origin: Origin | None = None
+    origin_source: OriginSource | None = None
+    # Performer-level genre (Phase 7.4, deterministic stage). Sits between
+    # the per-show override and the venue default in genre resolution.
+    # genre_source mirrors origin_source ("heuristic" | "manual").
+    genre: str | None = None
+    genre_source: OriginSource | None = None
 
 
 class ShowPerformer(BaseModel):
@@ -54,6 +81,8 @@ class ShowPerformer(BaseModel):
     canonical_name: str
     role: Role
     position: int  # display order on the bill; headliner is 0
+    origin: Origin | None = None  # denormalized from performers for read-back
+    genre: str | None = None  # denormalized performer genre (Phase 7.4)
 
 
 class Show(BaseModel):
@@ -73,6 +102,14 @@ class Show(BaseModel):
     price_text: str | None = None
     source_url: str
     scraped_at: str  # ISO 8601 UTC
+    # "scrape" = written by the ingest pipeline from a venue scraper;
+    # "manual" = user-entered via POST /api/events (deletable through the API).
+    source: Literal["scrape", "manual"] = "scrape"
+    event_type: EventType = "show"
+    # Per-show genre (Phase 7.2), normalized at ingest from sources that
+    # publish per-event genre. Genre resolution is layered: this override
+    # wins, else the venue's default genre. None = no per-show signal.
+    genre_override: str | None = None
     performers: list[ShowPerformer] = Field(default_factory=list)
 
 
@@ -93,6 +130,13 @@ class ScrapedShow(BaseModel):
     ticket_url: str | None = None
     price_text: str | None = None
     source_url: str
+    # None = not stated by the source; ingest then infers from unambiguous
+    # title patterns ("jam session", "open jam", …). An explicit value wins.
+    event_type: EventType | None = None
+    # The source's verbatim per-event genre string, when it publishes one
+    # (SeeTickets cards, Dice tags, …). Normalized to the coarse vocabulary at
+    # ingest; junk values normalize to None (venue default applies).
+    genre: str | None = None
 
 
 class ShowFilters(BaseModel):
@@ -112,6 +156,13 @@ class ShowFilters(BaseModel):
     watchlist_token_bags: list[list[str]] | None = None
     region: Region | None = None
     neighborhood: str | None = None  # case-insensitive exact match on venue
+    # Case-insensitive exact match on the show's *resolved* genre:
+    # COALESCE(show.genre_override, venue.genre).
+    genre: str | None = None
+    # A show matches if ANY performer on the bill carries this origin tag
+    # (same any-performer semantics as the watchlist filter).
+    origin: Origin | None = None
+    event_type: EventType | None = None  # None = both shows and jams
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
     time_of_day: Literal["early", "late"] | None = None
 

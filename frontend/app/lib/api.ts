@@ -4,14 +4,26 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
-export type PerformerView = { display: string; canonical: string };
+export type PerformerView = {
+  display: string;
+  canonical: string;
+  // Local/touring tag (heuristic or hand-set); null = unknown.
+  origin: "local" | "touring" | null;
+};
 
 export type ShowView = {
+  id: number;
+  source: "scrape" | "manual";
+  event_type: "show" | "jam";
+  // Resolved genre: per-show override if the source published one, else the
+  // venue's default lean.
+  genre: string | null;
   venue: {
     slug: string;
     name: string;
     neighborhood: string | null;
     region: string | null;
+    genre: string | null;
   };
   start_local_date: string;
   start_local_time: string;
@@ -28,6 +40,7 @@ export type VenueOption = {
   name: string;
   neighborhood: string | null;
   region: string | null;
+  genre: string | null;
 };
 
 export type WatchlistEntry = {

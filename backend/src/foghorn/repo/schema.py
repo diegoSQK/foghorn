@@ -24,13 +24,19 @@ CREATE TABLE IF NOT EXISTS venues (
     address       TEXT,
     tz            TEXT NOT NULL,
     website_url   TEXT,
-    calendar_url  TEXT NOT NULL
+    calendar_url  TEXT NOT NULL,
+    genre         TEXT,
+    source        TEXT NOT NULL DEFAULT 'seed'  -- 'seed' | 'manual'
 );
 
 CREATE TABLE IF NOT EXISTS performers (
     id              INTEGER PRIMARY KEY,
     display_name    TEXT NOT NULL,
-    canonical_name  TEXT NOT NULL UNIQUE
+    canonical_name  TEXT NOT NULL UNIQUE,
+    origin          TEXT,  -- 'local' | 'touring' | NULL (unknown)
+    origin_source   TEXT,  -- 'heuristic' | 'manual' | NULL
+    genre           TEXT,  -- performer-level genre | NULL (unknown)
+    genre_source    TEXT   -- 'heuristic' | 'manual' | NULL
 );
 
 CREATE TABLE IF NOT EXISTS shows (
@@ -45,6 +51,9 @@ CREATE TABLE IF NOT EXISTS shows (
     price_text           TEXT,
     source_url           TEXT NOT NULL,
     scraped_at           TEXT NOT NULL,
+    source               TEXT NOT NULL DEFAULT 'scrape',  -- 'scrape' | 'manual'
+    event_type           TEXT NOT NULL DEFAULT 'show',    -- 'show' | 'jam'
+    genre_override       TEXT,  -- per-show genre; NULL = venue default applies
     UNIQUE (venue_id, start_local_date, start_local_time, headliner_canonical)
 );
 
@@ -93,6 +102,26 @@ CREATE TABLE IF NOT EXISTS scrape_run_venues (
 
 
 def init_schema(conn: sqlite3.Connection) -> None:
-    """Create all tables and indexes if they don't already exist."""
+    """Create all tables and indexes if they don't already exist, then apply
+    additive column migrations (CREATE TABLE IF NOT EXISTS skips existing
+    tables, so columns added after a DB was first created need an explicit
+    ALTER)."""
     conn.executescript(SCHEMA_SQL)
+    _add_column_if_missing(conn, "venues", "genre", "TEXT")
+    _add_column_if_missing(conn, "performers", "origin", "TEXT")
+    _add_column_if_missing(conn, "performers", "origin_source", "TEXT")
+    _add_column_if_missing(conn, "venues", "source", "TEXT NOT NULL DEFAULT 'seed'")
+    _add_column_if_missing(conn, "shows", "source", "TEXT NOT NULL DEFAULT 'scrape'")
+    _add_column_if_missing(conn, "shows", "event_type", "TEXT NOT NULL DEFAULT 'show'")
+    _add_column_if_missing(conn, "shows", "genre_override", "TEXT")
+    _add_column_if_missing(conn, "performers", "genre", "TEXT")
+    _add_column_if_missing(conn, "performers", "genre_source", "TEXT")
     conn.commit()
+
+
+def _add_column_if_missing(
+    conn: sqlite3.Connection, table: str, column: str, decl: str
+) -> None:
+    existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")

@@ -16,7 +16,7 @@ from foghorn.repo.performer_match import token_match_sql
 _SHOW_COLUMNS = (
     "id, venue_id, start_utc, start_local_date, start_local_time, "
     "doors_local_time, headliner_canonical, ticket_url, price_text, "
-    "source_url, scraped_at"
+    "source_url, scraped_at, source, event_type, genre_override"
 )
 
 
@@ -33,6 +33,9 @@ def _row_to_show(row: sqlite3.Row) -> Show:
         price_text=row["price_text"],
         source_url=row["source_url"],
         scraped_at=row["scraped_at"],
+        source=row["source"],
+        event_type=row["event_type"],
+        genre_override=row["genre_override"],
     )
 
 
@@ -41,7 +44,8 @@ def _load_performers(
 ) -> builtins.list[ShowPerformer]:
     rows = conn.execute(
         """
-        SELECT sp.performer_id, p.display_name, p.canonical_name, sp.role, sp.position
+        SELECT sp.performer_id, p.display_name, p.canonical_name, p.origin,
+               p.genre, sp.role, sp.position
         FROM show_performers sp
         JOIN performers p ON p.id = sp.performer_id
         WHERE sp.show_id = ?
@@ -54,6 +58,8 @@ def _load_performers(
             performer_id=row["performer_id"],
             display_name=row["display_name"],
             canonical_name=row["canonical_name"],
+            origin=row["origin"],
+            genre=row["genre"],
             role=row["role"],
             position=row["position"],
         )
@@ -101,8 +107,9 @@ def upsert(
         """
         INSERT INTO shows (venue_id, start_utc, start_local_date, start_local_time,
                            doors_local_time, headliner_canonical, ticket_url,
-                           price_text, source_url, scraped_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           price_text, source_url, scraped_at, source, event_type,
+                           genre_override)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(venue_id, start_local_date, start_local_time, headliner_canonical)
         DO UPDATE SET
             start_utc        = excluded.start_utc,
@@ -110,7 +117,10 @@ def upsert(
             ticket_url       = excluded.ticket_url,
             price_text       = excluded.price_text,
             source_url       = excluded.source_url,
-            scraped_at       = excluded.scraped_at
+            scraped_at       = excluded.scraped_at,
+            source           = excluded.source,
+            event_type       = excluded.event_type,
+            genre_override   = excluded.genre_override
         """,
         (
             show.venue_id,
@@ -123,6 +133,9 @@ def upsert(
             show.price_text,
             show.source_url,
             show.scraped_at,
+            show.source,
+            show.event_type,
+            show.genre_override,
         ),
     )
     stored = get_by_natural_key(
@@ -183,6 +196,30 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         # Neighborhoods are short distinct strings; case-insensitive exact match.
         clauses.append("v.neighborhood = ? COLLATE NOCASE")
         params.append(filters.neighborhood)
+    if filters.genre:
+        # Layered genre resolution: per-show override > the headliner's
+        # performer-level genre (Phase 7.4) > the venue's default lean.
+        clauses.append(
+            "COALESCE(s.genre_override, "
+            "(SELECT pg.genre FROM show_performers spg "
+            " JOIN performers pg ON pg.id = spg.performer_id "
+            " WHERE spg.show_id = s.id AND spg.role = 'headliner' LIMIT 1), "
+            "v.genre) = ? COLLATE NOCASE"
+        )
+        params.append(filters.genre)
+    if filters.origin:
+        # Any-performer semantics, like the watchlist: a touring headliner
+        # with a local opener matches origin=local (the opener is the reason
+        # a support-local user would go).
+        clauses.append(
+            "EXISTS (SELECT 1 FROM show_performers spo "
+            "JOIN performers po ON po.id = spo.performer_id "
+            "WHERE spo.show_id = s.id AND po.origin = ?)"
+        )
+        params.append(filters.origin)
+    if filters.event_type:
+        clauses.append("s.event_type = ?")
+        params.append(filters.event_type)
     if filters.from_date:
         clauses.append("s.start_local_date >= ?")
         params.append(filters.from_date)
@@ -229,3 +266,28 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         assert show.id is not None
         show.performers = _load_performers(conn, show.id)
     return shows
+
+
+def get_by_id(conn: sqlite3.Connection, show_id: int) -> Show | None:
+    row = conn.execute(
+        f"SELECT {_SHOW_COLUMNS} FROM shows WHERE id = ?", (show_id,)
+    ).fetchone()
+    if row is None:
+        return None
+    show = _row_to_show(row)
+    assert show.id is not None
+    show.performers = _load_performers(conn, show.id)
+    return show
+
+
+def delete_manual(conn: sqlite3.Connection, show_id: int) -> bool:
+    """Delete a manually-entered show (and its bill rows). Refuses scraped
+    rows — a scraper would just recreate them on the next run, so deleting
+    them through the API would silently un-stick. Returns True if deleted."""
+    row = conn.execute("SELECT source FROM shows WHERE id = ?", (show_id,)).fetchone()
+    if row is None or row["source"] != "manual":
+        return False
+    conn.execute("DELETE FROM show_performers WHERE show_id = ?", (show_id,))
+    conn.execute("DELETE FROM shows WHERE id = ?", (show_id,))
+    conn.commit()
+    return True

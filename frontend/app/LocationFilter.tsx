@@ -9,6 +9,12 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
+import {
+  chipClass as accentChipClass,
+  disabledChipClass,
+  inputClass,
+} from "./lib/ui";
+
 // All four regions render; only those with scraped venues are interactive. The
 // rest show a "soon" affordance so the planned Phase 5 expansion is visible.
 const REGIONS = ["SF", "East Bay", "Peninsula", "South Bay"] as const;
@@ -21,14 +27,7 @@ export type VenueOption = {
 };
 
 function chipClass(active: boolean, hasData: boolean): string {
-  if (!hasData) {
-    return "cursor-not-allowed rounded-full border border-dashed border-zinc-200 px-3 py-1 text-sm text-zinc-400 dark:border-zinc-800 dark:text-zinc-600";
-  }
-  return `rounded-full border px-3 py-1 text-sm transition-colors ${
-    active
-      ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-      : "border-zinc-300 text-zinc-700 hover:border-zinc-500 dark:border-zinc-700 dark:text-zinc-300"
-  }`;
+  return hasData ? accentChipClass(active) : disabledChipClass;
 }
 
 export default function LocationFilter({ venues }: { venues: VenueOption[] }) {
@@ -103,7 +102,7 @@ export default function LocationFilter({ venues }: { venues: VenueOption[] }) {
           <select
             value={activeNeighborhood}
             onChange={(e) => navigate({ neighborhood: e.target.value || null })}
-            className="rounded-md border border-zinc-300 bg-transparent px-2 py-1 text-sm text-zinc-900 dark:border-zinc-700 dark:text-zinc-100"
+            className={inputClass}
           >
             <option value="">All neighborhoods</option>
             {neighborhoods.map((n) => (

@@ -15,7 +15,7 @@ test("a deep-linked filter URL is reflected in the controls", async ({ page }) =
 
   // The Late chip reflects ?time_of_day=late.
   await expect(page.getByRole("button", { name: "Late (9pm+)" })).toHaveClass(
-    /bg-zinc-900/,
+    /bg-teal-700/,
   );
 
   // Shows still render (the mock returns a non-empty list).
