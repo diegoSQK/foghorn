@@ -51,17 +51,22 @@ function groupByDate(shows: ShowView[]): [string, ShowView[]][] {
 export default function ShowList({
   shows,
   watchlistCanon,
+  showDateHeaders = true,
 }: {
   shows: ShowView[];
   watchlistCanon: Set<string>;
+  // The day view renders its own date title, so the group header would repeat.
+  showDateHeaders?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-8">
       {groupByDate(shows).map(([date, dayShows]) => (
         <section key={date}>
-          <h2 className="mb-3 border-b border-teal-600/25 pb-1 text-sm font-semibold uppercase tracking-wide text-teal-800 dark:border-teal-400/25 dark:text-teal-300">
-            {formatDate(date)}
-          </h2>
+          {showDateHeaders && (
+            <h2 className="mb-3 border-b border-teal-600/25 pb-1 text-sm font-semibold uppercase tracking-wide text-teal-800 dark:border-teal-400/25 dark:text-teal-300">
+              {formatDate(date)}
+            </h2>
+          )}
           <ul className="flex flex-col gap-4">
             {dayShows.map((show, i) => (
               <li

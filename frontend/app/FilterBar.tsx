@@ -22,11 +22,15 @@ import { chipClass, inputClass } from "./lib/ui";
 export default function FilterBar({
   venues,
   showOriginFilter = false,
+  showDateControls = true,
 }: {
   venues: VenueOption[];
   // Origin tags cover only part of the catalog; the server component sets
   // this when tagged performers exist in the result (or ?origin= is active).
   showOriginFilter?: boolean;
+  // The day/week/month views derive their own window from ?anchor=, so the
+  // list's quick date chips + from/to inputs hide there.
+  showDateControls?: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -127,33 +131,37 @@ export default function FilterBar({
     <section className="mb-8 flex flex-col gap-4 rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
       <PerformerSearch />
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          className={chipClass(isTonight)}
-          onClick={() => setRange(isTonight, { from: today, to: today })}
-        >
-          Tonight
-        </button>
-        <button
-          type="button"
-          className={chipClass(isWeekend)}
-          onClick={() => setRange(isWeekend, weekend)}
-        >
-          This weekend
-        </button>
-        <button
-          type="button"
-          className={chipClass(isNext7)}
-          onClick={() =>
-            setRange(isNext7, { from: today, to: addDaysISO(today, 7) })
-          }
-        >
-          Next 7 days
-        </button>
-        <span
-          className="mx-1 hidden h-4 w-px bg-zinc-300 sm:inline-block dark:bg-zinc-700"
-          aria-hidden="true"
-        />
+        {showDateControls && (
+          <>
+            <button
+              type="button"
+              className={chipClass(isTonight)}
+              onClick={() => setRange(isTonight, { from: today, to: today })}
+            >
+              Tonight
+            </button>
+            <button
+              type="button"
+              className={chipClass(isWeekend)}
+              onClick={() => setRange(isWeekend, weekend)}
+            >
+              This weekend
+            </button>
+            <button
+              type="button"
+              className={chipClass(isNext7)}
+              onClick={() =>
+                setRange(isNext7, { from: today, to: addDaysISO(today, 7) })
+              }
+            >
+              Next 7 days
+            </button>
+            <span
+              className="mx-1 hidden h-4 w-px bg-zinc-300 sm:inline-block dark:bg-zinc-700"
+              aria-hidden="true"
+            />
+          </>
+        )}
         <button
           type="button"
           className={chipClass(time === "early")}
@@ -187,6 +195,7 @@ export default function FilterBar({
       <div
         className={`${moreOpen ? "flex" : "hidden"} flex-col gap-4 sm:flex`}
       >
+      {showDateControls && (
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
           From
@@ -211,6 +220,7 @@ export default function FilterBar({
           />
         </label>
       </div>
+      )}
 
       <LocationFilter venues={venues} />
 

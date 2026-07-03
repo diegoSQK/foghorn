@@ -29,3 +29,26 @@ export function thisWeekend(): { from: string; to: string } {
   const friday = addDaysISO(isoDate(now), toFriday);
   return { from: friday, to: addDaysISO(friday, 2) };
 }
+
+// Monday of the week containing `iso` (weeks run Mon–Sun).
+export function mondayOfISO(iso: string): string {
+  const [year, month, day] = iso.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  const dow = date.getDay(); // 0 = Sun
+  return addDaysISO(iso, dow === 0 ? -6 : 1 - dow);
+}
+
+// First and last day of the month containing `iso`.
+export function monthBoundsISO(iso: string): { from: string; to: string } {
+  const [year, month] = iso.split("-").map(Number);
+  const last = new Date(year, month, 0).getDate();
+  const mm = String(month).padStart(2, "0");
+  return {
+    from: `${iso.slice(0, 4)}-${mm}-01`,
+    to: `${iso.slice(0, 4)}-${mm}-${String(last).padStart(2, "0")}`,
+  };
+}
+
+export function isISODate(value: string | undefined): value is string {
+  return value !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
