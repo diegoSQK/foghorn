@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import GenreFilter from "./GenreFilter";
 import LocationFilter from "./LocationFilter";
@@ -65,11 +65,17 @@ export default function FilterBar({
   // each segment as you type (month, day, every year digit), so committing
   // per-change navigates mid-edit — the refetch re-renders the controlled
   // input and snaps it back before the date is finished. Drafts re-sync when
-  // the URL changes from outside (quick chips, back button, shared links).
+  // the URL changes from outside (quick chips, back button, shared links)
+  // via render-time reconciliation (the React "adjusting state during
+  // render" pattern — no effect, no cascading-render lint).
   const [draftFrom, setDraftFrom] = useState(from);
   const [draftTo, setDraftTo] = useState(to);
-  useEffect(() => setDraftFrom(from), [from]);
-  useEffect(() => setDraftTo(to), [to]);
+  const [prevRange, setPrevRange] = useState({ from, to });
+  if (prevRange.from !== from || prevRange.to !== to) {
+    setPrevRange({ from, to });
+    setDraftFrom(from);
+    setDraftTo(to);
+  }
 
   // Complete, plausible date. Typing a year digit-by-digit passes through
   // "0002-…"/"0020-…" as technically valid dates; don't commit those.
