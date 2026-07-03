@@ -8,6 +8,37 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Manual events + jam sessions (July 2026)
+
+Two features prompted by a coverage gap: following two real artists (Lisa
+Mezzacappa, Dillon Vado) showed that part of the local scene — house
+concerts, one-off spaces, Instagram-only venues, festival one-offs — will
+never be reachable by scrapers, and that jam sessions are a distinct thing a
+player plans around.
+
+**Manual events** (`POST /api/events`, `/add` in the UI, "Add event" in the
+nav). A manual event rides the exact scraped-ingest path — same
+canonicalization and natural-key dedup, so double entry is idempotent — but
+is stamped `shows.source='manual'`: deletable through the API (scraped rows
+refuse deletion since the next refresh would resurrect them) and badged
+"added by you" with a remove affordance in the list. The venue is an existing
+slug or a free-text new name; unknown names create `venues.source='manual'`
+rows that appear in `/api/venues` and every filter with no scraper attached.
+Provenance is preserved via an optional source link (flyer URL, IG post);
+`manual://user-entry` otherwise.
+
+**Jam sessions** (`shows.event_type`, `?type=show|jam`, Shows/Jam-sessions
+chips, amber "jam" badge). Tagging precedence: explicit scraper tag > the
+manual form's checkbox > a deliberately narrow ingest-time title heuristic
+("jam session" / "open jam" / "jam night" / "<genre> jam") that can't misfire
+on band names (Pearl Jam tribute stays a show — regression-tested). The
+heuristic alone surfaced 9 real July jams already in the scraped data (Boom
+Boom Room's funk jam, Ocean Ale House's weekly jazz jam, The Back Room's
+singers session, Madrone's Saturday jam).
+
+Both features are single-tenant/no-auth like the watchlist. ShowView now
+carries `id`, `source`, and `event_type`.
+
 ## Performer origin tagging v1: local/touring (July 2026)
 
 The most mission-aligned facet — "show me local acts to support" — shipped as
