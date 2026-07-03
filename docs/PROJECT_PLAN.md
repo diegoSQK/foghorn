@@ -138,9 +138,9 @@ What's already in place that this builds on: performers are first-class entities
 
 Shipped July 2026 with the venue-expansion batch — see [SHIPPED entry](SHIPPED.md#venue-expansion-batch-23-new-scrapers--genre-facet-july-2026). Landed as a single `venues.genre` TEXT column (not a join — no venue has needed multi-genre yet) with the first additive-column migration guard, `?genre=` on `GET /api/shows`, and a data-driven genre chip row.
 
-#### 7.2 Per-show genre override (P2)
+#### 7.2 Per-show genre override (P2) ✅
 
-When a show goes off-venue-genre (a Coltrane tribute booked at a rock club). Schema: `shows.genre_override` text column. Hand-curated initially; scraper-extracted where the venue's source provides genre tags. **Unblock condition:** 7.1 lands and an off-genre show actually surfaces in dogfooding.
+Shipped July 2026 (venue-expansion branch). `shows.genre_override` populated from sources that publish per-event genre (the SeeTickets venues; Dice tags are a future add) and normalized to the coarse vocabulary at ingest; manual entries keep unmapped genres verbatim. `?genre=` resolves `COALESCE(override, venue default)`; rows render a genre badge. Artist-level genre remains 7.4.
 
 #### 7.3 User-defined tags (P2)
 
