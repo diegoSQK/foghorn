@@ -150,7 +150,11 @@ Personal annotations on shows (`must-see`, `skip`, `saw last year`, `Diego's cre
 
 Shipped July 2026 — see [Performer origin tagging v1](SHIPPED.md#performer-origin-tagging-v1-localtouring-july-2026). Performer-level `origin` tag with a conservative heuristic bootstrap (`make tag-origins`), permanent manual overrides, `?origin=` any-performer filter, and "(likely)" chips + local badges. Re-run the CLI as history accumulates; escalate to an LLM pass under 7.4 when heuristic coverage plateaus.
 
-#### 7.4 LLM-inferred metadata (P2, depends on Phase 6)
+#### 7.4 Performer-level metadata — deterministic stage ✅ / LLM stage deferred
+
+**Stage 1 (deterministic) shipped July 2026** (venue-expansion branch): `performers.genre` + `genre_source` with a unanimous-evidence bootstrap (`make tag-genres`) over per-show genre overrides, venue leans, and performer-name keywords; genre resolution chain is show override > headliner performer genre > venue default. First run tagged 353/1,368 performers; manual corrections via `PUT /api/performers/{canonical}/genre` are permanent. **Stage 2 (LLM pass for the remaining ~75%) deliberately deferred** — Diego is weighing whether to accept an LLM dependency in the enrichment tier at all (it would not enter ingest-of-record or serving; tags would carry `genre_source='llm'` provenance and be bulk-revocable). The deterministic layer is the validation baseline if it proceeds. Unlike previously assumed, stage 2 does NOT depend on Phase 6 — it needs only an API key + a batching CLI.
+
+#### 7.4b (formerly 7.4) LLM-inferred metadata (P2, depends on Phase 6)
 
 Performer-level genre / instrumentation / mood inferred by an LLM from the bill + venue + any extracted text. Hand-curated genre tags (7.1–7.2) and the deterministic scraping baseline are the validation reference. Same doctrine as Phase 6 LLM-assisted scraping: defer until the deterministic version proves out, then layer this on as a scaling lever.
 
