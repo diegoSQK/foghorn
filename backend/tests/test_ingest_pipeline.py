@@ -260,3 +260,50 @@ def test_manual_genre_kept_verbatim_when_unmapped(
     ingest_scraped_shows(conn, venue, [manual], source="manual")
     by_name = {s.headliner_canonical: s for s in shows_repo.list(conn, ShowFilters())}
     assert by_name["noise set two"].genre_override == "harsh noise wall"
+
+
+def test_jam_patterns_cover_plurals_open_mics_and_organ_sessions(
+    conn: sqlite3.Connection, venue: Venue
+) -> None:
+    ingest_scraped_shows(
+        conn,
+        venue,
+        [
+            _scraped("Jazz Jams at Jupiter", datetime(2026, 7, 8, 19, 0)),
+            _scraped("SUNDAY B3 SESSIONS", datetime(2026, 7, 5, 18, 0)),
+            _scraped("Vocal Open Mic", datetime(2026, 7, 26, 19, 0)),
+            _scraped("Duncan James Quartet", datetime(2026, 7, 4, 20, 0)),  # not a jam
+        ],
+    )
+    by_name = {
+        s.headliner_canonical: s.event_type for s in shows_repo.list(conn, ShowFilters())
+    }
+    assert by_name["jazz jams at jupiter"] == "jam"
+    assert by_name["sunday b3 sessions"] == "jam"
+    assert by_name["vocal open mic"] == "jam"
+    assert by_name["duncan james quartet"] == "show"  # "James" must not match
+
+
+def test_title_genre_fills_gap_only_at_leanless_venues() -> None:
+    from foghorn.ingest.pipeline import infer_genre_from_title
+
+    assert infer_genre_from_title("Motown on Mondays") == "funk"
+    assert infer_genre_from_title("Brazilian Disco") == "funk"
+    assert infer_genre_from_title("SPIKE SPINS OSCAR’S JAZZ RECORDS") == "jazz"
+    # Two distinct buckets -> ambiguous -> no inference.
+    assert infer_genre_from_title("Hector Lugo Jazz/Latin Trio") is None
+    # Same bucket twice is still unambiguous.
+    assert infer_genre_from_title("Soul & Funk Revue") == "funk"
+    assert infer_genre_from_title("Regular Band Name") is None
+
+
+def test_title_genre_respects_venue_lean(conn: sqlite3.Connection, venue: Venue) -> None:
+    # Give the venue a curated lean; a punk-titled show there must NOT get a
+    # title-derived override (the heuristic only fills gaps).
+    leaned = venue.model_copy(update={"genre": "jazz"})
+    leaned = venues_repo.upsert(conn, leaned)
+    ingest_scraped_shows(
+        conn, leaned, [_scraped("Punk Rock Karaoke Band", datetime(2026, 7, 9, 20, 0))]
+    )
+    [show] = shows_repo.list(conn, ShowFilters())
+    assert show.genre_override is None

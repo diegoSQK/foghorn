@@ -44,12 +44,16 @@ def canonicalize(name: str) -> str:
 
 
 # Unambiguous jam-session title patterns. Deliberately narrow — "jam" alone
-# would misfire on band names (Pearl Jam tributes, "Space Jam" parties); a
-# genre word or session/night/open framing is required. Sources that KNOW can
-# set ScrapedShow.event_type explicitly, which always wins over this.
+# would misfire on band names (Pearl Jam tributes, "Space Jam" parties; note
+# "James" never matches: the s? is optional but the \b still requires the
+# word to end) — a genre word or session/night/open framing is required.
+# Open mics and organ-session residencies count: they're participatory,
+# which is the thing a jam filter is for. Sources that KNOW can set
+# ScrapedShow.event_type explicitly, which always wins over this.
 _JAM_TITLE_RE = re.compile(
-    r"\bjam\s+session\b|\bopen\s+jam\b|\bjam\s+night\b"
-    r"|\b(?:blues|funk|jazz|soul|latin)\s+jam\b",
+    r"\bjam\s+sessions?\b|\bopen\s+jams?\b|\bjam\s+nights?\b"
+    r"|\b(?:blues|funk|jazz|soul|latin)\s+jams?\b"
+    r"|\bopen\s+mic\b|\b(?:b3|organ)\s+sessions?\b",
     re.IGNORECASE,
 )
 
@@ -115,6 +119,48 @@ def normalize_genre(raw: str | None) -> str | None:
     return None
 
 
+# Title words safe to read as a genre claim ("Motown on Mondays", "Brazilian
+# Disco"). A subset of the source-genre table: word-boundary matched, and the
+# ambiguous-in-a-title words are deliberately absent — "pop" (pop-up), "house"
+# (House of...), "dance"/"rock" (verbs), "world", "country" (place sense).
+_TITLE_GENRE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(rf"\b{kw}\b", re.IGNORECASE), bucket)
+    for kw, bucket in [
+        ("jazz", "jazz"),
+        ("swing", "jazz"),
+        ("bebop", "jazz"),
+        ("blues", "blues"),
+        ("funk", "funk"),
+        ("soul", "funk"),
+        ("disco", "funk"),
+        ("motown", "funk"),
+        ("boogie", "funk"),
+        ("hip-hop", "hip-hop"),
+        ("hip\\s+hop", "hip-hop"),
+        ("techno", "electronic"),
+        ("latin", "latin"),
+        ("salsa", "latin"),
+        ("cumbia", "latin"),
+        ("reggae", "world"),
+        ("bluegrass", "folk"),
+        ("punk", "rock"),
+        ("metal", "rock"),
+    ]
+]
+
+
+def infer_genre_from_title(title: str) -> str | None:
+    """A conservative genre read of the headliner text: fires only when the
+    title names exactly one genre bucket ("Jazz/Latin Trio" is ambiguous →
+    None). Used as the last layer of genre resolution, and only for shows
+    that would otherwise resolve to nothing (no source genre, no real venue
+    lean)."""
+    buckets = {
+        bucket for pattern, bucket in _TITLE_GENRE_PATTERNS if pattern.search(title)
+    }
+    return buckets.pop() if len(buckets) == 1 else None
+
+
 def _to_show(
     venue: Venue,
     scraped: ScrapedShow,
@@ -132,6 +178,12 @@ def _to_show(
     genre_override = normalize_genre(scraped.genre)
     if genre_override is None and source == "manual" and scraped.genre:
         genre_override = scraped.genre.strip().lower() or None
+    # Last layer: when neither the source nor the venue says anything useful
+    # ("Motown on Mondays" at an eclectic room), an unambiguous genre word in
+    # the title fills the gap. Venues with a real lean are left alone — the
+    # title heuristic shouldn't second-guess curation.
+    if genre_override is None and venue.genre in (None, "eclectic"):
+        genre_override = infer_genre_from_title(scraped.headliner_raw)
     return Show(
         source=source,
         event_type=infer_event_type(scraped),
