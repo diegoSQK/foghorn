@@ -290,6 +290,8 @@ def test_title_genre_fills_gap_only_at_leanless_venues() -> None:
     assert infer_genre_from_title("Motown on Mondays") == "funk"
     assert infer_genre_from_title("Brazilian Disco") == "funk"
     assert infer_genre_from_title("SPIKE SPINS OSCAR’S JAZZ RECORDS") == "jazz"
+    # B3/Hammond in a title means the organ — soul-jazz idiom.
+    assert infer_genre_from_title("SUNDAY B3 SESSIONS") == "jazz"
     # Two distinct buckets -> ambiguous -> no inference.
     assert infer_genre_from_title("Hector Lugo Jazz/Latin Trio") is None
     # Same bucket twice is still unambiguous.

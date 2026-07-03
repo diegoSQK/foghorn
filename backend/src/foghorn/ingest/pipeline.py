@@ -129,6 +129,9 @@ _TITLE_GENRE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
         ("jazz", "jazz"),
         ("swing", "jazz"),
         ("bebop", "jazz"),
+        # A B3/Hammond in the title is the organ — soul-jazz idiom.
+        ("b3", "jazz"),
+        ("hammond", "jazz"),
         ("blues", "blues"),
         ("funk", "funk"),
         ("soul", "funk"),
