@@ -19,9 +19,13 @@ export default function GenreFilter({ venues }: { venues: VenueOption[] }) {
   const pathname = usePathname();
 
   const activeGenre = params.get("genre");
+  // "eclectic" is a venue's admission of no lean — filtering by it answers
+  // no real question, so it gets no chip (the URL param still works).
   const genres = [
     ...new Set(
-      venues.map((v) => v.genre).filter((g): g is string => Boolean(g)),
+      venues
+        .map((v) => v.genre)
+        .filter((g): g is string => Boolean(g) && g !== "eclectic"),
     ),
   ].sort();
 

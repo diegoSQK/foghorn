@@ -127,7 +127,10 @@ export default function ShowList({
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   {show.venue.name}
                   {show.venue.neighborhood ? ` · ${show.venue.neighborhood}` : ""}
-                  {show.genre && (
+                  {/* "eclectic" resolves from a mixed-booking venue's default
+                      — it says nothing about the show, so no badge: absence
+                      means unknown, and every visible badge carries signal. */}
+                  {show.genre && show.genre !== "eclectic" && (
                     <>
                       {" "}
                       <span className={genreBadgeClass(show.genre)}>
