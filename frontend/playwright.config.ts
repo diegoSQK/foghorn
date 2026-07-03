@@ -7,11 +7,13 @@ import { defineConfig, devices } from "@playwright/test";
 // We run a built production app (`npm run build && npm run start`), not `dev`:
 // it's what `next build` already validates in the gate, exercises the real
 // server-component → fetch → render path, and avoids dev-only quirks. The app
-// runs on 3100 (not the default 3000) so a developer's `npm run dev` can keep
-// running alongside the test run.
+// runs on 3200 — off both the default 3000 AND 3100 (a common second choice
+// for a dev server when 3000 is taken): reuseExistingServer means any live
+// server already on this port gets tested INSTEAD of the mock-backed build,
+// so the port must be one nothing else uses.
 
 const MOCK_API_PORT = 4010;
-const APP_PORT = 3100;
+const APP_PORT = 3200;
 
 export default defineConfig({
   testDir: "./tests",
