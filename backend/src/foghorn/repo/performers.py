@@ -16,7 +16,7 @@ import sqlite3
 
 from foghorn.models import Origin, OriginSource, Performer
 
-_COLUMNS = "id, display_name, canonical_name, origin, origin_source"
+_COLUMNS = "id, display_name, canonical_name, origin, origin_source, genre, genre_source"
 
 
 def _row_to_performer(row: sqlite3.Row) -> Performer:
@@ -26,6 +26,8 @@ def _row_to_performer(row: sqlite3.Row) -> Performer:
         canonical_name=row["canonical_name"],
         origin=row["origin"],
         origin_source=row["origin_source"],
+        genre=row["genre"],
+        genre_source=row["genre_source"],
     )
 
 
@@ -68,6 +70,26 @@ def set_origin(
     cursor = conn.execute(
         "UPDATE performers SET origin = ?, origin_source = ? WHERE canonical_name = ?",
         (origin, source, canonical_name),
+    )
+    conn.commit()
+    if cursor.rowcount == 0:
+        return None
+    return get_by_canonical(conn, canonical_name)
+
+
+def set_genre(
+    conn: sqlite3.Connection,
+    canonical_name: str,
+    genre: str | None,
+    source: OriginSource,
+) -> Performer | None:
+    """Set (or clear) a performer's genre tag, recording who set it — same
+    contract as ``set_origin``: a manual clear stays manual so the heuristic
+    won't re-tag. Returns the updated performer, or None if no such
+    canonical name exists."""
+    cursor = conn.execute(
+        "UPDATE performers SET genre = ?, genre_source = ? WHERE canonical_name = ?",
+        (genre, source, canonical_name),
     )
     conn.commit()
     if cursor.rowcount == 0:

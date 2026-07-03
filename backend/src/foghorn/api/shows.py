@@ -89,7 +89,13 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
         id=show.id,
         source=show.source,
         event_type=show.event_type,
-        genre=show.genre_override or venue.genre,
+        # Resolution chain: per-show override > headliner's performer-level
+        # genre > venue default.
+        genre=(
+            show.genre_override
+            or (headliner_performer.genre if headliner_performer else None)
+            or venue.genre
+        ),
         venue=VenueView(
             slug=venue.slug,
             name=venue.name,

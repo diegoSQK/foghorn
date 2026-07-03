@@ -50,3 +50,35 @@ def set_origin(canonical_name: str, update: OriginUpdate) -> PerformerOriginView
         origin=performer.origin,
         origin_source=performer.origin_source,
     )
+
+
+class GenreUpdate(BaseModel):
+    genre: str | None  # null = deliberately unknown (heuristic stays off)
+
+
+class PerformerGenreView(BaseModel):
+    display_name: str
+    canonical_name: str
+    genre: str | None
+    genre_source: str | None
+
+
+@router.put(
+    "/api/performers/{canonical_name}/genre",
+    response_model=PerformerGenreView,
+)
+def set_genre(canonical_name: str, update: GenreUpdate) -> PerformerGenreView:
+    genre = update.genre.strip().lower() if update.genre else None
+    conn = db.connect()
+    try:
+        performer = performers_repo.set_genre(conn, canonical_name, genre, "manual")
+    finally:
+        conn.close()
+    if performer is None:
+        raise HTTPException(status_code=404, detail="unknown performer")
+    return PerformerGenreView(
+        display_name=performer.display_name,
+        canonical_name=performer.canonical_name,
+        genre=performer.genre,
+        genre_source=performer.genre_source,
+    )

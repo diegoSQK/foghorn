@@ -65,6 +65,11 @@ class Performer(BaseModel):
     # bootstrap never overwrites a "manual" row.
     origin: Origin | None = None
     origin_source: OriginSource | None = None
+    # Performer-level genre (Phase 7.4, deterministic stage). Sits between
+    # the per-show override and the venue default in genre resolution.
+    # genre_source mirrors origin_source ("heuristic" | "manual").
+    genre: str | None = None
+    genre_source: OriginSource | None = None
 
 
 class ShowPerformer(BaseModel):
@@ -77,6 +82,7 @@ class ShowPerformer(BaseModel):
     role: Role
     position: int  # display order on the bill; headliner is 0
     origin: Origin | None = None  # denormalized from performers for read-back
+    genre: str | None = None  # denormalized performer genre (Phase 7.4)
 
 
 class Show(BaseModel):

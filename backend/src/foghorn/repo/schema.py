@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS performers (
     display_name    TEXT NOT NULL,
     canonical_name  TEXT NOT NULL UNIQUE,
     origin          TEXT,  -- 'local' | 'touring' | NULL (unknown)
-    origin_source   TEXT   -- 'heuristic' | 'manual' | NULL
+    origin_source   TEXT,  -- 'heuristic' | 'manual' | NULL
+    genre           TEXT,  -- performer-level genre | NULL (unknown)
+    genre_source    TEXT   -- 'heuristic' | 'manual' | NULL
 );
 
 CREATE TABLE IF NOT EXISTS shows (
@@ -112,6 +114,8 @@ def init_schema(conn: sqlite3.Connection) -> None:
     _add_column_if_missing(conn, "shows", "source", "TEXT NOT NULL DEFAULT 'scrape'")
     _add_column_if_missing(conn, "shows", "event_type", "TEXT NOT NULL DEFAULT 'show'")
     _add_column_if_missing(conn, "shows", "genre_override", "TEXT")
+    _add_column_if_missing(conn, "performers", "genre", "TEXT")
+    _add_column_if_missing(conn, "performers", "genre_source", "TEXT")
     conn.commit()
 
 

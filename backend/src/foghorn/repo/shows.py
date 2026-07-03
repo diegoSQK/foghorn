@@ -45,7 +45,7 @@ def _load_performers(
     rows = conn.execute(
         """
         SELECT sp.performer_id, p.display_name, p.canonical_name, p.origin,
-               sp.role, sp.position
+               p.genre, sp.role, sp.position
         FROM show_performers sp
         JOIN performers p ON p.id = sp.performer_id
         WHERE sp.show_id = ?
@@ -59,6 +59,7 @@ def _load_performers(
             display_name=row["display_name"],
             canonical_name=row["canonical_name"],
             origin=row["origin"],
+            genre=row["genre"],
             role=row["role"],
             position=row["position"],
         )
@@ -196,9 +197,15 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         clauses.append("v.neighborhood = ? COLLATE NOCASE")
         params.append(filters.neighborhood)
     if filters.genre:
-        # Layered genre resolution: the per-show override wins, else the
-        # venue's default lean.
-        clauses.append("COALESCE(s.genre_override, v.genre) = ? COLLATE NOCASE")
+        # Layered genre resolution: per-show override > the headliner's
+        # performer-level genre (Phase 7.4) > the venue's default lean.
+        clauses.append(
+            "COALESCE(s.genre_override, "
+            "(SELECT pg.genre FROM show_performers spg "
+            " JOIN performers pg ON pg.id = spg.performer_id "
+            " WHERE spg.show_id = s.id AND spg.role = 'headliner' LIMIT 1), "
+            "v.genre) = ? COLLATE NOCASE"
+        )
         params.append(filters.genre)
     if filters.origin:
         # Any-performer semantics, like the watchlist: a touring headliner

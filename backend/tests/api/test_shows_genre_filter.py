@@ -19,6 +19,7 @@ from foghorn.api import app
 from foghorn.ingest.pipeline import ingest_scraped_shows
 from foghorn.models import ScrapedShow
 from foghorn.repo import db
+from foghorn.repo import performers as performers_repo
 from foghorn.repo import venues as venues_repo
 from foghorn.repo.seed_venues import seed
 
@@ -119,3 +120,30 @@ def test_genre_override_wins_over_venue_default(client: TestClient) -> None:
 def test_show_rows_carry_resolved_genre(client: TestClient) -> None:
     row = next(r for r in _june(client) if r["venue"]["slug"] == "boom_boom_room")
     assert row["genre"] == "funk"  # no override -> venue default resolves
+
+
+def test_performer_genre_sits_between_override_and_venue(client: TestClient) -> None:
+    # A show at eclectic-default ocean_ale_house with no override: the
+    # headliner's performer-level genre resolves (and filters).
+    conn = db.connect()
+    venue = venues_repo.get_by_slug(conn, "ocean_ale_house")
+    assert venue is not None
+    ingest_scraped_shows(
+        conn,
+        venue,
+        [
+            ScrapedShow(
+                venue_slug="ocean_ale_house",
+                headliner_raw="Tagged Performer",
+                start_local=dt.datetime(2026, 6, 21, 20, 0),
+                source_url="https://example.com/tp",
+            )
+        ],
+    )
+    performers_repo.set_genre(conn, "tagged performer", "latin", "manual")
+    conn.close()
+    assert "Tagged Performer" in _headliners(_june(client, genre="latin"))
+    row = next(
+        r for r in _june(client) if r["headliner"]["display"] == "Tagged Performer"
+    )
+    assert row["genre"] == "latin"

@@ -1,4 +1,4 @@
-.PHONY: gate backend-gate frontend-gate frontend-test install scrape tag-origins backend-run frontend-run
+.PHONY: gate backend-gate frontend-gate frontend-test install scrape tag-origins tag-genres backend-run frontend-run
 
 # Full lint / type / test gate across both packages. Runs the backend half
 # then the frontend half; make stops at the first target that exits non-zero.
@@ -37,6 +37,11 @@ scrape:
 # Idempotent; run after scrapes as history accumulates. Manual tags are kept.
 tag-origins:
 	cd backend && python -m foghorn.cli.tag_origins
+
+# Deterministic performer-genre bootstrap (Phase 7.4 stage 1). Idempotent;
+# run after scrapes. Manual tags are kept.
+tag-genres:
+	cd backend && python -m foghorn.cli.tag_genres
 
 # Run the backend API (http://localhost:8000) with autoreload.
 backend-run:
