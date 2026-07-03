@@ -32,12 +32,14 @@ export const buttonClass =
 export function genreBadgeClass(genre: string): string {
   const base =
     "rounded-full border px-1.5 py-px align-middle text-[10px] font-medium uppercase tracking-wide";
+  // Filled tints so the colors register at badge size (a thin outline reads
+  // as gray). Jazz — the primary use case — gets the strongest fill.
   const palette: Record<string, string> = {
-    jazz: "border-indigo-300 text-indigo-700 dark:border-indigo-800 dark:text-indigo-400",
-    rock: "border-rose-300 text-rose-700 dark:border-rose-800 dark:text-rose-400",
-    funk: "border-orange-300 text-orange-700 dark:border-orange-800 dark:text-orange-400",
+    jazz: "border-indigo-400 bg-indigo-100 text-indigo-900 dark:border-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
+    rock: "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-300",
+    funk: "border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-300",
     electronic:
-      "border-violet-300 text-violet-700 dark:border-violet-800 dark:text-violet-400",
+      "border-violet-300 bg-violet-50 text-violet-800 dark:border-violet-800 dark:bg-violet-950 dark:text-violet-300",
     eclectic:
       "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400",
   };
