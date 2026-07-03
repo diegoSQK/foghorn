@@ -6,6 +6,32 @@ Versions are semver, locked across the project's packages.
 
 ---
 
+## v0.3.0 — 2026-07-03
+
+**Breadth + the reading surface.** The venue-expansion arc: foghorn grew from 3 scraped venues to 29 (≈1,200 upcoming shows across SF, East Bay, and the Peninsula), and the calendar grew the structure to read it — genre/origin/type facets, day/week/month views, manual entry for what scrapers can't see. Built as a user-directed feature-branch push (no per-venue tickets); the per-platform scraping playbook it established lives in the SHIPPED entries.
+
+### Headline shipments
+
+- **Venue expansion: 23 new scrapers + genre facet (Phases 5 + 7.1).** SF: Black Cat, Ocean Ale House, Boom Boom Room, Madrone, Bottom of the Hill, Rickshaw Stop, Kilowatt, The Knockout, The Independent, Cafe du Nord, GAMH, The Chapel, DNA Lounge, Medicine for Nightmares, Center for New Music. East Bay: Yoshi's, CJC, Ivy Room, 924 Gilman, Natural Grocery Annex, Cornerstone, Fox Theater, Greek Theatre, The Back Room, Piedmont Piano. Peninsula: Guild Theatre. Nearly every venue needed a different source shape (.ics, five ticketing-platform APIs, JSON-LD, Squarespace JSON, static HTML) — see [Venue expansion batch](SHIPPED.md#venue-expansion-batch-23-new-scrapers--genre-facet-july-2026). `venues.genre` + `?genre=` + data-driven chips shipped alongside, with the first additive-column migration guard. Blocked venues (For The Record, Little Hill Lounge, plus the sweep's Cloudflare walls) are documented with unblock conditions.
+- **Performer origin tagging v1 (local/touring).** The mission facet — "show me local acts to support" — as performer-level tags: conservative heuristic bootstrap (`make tag-origins`), permanent manual overrides, any-performer `?origin=` filter, "(likely)" chips + local badges. First run: 153 local / 29 touring / 1,144 deliberately unknown. See [Performer origin tagging v1](SHIPPED.md#performer-origin-tagging-v1-localtouring-july-2026).
+- **Manual events + jam sessions.** `POST /api/events` + `/add` form for shows scrapers can't see (house concerts, Instagram-only venues); unknown venue names become filterable manual venue rows; manual rows are badged and deletable, scraped rows aren't. `shows.event_type` makes jams first-class: explicit tags, a form checkbox, and a conservative title heuristic (35 live jams tagged); `?type=` filter + chips. See [Manual events + jam sessions](SHIPPED.md#manual-events--jam-sessions-july-2026).
+- **Layered genre resolution + performer-genre bootstrap (Phases 7.2 + 7.4-deterministic).** Genre resolves per-show override → headliner's performer genre → venue default. SeeTickets per-card genres now ingest (92 overrides live); unambiguous title words fill gaps at leanless venues; `make tag-genres` tagged 353/1,368 performers on unanimous evidence. The LLM stage for the rest is deliberately deferred pending the enrichment-tier-dependency decision. See [Layered genre resolution](SHIPPED.md#layered-genre-resolution--performer-genre-bootstrap-july-2026).
+- **Calendar views + UI polish.** Day/week/month views (URL-driven, filters apply across views), the teal accent system with a single UI-token file, the collapsed venue disclosure + mobile "More filters" fold, the date-input draft/commit fix, and the search-bar double-× fix. See [Calendar views + UI polish arc](SHIPPED.md#calendar-views--ui-polish-arc-july-2026).
+- **Ingest hardening from the live runs:** duplicate acts on a bill no longer violate the show_performers PK (earliest billing position wins), and the full 29-venue scrape is verified idempotent (re-run: 0 created / all updated / 0 errors).
+
+### Known follow-ons
+
+No open GitHub issues at cut time. Doc-tracked follow-ons:
+
+- **Next venue batch** (sweep-verified EASY/MEDIUM): UC Theatre, Bimbo's 365, Neck of the Woods, The Warfield, August Hall, Club Deluxe, Club Fox (Redwood City), Thee Stork Club, The New Parish — plus a **Ticketmaster Discovery API spike** for the Live Nation rooms (Fillmore, Regency Ballroom).
+- **Bay Improviser ingest** still awaits the discovery-posture decision (unchanged from v0.2.0) — reinforced by the artist-gig research showing the creative-music scene publishes through aggregators/series, not venue calendars.
+- **7.4 LLM stage** (performer genre for the untagged ~75%): deliberately parked pending Diego's comfort with an LLM dependency in the enrichment tier; the deterministic layer is its validation baseline.
+- **Kilowatt Dice.fm genre tags** are parseable but not yet threaded into the genre-override layer.
+- **North Bay region value** gates Mystic Theatre (SeeTickets — parser exists), Sweetwater, HopMonk.
+- **Blocked venues with unblock conditions:** SFJAZZ (Cloudflare), For The Record (Instagram-only), Little Hill Lounge (flyer-JPEG calendar), Freight & Salvage + The Midway (Cloudflare), El Rio (JS-only), Eli's Mile High / Golden Bull (dead sites).
+
+---
+
 ## v0.2.0 — 2026-05-24
 
 **Find + follow.** Phase 3 (filtering & search) and Phase 4 (watchlist) shipped together — the calendar is now usable for "what should I do Friday" and "where are my friends playing this week." Plus the Playwright frontend-test framework that three earlier phases asked for, and a research spike that informs the post-v0.2.0 roadmap.

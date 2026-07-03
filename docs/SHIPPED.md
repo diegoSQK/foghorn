@@ -8,6 +8,63 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Layered genre resolution + performer-genre bootstrap (July 2026)
+
+Genre moved from a pure venue attribute to a three-layer resolution chain:
+**per-show override → headliner's performer-level genre → venue default** —
+in the `?genre=` filter SQL and the API's resolved `genre` field alike.
+
+- **Phase 7.2 (per-show override).** The SeeTickets scrapers were parsing
+  per-card genre to drop comedy and discarding it; it now threads into
+  `ScrapedShow.genre` and normalizes to the coarse vocabulary at ingest
+  ("Rock / Indie"→rock, "Other Content"→None). 92 shows picked up overrides
+  on the first re-scrape — Wolfmother at eclectic-default GAMH files under
+  rock, Valerie June (soul) at rock-default Chapel under funk. Manual entries
+  keep unmapped genres verbatim.
+- **Title-derived genre + wider jam patterns.** When neither source nor venue
+  says anything useful, an unambiguous genre word in the title fills the gap
+  (word-boundary matched, single-bucket only, curated venue leans never
+  second-guessed; B3/Hammond reads as jazz). Jam inference widened to
+  plurals, open mics, and organ sessions: 9 → 35 tagged jams.
+- **Phase 7.4 stage 1 (deterministic performer genre).** `performers.genre`
+  + `genre_source` with a unanimous-evidence bootstrap (`make tag-genres`)
+  over per-show overrides, venue leans, and performer-name keywords; mixed
+  evidence stays untagged. First run: 353/1,368 performers. Manual
+  corrections via `PUT /api/performers/{canonical}/genre` are permanent.
+  **The LLM stage for the remaining ~75% is deliberately deferred** — an
+  open decision about accepting an LLM dependency in the enrichment tier
+  (never ingest-of-record or serving); this deterministic layer is its
+  validation baseline if it proceeds.
+- **"Eclectic" demoted to honest absence**: no badge, no filter chip — it
+  resolves from a mixed-booking venue's default and says nothing about the
+  show. Every visible genre badge now carries signal.
+
+## Calendar views + UI polish arc (July 2026)
+
+The reading surface grew up alongside the data:
+
+- **Day / Week / Month views** (`?view=` + `?anchor=`, URL-driven like every
+  filter, which all apply across views). Day = the list scoped to one date
+  with prev/Today/next; Week = Mon–Sun columns (stacked on mobile); Month = a
+  classic grid, two headliners + "+N more" per cell, each cell linking into
+  Day view. Calendar views derive their window from the anchor, so the
+  list's date controls hide there.
+- **Teal accent system** in `lib/ui.ts` — one token file for chip/input/link/
+  button styles (collapsed five copy-pasted chipClass definitions), sticky
+  translucent nav, tinted filter card, filled genre badges (outline-only read
+  as gray at 10px), semantic badge colors (emerald local / amber jam / sky
+  added-by-you) kept distinct from the accent.
+- **Usability fixes from dogfooding:** the 26-venue checklist collapsed
+  behind a summary disclosure ("Venues · all 29") with a responsive grid;
+  mobile tucks advanced filters behind a "More filters" toggle (six shows
+  visible on the first screen, up from zero); date inputs hold drafts and
+  commit on blur — a native date input fires `change` per segment, so the
+  old commit-per-change navigated mid-edit and snapped the field back, and
+  the min/max cross-constraints blocked moving a range forward; the double
+  clear-× on the search bar (WebKit's native control next to ours — the
+  hide-it CSS gets stripped by the build minifier, so the input is now
+  `type="text"` + `role="searchbox"`).
+
 ## Manual events + jam sessions (July 2026)
 
 Two features prompted by a coverage gap: following two real artists (Lisa

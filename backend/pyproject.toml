@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "foghorn"
-version = "0.2.0"
+version = "0.3.0"
 description = "Backend for foghorn — a Bay Area music & jazz show aggregator."
 readme = "README.md"
 requires-python = ">=3.11"
