@@ -47,8 +47,12 @@ export default function PerformerSearch() {
 
   return (
     <div className="relative">
+      {/* type="text" (not "search") on purpose: WebKit draws its own clear ×
+          on search inputs next to ours, and the CSS to hide it gets stripped
+          by the build's minifier. The explicit role keeps the a11y contract. */}
       <input
-        type="search"
+        type="text"
+        role="searchbox"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search performers…"
