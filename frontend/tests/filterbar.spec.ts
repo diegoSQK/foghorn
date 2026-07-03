@@ -13,7 +13,7 @@ test("Tonight chip sets a single-day range and shows active", async ({ page }) =
   expect(url.searchParams.get("from")).toBe(url.searchParams.get("to"));
 
   // Active chip carries the filled style.
-  await expect(tonight).toHaveClass(/bg-zinc-900/);
+  await expect(tonight).toHaveClass(/bg-teal-700/);
 });
 
 // Date inputs hold a draft and commit on blur — mid-edit segment changes must

@@ -9,11 +9,10 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { API_BASE, type VenueOption } from "./lib/api";
+import { buttonClass, inputClass } from "./lib/ui";
 
 const REGIONS = ["SF", "East Bay", "Peninsula", "South Bay"] as const;
 
-const inputClass =
-  "rounded-md border border-zinc-300 bg-transparent px-2 py-1 text-sm text-zinc-900 dark:border-zinc-700 dark:text-zinc-100";
 const labelClass =
   "flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400";
 
@@ -209,7 +208,7 @@ export default function AddEventForm({ venues }: { venues: VenueOption[] }) {
       <button
         type="submit"
         disabled={busy}
-        className="self-start rounded-full border border-zinc-900 bg-zinc-900 px-4 py-1.5 text-sm text-white disabled:opacity-50 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+        className={`self-start ${buttonClass}`}
       >
         {busy ? "Adding…" : "Add event"}
       </button>

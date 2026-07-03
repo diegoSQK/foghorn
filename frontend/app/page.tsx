@@ -63,7 +63,9 @@ export default async function Home({
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
       <header className="mb-6">
-        <h1 className="text-3xl font-semibold tracking-tight">foghorn</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          foghorn<span className="text-teal-600 dark:text-teal-400">.</span>
+        </h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           Upcoming Bay Area jazz &amp; music shows
         </p>

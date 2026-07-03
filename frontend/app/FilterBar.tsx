@@ -17,17 +17,7 @@ import PerformerSearch from "./PerformerSearch";
 import TypeFilter from "./TypeFilter";
 import type { VenueOption } from "./lib/api";
 import { addDaysISO, thisWeekend, todayISO } from "./lib/dates";
-
-function chipClass(active: boolean): string {
-  return `rounded-full border px-3 py-1 text-sm transition-colors ${
-    active
-      ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-      : "border-zinc-300 text-zinc-700 hover:border-zinc-500 dark:border-zinc-700 dark:text-zinc-300"
-  }`;
-}
-
-const inputClass =
-  "rounded-md border border-zinc-300 bg-transparent px-2 py-1 text-sm text-zinc-900 dark:border-zinc-700 dark:text-zinc-100";
+import { chipClass, inputClass } from "./lib/ui";
 
 export default function FilterBar({
   venues,
@@ -134,7 +124,7 @@ export default function FilterBar({
   }
 
   return (
-    <section className="mb-8 flex flex-col gap-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+    <section className="mb-8 flex flex-col gap-4 rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
       <PerformerSearch />
       <div className="flex flex-wrap items-center gap-2">
         <button
@@ -186,7 +176,7 @@ export default function FilterBar({
 
       <button
         type="button"
-        className="self-start text-sm text-zinc-500 underline hover:no-underline sm:hidden dark:text-zinc-400"
+        className="self-start text-sm text-teal-700 underline decoration-teal-700/40 underline-offset-2 hover:decoration-teal-700 sm:hidden dark:text-teal-400 dark:decoration-teal-400/40"
         aria-expanded={moreOpen}
         onClick={() => setMoreOpen((v) => !v)}
       >
@@ -265,7 +255,7 @@ export default function FilterBar({
           <button
             type="button"
             onClick={() => navigate({ venues: null })}
-            className="mt-2 text-xs text-zinc-500 underline hover:no-underline dark:text-zinc-400"
+            className="mt-2 text-xs text-teal-700 underline decoration-teal-700/40 underline-offset-2 hover:decoration-teal-700 dark:text-teal-400 dark:decoration-teal-400/40"
           >
             Show all venues
           </button>
@@ -277,7 +267,7 @@ export default function FilterBar({
         <div>
           <Link
             href={pathname}
-            className="text-sm text-zinc-500 underline hover:no-underline dark:text-zinc-400"
+            className="text-sm text-teal-700 underline decoration-teal-700/40 underline-offset-2 hover:decoration-teal-700 dark:text-teal-400 dark:decoration-teal-400/40"
           >
             Clear filters
           </Link>

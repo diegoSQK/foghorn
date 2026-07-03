@@ -59,12 +59,15 @@ export default function ShowList({
     <div className="flex flex-col gap-8">
       {groupByDate(shows).map(([date, dayShows]) => (
         <section key={date}>
-          <h2 className="mb-3 border-b border-zinc-200 pb-1 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+          <h2 className="mb-3 border-b border-teal-600/25 pb-1 text-sm font-semibold uppercase tracking-wide text-teal-800 dark:border-teal-400/25 dark:text-teal-300">
             {formatDate(date)}
           </h2>
           <ul className="flex flex-col gap-4">
             {dayShows.map((show, i) => (
-              <li key={`${date}-${show.start_local_time}-${i}`}>
+              <li
+                key={`${date}-${show.start_local_time}-${i}`}
+                className="-mx-2 rounded-lg px-2 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/60"
+              >
                 <div className="flex items-baseline justify-between gap-4">
                   <span className="font-medium">
                     {show.headliner.display}
@@ -124,7 +127,7 @@ export default function ShowList({
                       {" · "}
                       <a
                         href={show.ticket_url}
-                        className="underline hover:no-underline"
+                        className="text-teal-700 underline decoration-teal-700/40 underline-offset-2 hover:decoration-teal-700 dark:text-teal-400 dark:decoration-teal-400/40 dark:hover:decoration-teal-400"
                         target="_blank"
                         rel="noreferrer"
                       >

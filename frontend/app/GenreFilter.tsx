@@ -9,15 +9,9 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import type { VenueOption } from "./lib/api";
+import { chipClass } from "./lib/ui";
 
-function chipClass(active: boolean): string {
-  return `rounded-full border px-3 py-1 text-sm capitalize transition-colors ${
-    active
-      ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-      : "border-zinc-300 text-zinc-700 hover:border-zinc-500 dark:border-zinc-700 dark:text-zinc-300"
-  }`;
-}
+import type { VenueOption } from "./lib/api";
 
 export default function GenreFilter({ venues }: { venues: VenueOption[] }) {
   const router = useRouter();

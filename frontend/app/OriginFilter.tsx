@@ -9,18 +9,12 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { chipClass } from "./lib/ui";
+
 const OPTIONS = [
   { value: "local", label: "Local acts" },
   { value: "touring", label: "Touring" },
 ] as const;
-
-function chipClass(active: boolean): string {
-  return `rounded-full border px-3 py-1 text-sm transition-colors ${
-    active
-      ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-      : "border-zinc-300 text-zinc-700 hover:border-zinc-500 dark:border-zinc-700 dark:text-zinc-300"
-  }`;
-}
 
 export default function OriginFilter() {
   const router = useRouter();
