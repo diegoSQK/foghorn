@@ -136,9 +136,13 @@ Artists in the creative-music scene (e.g. the two currently-followed ones) annou
 
 Scope: Stage 1 ≈ one focused session. **Unblock condition:** none — ready to build; file the ticket when it's next in line.
 
-### Phase 9 — Venue watchlist (P2, designed July 2026)
+### Phase 9 — Venue watchlist (P2) ✅
 
-Follow *venues* the way the watchlist follows performers — "never miss what the Back Room books." Single-tenant `watched_venues` table (venue_slug PK, added_at, notes) mirroring the performer watchlist; `GET/POST/DELETE` endpoints + a `?venue_watchlist=true` filter on `/api/shows`; a pin/star affordance on venue names (show rows + venue checklist) and a separate page (e.g. `/venues`) rendering pinned venues' upcoming shows through the existing FilterBar/ShowList. Two synergies: the watchlist digest should take a param to include watched-venue shows, and pinning a quarantined aggregator venue naturally promotes it into the main UI (interaction with the quarantine-with-flag posture above). **Unblock condition:** none — ready to build.
+Shipped July 2026 — see [Venue watchlist](SHIPPED.md#venue-watchlist-phase-9-july-2026). Digest inclusion + quarantine-promotion interaction are follow-ons.
+
+<!-- original design:
+
+Follow *venues* the way the watchlist follows performers — "never miss what the Back Room books." Single-tenant `watched_venues` table (venue_slug PK, added_at, notes) mirroring the performer watchlist; `GET/POST/DELETE` endpoints + a `?venue_watchlist=true` filter on `/api/shows`; a pin/star affordance on venue names (show rows + venue checklist) and a separate page (e.g. `/venues`) rendering pinned venues' upcoming shows through the existing FilterBar/ShowList. Two synergies: the watchlist digest should take a param to include watched-venue shows, and pinning a quarantined aggregator venue naturally promotes it into the main UI (interaction with the quarantine-with-flag posture above). **Unblock condition:** none — ready to build. -->
 
 ### Phase 6 — LLM-assisted scraping (deferred until Phase 5 is real)
 

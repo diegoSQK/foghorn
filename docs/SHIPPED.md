@@ -8,6 +8,20 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Venue watchlist (Phase 9, July 2026)
+
+Follow venues the way the watchlist follows performers. `watched_venues`
+(slug PK, single-tenant, mirroring the performer watchlist's contract),
+`GET/POST/DELETE /api/venues/watchlist` (POST 404s unknown slugs), and
+`?venue_watchlist=true` on `/api/shows` — empty watchlist matches nothing,
+and the filter AND-stacks with everything else. Frontend: a ★ pin next to
+venue names on show rows across all pages, and a `/venues` page ("Venues" in
+the nav): followed venues as an unpin chip row, their upcoming shows through
+the shared FilterBar/ShowList, and a collapsed all-venues grid for following
+more (open by default when the list is empty). Follow-ons deliberately left:
+digest inclusion of watched-venue shows, and the pin-promotes-quarantined-
+venue interaction (waits for Bay Improviser ingest to exist).
+
 ## Venue batch 3: Club Deluxe + Club Fox; New Parish blocked (July 2026)
 
 **Club Deluxe** (Haight, jazz) — server-rendered Simple Calendar (simcal)
