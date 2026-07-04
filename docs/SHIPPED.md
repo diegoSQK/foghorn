@@ -8,6 +8,24 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Venue batch 3: Club Deluxe + Club Fox; New Parish blocked (July 2026)
+
+**Club Deluxe** (Haight, jazz) — server-rendered Simple Calendar (simcal)
+list with epoch data-start attrs and covers embedded in titles; 46 shows
+live (the best nightly-jazz add left in SF; publishes ~2 months out).
+**Club Fox** (Redwood City, eclectic) — hand-authored homepage show blocks
+with Eventbrite links; 14 shows incl. the free Music on the Square series;
+the most drift-prone scraper in the house by construction. 37 venues total.
+
+**The New Parish — blocked, with the pipeline pre-solved:** its TicketWeb
+event-discovery widget was successfully reverse-engineered (admin-ajax
+`get_events_for_calendar` + page nonce), but the venue's TicketWeb inventory
+is currently *empty* — the API answers "No events found", TicketWeb's own
+venue pages show no events, and aggregators agree. Likely a ticketing
+migration. Re-sweep in a few weeks; the endpoint (or TicketWeb's
+`venue/{id}/dateSummary/{date}.html` fragment API) is ready when inventory
+returns.
+
 ## Venue batch 2: six more rooms (July 2026)
 
 The sweep's easy-leftovers batch, shipped through the normal branch/PR loop:

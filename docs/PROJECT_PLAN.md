@@ -46,7 +46,7 @@ When a roadmap item ships, the agent that lands it appends the as-shipped narrat
 
 ## In flight
 
-*Nothing in flight. The July 2026 venue-expansion batch (a user-directed feature-branch push) delivered Phase 5's intent and beyond — 23 new venues across SF, East Bay, and the Peninsula — plus Phase 7.1 (genre). Venue batch 2 shipped July 2026 (UC Theatre, Bimbo's, Neck of the Woods, Warfield, August Hall, Thee Stork Club — 35 venues total); remaining scraper leftovers are Club Deluxe, Club Fox, and The New Parish plus a Ticketmaster Discovery API spike for the Live Nation rooms (Fillmore, Regency); see the venue-expansion SHIPPED entry for the per-platform scraping playbook.*
+*Nothing in flight. The July 2026 venue-expansion batch (a user-directed feature-branch push) delivered Phase 5's intent and beyond — 23 new venues across SF, East Bay, and the Peninsula — plus Phase 7.1 (genre). Venue batch 2 shipped July 2026 (UC Theatre, Bimbo's, Neck of the Woods, Warfield, August Hall, Thee Stork Club — 35 venues total); venue batch 3 (Club Deluxe, Club Fox) shipped July 2026 — 37 venues; The New Parish is blocked on empty TicketWeb inventory (endpoint pre-solved, see SHIPPED) plus a Ticketmaster Discovery API spike for the Live Nation rooms (Fillmore, Regency); see the venue-expansion SHIPPED entry for the per-platform scraping playbook.*
 
 ### Pending strategic decisions
 
