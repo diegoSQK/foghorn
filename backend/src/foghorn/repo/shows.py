@@ -163,11 +163,12 @@ def upsert(
 
 def _performer_match_clause(
     token_bags: builtins.list[builtins.list[str]],
+    prefix: bool = False,
 ) -> tuple[str, builtins.list[str]]:
     """An EXISTS-over-the-bill clause: true when any performer on the show
     token-matches any of ``token_bags``. Returns ``("", [])`` when there's
     nothing to match."""
-    predicate, params = token_match_sql("p.canonical_name", token_bags)
+    predicate, params = token_match_sql("p.canonical_name", token_bags, prefix=prefix)
     if not predicate:
         return "", []
     clause = (
@@ -230,8 +231,11 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
     # performers' canonical names whole-token-matches the query / any watchlist
     # bag. Both go through the same EXISTS-over-the-bill helper.
     if filters.performer_query_canonical:
+        # Search-as-you-type: each query token matches as a token *prefix*
+        # ("mezz" finds "mezzacappa"). The watchlist clause below stays
+        # whole-token for precision.
         clause, clause_params = _performer_match_clause(
-            [filters.performer_query_canonical.split()]
+            [filters.performer_query_canonical.split()], prefix=True
         )
         if clause:
             clauses.append(clause)

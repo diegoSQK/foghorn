@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import AddWatchlistForm from "../AddWatchlistForm";
 import FilterBar from "../FilterBar";
 import ShowList from "../ShowList";
 import WatchlistChips from "../WatchlistChips";
@@ -75,15 +76,20 @@ export default async function WatchlistPage({
           <code className="font-mono">make backend-run</code>, then refresh.
         </div>
       ) : entries.length === 0 ? (
-        <p className="text-zinc-500 dark:text-zinc-400">
-          Your watchlist is empty. Add performers from the{" "}
-          <Link href="/" className="underline hover:no-underline">
-            main page
-          </Link>{" "}
-          to follow them.
-        </p>
+        <>
+          <AddWatchlistForm />
+          <p className="text-zinc-500 dark:text-zinc-400">
+            Your watchlist is empty. Follow a performer by name above, or add
+            them from the{" "}
+            <Link href="/" className="underline hover:no-underline">
+              main page
+            </Link>
+            &apos;s show listings.
+          </p>
+        </>
       ) : (
         <>
+          <AddWatchlistForm />
           <WatchlistChips entries={entries} />
           <Suspense fallback={null}>
             <FilterBar
