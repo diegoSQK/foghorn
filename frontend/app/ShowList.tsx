@@ -149,6 +149,25 @@ export default function ShowList({
                     </>
                   )}
                   {show.price_text ? ` · ${show.price_text}` : ""}
+                  {/* "details" is the event's own page (source_url — every
+                      scraped show carries one as provenance); hidden when it
+                      would just duplicate the ticket link, or for manual
+                      entries without a real link. */}
+                  {show.source_url &&
+                  !show.source_url.startsWith("manual://") &&
+                  show.source_url !== show.ticket_url ? (
+                    <>
+                      {" · "}
+                      <a
+                        href={show.source_url}
+                        className="text-teal-700 underline decoration-teal-700/40 underline-offset-2 hover:decoration-teal-700 dark:text-teal-400 dark:decoration-teal-400/40 dark:hover:decoration-teal-400"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        details
+                      </a>
+                    </>
+                  ) : null}
                   {show.ticket_url ? (
                     <>
                       {" · "}
