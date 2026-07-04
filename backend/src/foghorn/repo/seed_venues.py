@@ -412,6 +412,84 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://boomboomroom.com/events/",
         genre="funk",
     ),
+    Venue(
+        slug="bimbos_365",
+        name="Bimbo's 365 Club",
+        neighborhood="North Beach",
+        region="SF",
+        address="1025 Columbus Ave, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://bimbos365club.com",
+        # TicketWeb "tw-" template — see scrapers/bimbos_365.
+        calendar_url="https://bimbos365club.com/shows/",
+        genre="eclectic",
+    ),
+    Venue(
+        slug="neck_of_the_woods",
+        name="Neck of the Woods",
+        neighborhood="Inner Richmond",
+        region="SF",
+        address="406 Clement St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.neckofthewoodssf.com",
+        # TicketWeb "tw-" template on the homepage — see
+        # scrapers/neck_of_the_woods.
+        calendar_url="https://www.neckofthewoodssf.com/",
+        genre="rock",
+    ),
+    Venue(
+        slug="august_hall",
+        name="August Hall",
+        neighborhood="Union Square",
+        region="SF",
+        address="420 Mason St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.augusthallsf.com",
+        # TicketWeb "tw-" template + per-event pages for times — see
+        # scrapers/august_hall.
+        calendar_url="https://www.augusthallsf.com/events/",
+        genre="rock",
+    ),
+    Venue(
+        slug="the_warfield",
+        name="The Warfield",
+        neighborhood="Mid-Market",
+        region="SF",
+        address="982 Market St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.thewarfieldtheatre.com",
+        # carbonhouse (AEG) static blocks + events_ajax lazy-load feed — see
+        # scrapers/the_warfield.
+        calendar_url="https://www.thewarfieldtheatre.com/events",
+        genre="rock",
+    ),
+    Venue(
+        slug="thee_stork_club",
+        name="Thee Stork Club",
+        neighborhood="Uptown",
+        region="East Bay",
+        address="380 12th St, Oakland, CA",
+        tz="America/Los_Angeles",
+        website_url="https://theestorkclub.com",
+        # SeeTickets white-label (Rickshaw flavor) — see
+        # scrapers/thee_stork_club.
+        calendar_url="https://theestorkclub.com/calendar/",
+        # Punk/goth/DJ booking — "rock" in the coarse vocabulary.
+        genre="rock",
+    ),
+    Venue(
+        slug="uc_theatre",
+        name="The UC Theatre",
+        neighborhood="Downtown Berkeley",
+        region="East Bay",
+        address="2036 University Ave, Berkeley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.theuctheatre.org",
+        # Static Webflow listing with per-event genre — see
+        # scrapers/uc_theatre.
+        calendar_url="https://www.theuctheatre.org/events/",
+        genre="eclectic",
+    ),
 ]
 
 
