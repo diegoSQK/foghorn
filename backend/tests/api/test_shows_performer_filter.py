@@ -129,3 +129,13 @@ def test_stacks_with_date_window(client: TestClient) -> None:
         params={"from": "2026-06-07", "to": "2026-06-30", "performer_query": "joshua redman"},
     ).json()
     assert _names(rows) == ["Joshua Redman Trio"]  # excludes the June 5 B&B show
+
+
+def test_search_matches_token_prefix(client: TestClient) -> None:
+    # Search-as-you-type: a partial word matches as a token prefix…
+    assert _names(_q(client, performer_query="redm")) == [
+        "Joshua Redman Quartet",
+        "Joshua Redman Trio",
+    ]
+    # …but only a *prefix* — mid-token fragments still don't match.
+    assert _q(client, performer_query="edman") == []

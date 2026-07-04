@@ -28,25 +28,32 @@ def matches_token_bag(query_canonical: str, target_canonical: str) -> bool:
     return all(token in target_tokens for token in query_tokens)
 
 
-def token_match_sql(column: str, token_bags: list[list[str]]) -> tuple[str, list[str]]:
+def token_match_sql(
+    column: str, token_bags: list[list[str]], prefix: bool = False
+) -> tuple[str, list[str]]:
     """Build a parameterized SQL predicate that is true when ``column``'s
-    canonical name whole-token-matches **any** of ``token_bags`` (AND within a
+    canonical name token-matches **any** of ``token_bags`` (AND within a
     bag, OR across bags).
 
     Implemented by padding the column with spaces and matching ``'% token %'``
-    per token, so only whole space-delimited tokens match. Tokens are already
-    canonicalized to ``[a-z0-9 ]`` upstream, so they carry no SQL ``LIKE``
-    wildcards (``%`` / ``_``) and need no escaping; ``column`` is a code-supplied
+    per token, so only whole space-delimited tokens match. With
+    ``prefix=True`` the trailing space is dropped (``'% token%'``) so each
+    query token matches as a *token prefix* — "mezz" matches "mezzacappa" —
+    which is what a search-as-you-type box needs; watchlist matching stays
+    whole-token for precision. Tokens are already canonicalized to
+    ``[a-z0-9 ]`` upstream, so they carry no SQL ``LIKE`` wildcards
+    (``%`` / ``_``) and need no escaping; ``column`` is a code-supplied
     identifier, never user input. Returns ``("", [])`` when there's nothing to
     match (caller skips the clause).
     """
     wrapped = f"(' ' || {column} || ' ')"
+    pattern = "% {token}%" if prefix else "% {token} %"
     or_clauses: list[str] = []
     params: list[str] = []
     for tokens in token_bags:
         and_clauses = [f"{wrapped} LIKE ?" for _ in tokens]
         if and_clauses:
-            params.extend(f"% {token} %" for token in tokens)
+            params.extend(pattern.format(token=token) for token in tokens)
             or_clauses.append("(" + " AND ".join(and_clauses) + ")")
     if not or_clauses:
         return "", []
