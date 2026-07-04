@@ -7,6 +7,7 @@ import { Suspense } from "react";
 
 import FilterBar from "../FilterBar";
 import PinVenueButton from "../PinVenueButton";
+import VenuePicker from "../VenuePicker";
 import ShowList from "../ShowList";
 import {
   getJSON,
@@ -55,7 +56,6 @@ export default async function VenuesPage({
   const watchlistCanon = new Set(
     (watchlist ?? []).map((entry) => entry.canonical_name),
   );
-  const unfollowed = (allVenues ?? []).filter((v) => !watchedSlugs.has(v.slug));
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
@@ -84,33 +84,21 @@ export default async function VenuesPage({
             </div>
           )}
 
-          {unfollowed.length > 0 && (
-            <details className="mb-6" open={watched.length === 0}>
-              <summary className="cursor-pointer select-none text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
-                All venues{" "}
-                <span className="text-zinc-400 dark:text-zinc-500">
-                  · follow more
-                </span>
-              </summary>
-              <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 md:grid-cols-3">
-                {unfollowed.map((v) => (
-                  // The name truncates; the ★ must never be clipped with it,
-                  // so it sits outside the truncating span as a fixed sibling.
-                  <span
-                    key={v.slug}
-                    className="flex min-w-0 items-center text-sm text-zinc-700 dark:text-zinc-300"
-                  >
-                    <span className="min-w-0 truncate" title={v.name}>
-                      {v.name}
-                    </span>
-                    <span className="shrink-0">
-                      <PinVenueButton venueSlug={v.slug} initiallyOn={false} />
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </details>
-          )}
+          <details className="mb-6" open={watched.length === 0}>
+            <summary className="cursor-pointer select-none text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+              All venues{" "}
+              <span className="text-zinc-400 dark:text-zinc-500">
+                · follow more
+              </span>
+            </summary>
+            <div className="mt-2">
+              <VenuePicker
+                venues={allVenues ?? []}
+                watchedVenueSlugs={watchedSlugs}
+                mode="follow"
+              />
+            </div>
+          </details>
 
           {watched.length === 0 ? (
             <p className="mb-6 text-zinc-500 dark:text-zinc-400">
@@ -119,7 +107,10 @@ export default async function VenuesPage({
           ) : (
             <>
               <Suspense fallback={null}>
-                <FilterBar venues={allVenues ?? []} />
+                <FilterBar
+                  venues={allVenues ?? []}
+                  watchedVenueSlugs={watchedSlugs}
+                />
               </Suspense>
               {shows.length === 0 ? (
                 <p className="text-zinc-500 dark:text-zinc-400">

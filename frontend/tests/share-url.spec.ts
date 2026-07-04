@@ -5,13 +5,16 @@ import { expect, test } from "@playwright/test";
 test("a deep-linked filter URL is reflected in the controls", async ({ page }) => {
   await page.goto("/?venues=keys_jazz_bistro&time_of_day=late");
 
-  // Venue checkboxes reflect ?venues=keys_jazz_bistro.
+  // The venue picker reflects ?venues=keys_jazz_bistro: a removable selected
+  // chip for Keys, and only Keys.
   await expect(
-    page.getByRole("checkbox", { name: "Keys Jazz Bistro" }),
-  ).toBeChecked();
+    page.getByRole("button", { name: "Remove venue Keys Jazz Bistro" }),
+  ).toBeVisible();
   await expect(
-    page.getByRole("checkbox", { name: "Bird & Beckett Books and Records" }),
-  ).not.toBeChecked();
+    page.getByRole("button", {
+      name: "Remove venue Bird & Beckett Books and Records",
+    }),
+  ).toHaveCount(0);
 
   // The Late chip reflects ?time_of_day=late.
   await expect(page.getByRole("button", { name: "Late (9pm+)" })).toHaveClass(
