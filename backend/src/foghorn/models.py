@@ -163,6 +163,9 @@ class ShowFilters(BaseModel):
     # (same any-performer semantics as the watchlist filter).
     origin: Origin | None = None
     event_type: EventType | None = None  # None = both shows and jams
+    # Venue watchlist filter (Phase 9): shows at any of these venue slugs.
+    # Empty list = no matches (empty watchlist); None = filter not requested.
+    watched_venue_slugs: list[str] | None = None
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
     time_of_day: Literal["early", "late"] | None = None
 
@@ -197,6 +200,14 @@ class ScrapeRun(BaseModel):
     started_at: str  # ISO 8601 UTC
     finished_at: str  # ISO 8601 UTC
     venues: list[ScrapeRunVenue] = Field(default_factory=list)
+
+
+class WatchedVenue(BaseModel):
+    """A venue the user follows (Phase 9). Single-tenant, keyed on slug."""
+
+    venue_slug: str
+    added_at: str  # ISO 8601 UTC
+    notes: str | None = None
 
 
 class Watchlist(BaseModel):

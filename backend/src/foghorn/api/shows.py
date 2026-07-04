@@ -20,6 +20,7 @@ from foghorn.models import EventType, Origin, Region, Show, ShowFilters, Venue
 from foghorn.repo import db
 from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
+from foghorn.repo import watched_venues as watched_venues_repo
 from foghorn.repo import watchlist as watchlist_repo
 
 router = APIRouter()
@@ -140,6 +141,7 @@ def build_show_views(
     origin: Origin | None = None,
     event_type: EventType | None = None,
     watchlist: bool = False,
+    venue_watchlist: bool = False,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
     it's unit-testable against a connection without going through HTTP."""
@@ -151,8 +153,12 @@ def build_show_views(
         watchlist_bags = [
             entry.canonical_name.split() for entry in watchlist_repo.list_all(conn)
         ]
+    watched_slugs: list[str] | None = None
+    if venue_watchlist:
+        watched_slugs = [e.venue_slug for e in watched_venues_repo.list_all(conn)]
     filters = ShowFilters(
         venue_slugs=venue_slugs,
+        watched_venue_slugs=watched_slugs,
         from_date=from_date,
         to_date=to_date,
         time_of_day=time_of_day,
@@ -207,6 +213,9 @@ def list_shows(
     watchlist: str | None = Query(
         default=None, description="'true' to filter to watchlist matches"
     ),
+    venue_watchlist: str | None = Query(
+        default=None, description="'true' to filter to watched venues"
+    ),
 ) -> list[ShowView]:
     today = dt.date.today()
     from_date = from_ or today.isoformat()
@@ -255,6 +264,7 @@ def list_shows(
             origin=org,
             event_type=etype,
             watchlist=watchlist == "true",
+            venue_watchlist=venue_watchlist == "true",
         )
     finally:
         conn.close()

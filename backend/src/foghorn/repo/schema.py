@@ -88,6 +88,14 @@ CREATE TABLE IF NOT EXISTS watchlist (
     notes           TEXT
 );
 
+-- Single-tenant venue watchlist (Phase 9): "never miss what this room
+-- books". Mirrors the performer watchlist's shape.
+CREATE TABLE IF NOT EXISTS watched_venues (
+    venue_slug  TEXT PRIMARY KEY,
+    added_at    TEXT NOT NULL,
+    notes       TEXT
+);
+
 CREATE TABLE IF NOT EXISTS scrape_run_venues (
     scrape_run_id  INTEGER NOT NULL REFERENCES scrape_runs(id),
     venue_slug     TEXT NOT NULL,
