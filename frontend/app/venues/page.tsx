@@ -117,13 +117,18 @@ export default async function VenuesPage({
               </summary>
               <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 md:grid-cols-3">
                 {unfollowed.map((v) => (
+                  // The name truncates; the ★ must never be clipped with it,
+                  // so it sits outside the truncating span as a fixed sibling.
                   <span
                     key={v.slug}
-                    className="truncate text-sm text-zinc-700 dark:text-zinc-300"
-                    title={v.name}
+                    className="flex min-w-0 items-center text-sm text-zinc-700 dark:text-zinc-300"
                   >
-                    {v.name}
-                    <PinVenueButton venueSlug={v.slug} initiallyOn={false} />
+                    <span className="min-w-0 truncate" title={v.name}>
+                      {v.name}
+                    </span>
+                    <span className="shrink-0">
+                      <PinVenueButton venueSlug={v.slug} initiallyOn={false} />
+                    </span>
                   </span>
                 ))}
               </div>
