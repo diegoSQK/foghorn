@@ -43,6 +43,13 @@ export type VenueOption = {
   genre: string | null;
 };
 
+export type WatchedVenueEntry = {
+  venue_slug: string;
+  name: string;
+  added_at: string;
+  notes: string | null;
+};
+
 export type WatchlistEntry = {
   canonical_name: string;
   display_name: string;

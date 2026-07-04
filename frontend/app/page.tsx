@@ -16,6 +16,7 @@ import {
   getJSON,
   type ShowView,
   type VenueOption,
+  type WatchedVenueEntry,
   type WatchlistEntry,
 } from "./lib/api";
 import {
@@ -104,11 +105,15 @@ export default async function Home({
   if (origin === "local" || origin === "touring") query.set("origin", origin);
   if (type === "show" || type === "jam") query.set("type", type);
 
-  const [shows, allVenues, watchlist] = await Promise.all([
+  const [shows, allVenues, watchlist, watchedVenues] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
     getJSON<VenueOption[]>(`/api/venues`),
     getJSON<WatchlistEntry[]>(`/api/watchlist`),
+    getJSON<WatchedVenueEntry[]>(`/api/venues/watchlist`),
   ]);
+  const watchedVenueSlugs = new Set(
+    (watchedVenues ?? []).map((e) => e.venue_slug),
+  );
   const watchlistCanon = new Set(
     (watchlist ?? []).map((entry) => entry.canonical_name),
   );
@@ -216,6 +221,7 @@ export default async function Home({
             <ShowList
               shows={shows}
               watchlistCanon={watchlistCanon}
+              watchedVenueSlugs={watchedVenueSlugs}
               showDateHeaders={view !== "day"}
             />
           )}

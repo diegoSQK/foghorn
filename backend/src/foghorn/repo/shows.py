@@ -218,6 +218,13 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
             "WHERE spo.show_id = s.id AND po.origin = ?)"
         )
         params.append(filters.origin)
+    if filters.watched_venue_slugs is not None:
+        if filters.watched_venue_slugs:
+            ph = ", ".join("?" for _ in filters.watched_venue_slugs)
+            clauses.append(f"v.slug IN ({ph})")
+            params.extend(filters.watched_venue_slugs)
+        else:
+            clauses.append("1 = 0")  # empty venue watchlist -> no matches
     if filters.event_type:
         clauses.append("s.event_type = ?")
         params.append(filters.event_type)

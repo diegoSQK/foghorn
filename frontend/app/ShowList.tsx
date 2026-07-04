@@ -3,6 +3,7 @@
 // comes from the server-computed `watchlistCanon` set.
 
 import AddToWatchlistButton from "./AddToWatchlistButton";
+import PinVenueButton from "./PinVenueButton";
 import RemoveEventButton from "./RemoveEventButton";
 import type { ShowView } from "./lib/api";
 import { genreBadgeClass } from "./lib/ui";
@@ -52,10 +53,13 @@ function groupByDate(shows: ShowView[]): [string, ShowView[]][] {
 export default function ShowList({
   shows,
   watchlistCanon,
+  watchedVenueSlugs,
   showDateHeaders = true,
 }: {
   shows: ShowView[];
   watchlistCanon: Set<string>;
+  // Slugs of venues on the venue watchlist; drives the ★ next to venue names.
+  watchedVenueSlugs?: Set<string>;
   // The day view renders its own date title, so the group header would repeat.
   showDateHeaders?: boolean;
 }) {
@@ -126,6 +130,12 @@ export default function ShowList({
                 )}
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   {show.venue.name}
+                  {watchedVenueSlugs && (
+                    <PinVenueButton
+                      venueSlug={show.venue.slug}
+                      initiallyOn={watchedVenueSlugs.has(show.venue.slug)}
+                    />
+                  )}
                   {show.venue.neighborhood ? ` · ${show.venue.neighborhood}` : ""}
                   {/* "eclectic" resolves from a mixed-booking venue's default
                       — it says nothing about the show, so no badge: absence
