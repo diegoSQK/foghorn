@@ -124,6 +124,18 @@ Bottom of the Hill, The Independent, The Chapel all shipped (July 2026 batch), p
 
 Yoshi's, Cornerstone Berkeley, The New Parish → shipped except New Parish (TicketWeb widget API — in the next-block leftovers); Starline Social Club appears closed (July 2026 sweep). Also shipped beyond scope: CJC, Ivy Room, 924 Gilman, Natural Grocery Annex, Fox Theater, Greek Theatre, The Back Room.
 
+### Phase 8 — Mailing-list ingest (designed July 2026, not started)
+
+Artists in the creative-music scene (e.g. the two currently-followed ones) announce gigs primarily via their mailing lists — often the *only* machine-reachable source (Dillon Vado has no scrapeable footprint at all). Design agreed with Diego:
+
+- **Mail in:** Gmail filter auto-labels artist newsletters; foghorn polls the label over IMAP (app password via `FOGHORN_IMAP_*`), on the existing scheduler. Local-first — no public endpoint; inbound-webhook services become an option only post-hosting.
+- **Review queue is the write gate:** emails parse into a `pending_events` table and a small "Inbox" UI (approve/edit/reject); approving creates a manual event with the email as provenance. Nothing enters `shows` unapproved — regardless of extractor.
+- **Stage 1 (deterministic):** sender→artist mapping (artist ≈ headliner), venue by scanning text for known venue names, date/time regexes; unparseable emails still queue as raw text with the artist prefilled.
+- **Stage 2 (optional LLM extraction, same queue):** an LLM fills drafts the rules fumble. Human approval keeps it out of ingest-of-record — the contained pilot for the Phase 6 question. Gated on the same LLM-dependency decision as 7.4's stage 2.
+- **Dedup warning:** email-approved gigs and later venue-scraped ones won't collapse on the natural key when billing strings differ; the review UI must warn on token-match against existing shows at that venue+date.
+
+Scope: Stage 1 ≈ one focused session. **Unblock condition:** none — ready to build; file the ticket when it's next in line.
+
 ### Phase 6 — LLM-assisted scraping (deferred until Phase 5 is real)
 
 Once we've got 10+ hand-rolled scrapers, generalize: a pipeline that fetches a venue's page and uses an LLM to extract `ScrapedShow` records, with per-venue overrides where the LLM is unreliable. Lets us add long-tail venues without per-venue parser work. Cost / reliability characteristics measured against the hand-rolled baseline. **Note from the aggregator-evaluation spike (May 2026):** this remains the real scaling lever — aggregator ingest does *not* short-cut Phase 6 the way that spike hoped to test.
