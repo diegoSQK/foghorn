@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 from collections.abc import Callable
 
 import httpx
@@ -52,6 +53,23 @@ SCRAPE_WINDOW_DAYS = 90
 REQUEST_TIMEOUT = 30.0
 # Safety valve for the pagination walk; the list is 3 pages today.
 MAX_PAGES = 10
+
+# The venue annotates relocated shows in the title ("Low Cut Connie – Moved
+# To August Hall", "Futurebirds – MOVED TO THE CHAPEL"). Moved *here*: strip
+# the suffix so the row dedupes with the venue's plain duplicate listing via
+# the natural key. Moved *away*: drop the row — the destination venue's
+# scraper carries the show.
+_MOVED_RE = re.compile(r"\s*[–—-]\s*moved\s+to\s+(?P<dest>.+?)\s*$", re.IGNORECASE)
+
+
+def _resolve_moved(show: ScrapedShow) -> ScrapedShow | None:
+    match = _MOVED_RE.search(show.headliner_raw)
+    if match is None:
+        return show
+    if "august hall" in match.group("dest").lower():
+        stripped = _MOVED_RE.sub("", show.headliner_raw).strip()
+        return show.model_copy(update={"headliner_raw": stripped or show.headliner_raw})
+    return None
 
 
 def fetch_html(url: str = CALENDAR_URL) -> str:
@@ -80,7 +98,7 @@ def parse_html(
     List rows carry no time, so without a ``time_lookup`` (per-event URL →
     show time) every row is skipped; ``scrape`` wires in one that fetches the
     event page. Rows whose time is unknown are skipped, not invented."""
-    return parse_calendar_html(
+    parsed = parse_calendar_html(
         html,
         venue_slug=VENUE_SLUG,
         today=today,
@@ -88,6 +106,7 @@ def parse_html(
         fallback_source_url=CALENDAR_URL,
         time_lookup=time_lookup,
     )
+    return [show for raw in parsed if (show := _resolve_moved(raw)) is not None]
 
 
 def _live_time_lookup() -> Callable[[str], dt.time | None]:
