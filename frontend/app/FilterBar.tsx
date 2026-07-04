@@ -15,22 +15,30 @@ import LocationFilter from "./LocationFilter";
 import OriginFilter from "./OriginFilter";
 import PerformerSearch from "./PerformerSearch";
 import TypeFilter from "./TypeFilter";
+import VenuePicker from "./VenuePicker";
 import type { VenueOption } from "./lib/api";
 import { addDaysISO, thisWeekend, todayISO } from "./lib/dates";
 import { chipClass, inputClass } from "./lib/ui";
 
 export default function FilterBar({
   venues,
+  watchedVenueSlugs,
   showOriginFilter = false,
   showDateControls = true,
+  showMyVenuesChip = false,
 }: {
   venues: VenueOption[];
+  // Followed venues (venue watchlist): sorts the picker and drives its ★s.
+  watchedVenueSlugs?: Set<string>;
   // Origin tags cover only part of the catalog; the server component sets
   // this when tagged performers exist in the result (or ?origin= is active).
   showOriginFilter?: boolean;
   // The day/week/month views derive their own window from ?anchor=, so the
   // list's quick date chips + from/to inputs hide there.
   showDateControls?: boolean;
+  // "My venues" quick chip (?venue_watchlist=true); pages enable it when the
+  // venue watchlist is non-empty (hidden on /venues, which always filters).
+  showMyVenuesChip?: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -40,6 +48,7 @@ export default function FilterBar({
   const from = params.get("from") ?? today;
   const to = params.get("to") ?? addDaysISO(today, 14);
   const time = params.get("time_of_day");
+  const myVenues = params.get("venue_watchlist") === "true";
   const venuesParam = params.get("venues");
   const selected = venuesParam
     ? new Set(venuesParam.split(",").filter(Boolean))
@@ -111,7 +120,7 @@ export default function FilterBar({
   // (sm+) always shows the full panel; this state only matters under sm.
   const [moreOpen, setMoreOpen] = useState(false);
   const advancedActive =
-    ["region", "neighborhood", "genre", "origin", "type", "venues"].filter(
+    ["region", "neighborhood", "genre", "origin", "type", "venues", "venue_watchlist"].filter(
       (k) => params.get(k),
     ).length + (params.get("from") || params.get("to") ? 1 : 0);
 
@@ -119,19 +128,7 @@ export default function FilterBar({
     navigate(active ? { from: null, to: null } : range);
   }
 
-  function venueChecked(slug: string): boolean {
-    return selected === null || selected.has(slug);
-  }
 
-  function toggleVenue(slug: string): void {
-    const base = selected ?? new Set(venues.map((v) => v.slug));
-    const next = new Set(base);
-    if (next.has(slug)) next.delete(slug);
-    else next.add(slug);
-    // All or none selected collapses to the clean "all venues" default.
-    const all = next.size === 0 || next.size === venues.length;
-    navigate({ venues: all ? null : [...next].join(",") });
-  }
 
   return (
     <section className="mb-8 flex flex-col gap-4 rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
@@ -186,6 +183,23 @@ export default function FilterBar({
         >
           Late (9pm+)
         </button>
+        {showMyVenuesChip && (
+          <>
+            <span
+              className="mx-1 hidden h-4 w-px bg-zinc-300 sm:inline-block dark:bg-zinc-700"
+              aria-hidden="true"
+            />
+            <button
+              type="button"
+              className={chipClass(myVenues)}
+              onClick={() =>
+                navigate({ venue_watchlist: myVenues ? null : "true" })
+              }
+            >
+              My venues ★
+            </button>
+          </>
+        )}
       </div>
 
       <button
@@ -236,9 +250,9 @@ export default function FilterBar({
 
       {showOriginFilter && <OriginFilter />}
 
-      {/* 26 venues is too many to show unfolded — collapse behind a summary
-          that still reports the constraint. Auto-opens when a shared URL
-          arrives with a venue filter so the state is never hidden. */}
+      {/* Venue picker (first-class venue UX): search, region groups,
+          followed-first with ★s, honest selected-chip state. Auto-opens when
+          a shared URL arrives with a venue filter. */}
       <details open={selected !== null} className="group">
         <summary className="cursor-pointer select-none text-xs text-zinc-500 marker:text-zinc-400 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
           Venues{" "}
@@ -249,33 +263,13 @@ export default function FilterBar({
               : `${selected.size} of ${venues.length}`}
           </span>
         </summary>
-        <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 md:grid-cols-3">
-          {venues.map((venue) => (
-            <label
-              key={venue.slug}
-              className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"
-            >
-              <input
-                type="checkbox"
-                checked={venueChecked(venue.slug)}
-                onChange={() => toggleVenue(venue.slug)}
-                className="h-4 w-4 shrink-0"
-              />
-              <span className="truncate" title={venue.name}>
-                {venue.name}
-              </span>
-            </label>
-          ))}
+        <div className="mt-2">
+          <VenuePicker
+            venues={venues}
+            watchedVenueSlugs={watchedVenueSlugs ?? new Set()}
+            mode="filter"
+          />
         </div>
-        {selected !== null && (
-          <button
-            type="button"
-            onClick={() => navigate({ venues: null })}
-            className="mt-2 text-xs text-teal-700 underline decoration-teal-700/40 underline-offset-2 hover:decoration-teal-700 dark:text-teal-400 dark:decoration-teal-400/40"
-          >
-            Show all venues
-          </button>
-        )}
       </details>
       </div>
 

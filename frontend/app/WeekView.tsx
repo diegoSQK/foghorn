@@ -73,9 +73,12 @@ export default function WeekView({
                     <span className="font-medium" title={show.headliner.display}>
                       {show.headliner.display}
                     </span>
-                    <span className="block truncate text-zinc-500 dark:text-zinc-400">
+                    <Link
+                      href={`/?venues=${show.venue.slug}`}
+                      className="block truncate text-zinc-500 hover:text-teal-700 hover:underline dark:text-zinc-400 dark:hover:text-teal-300"
+                    >
                       {show.venue.name}
-                    </span>
+                    </Link>
                   </li>
                 ))}
               </ul>

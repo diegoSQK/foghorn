@@ -92,6 +92,7 @@ export default async function Home({
   const genre = first(sp.genre);
   const origin = first(sp.origin);
   const type = first(sp.type);
+  const myVenues = first(sp.venue_watchlist) === "true";
 
   const query = new URLSearchParams({ from, to });
   if (venues) query.set("venues", venues);
@@ -104,6 +105,7 @@ export default async function Home({
   if (genre) query.set("genre", genre);
   if (origin === "local" || origin === "touring") query.set("origin", origin);
   if (type === "show" || type === "jam") query.set("type", type);
+  if (myVenues) query.set("venue_watchlist", "true");
 
   const [shows, allVenues, watchlist, watchedVenues] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
@@ -163,6 +165,8 @@ export default async function Home({
           <Suspense fallback={null}>
             <FilterBar
               venues={allVenues ?? []}
+              watchedVenueSlugs={watchedVenueSlugs}
+              showMyVenuesChip={watchedVenueSlugs.size > 0}
               showDateControls={view === "list"}
               showOriginFilter={
                 Boolean(origin) ||

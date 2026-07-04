@@ -2,6 +2,8 @@
 // each performer name carries a client add/remove button whose initial state
 // comes from the server-computed `watchlistCanon` set.
 
+import Link from "next/link";
+
 import AddToWatchlistButton from "./AddToWatchlistButton";
 import PinVenueButton from "./PinVenueButton";
 import RemoveEventButton from "./RemoveEventButton";
@@ -129,7 +131,13 @@ export default function ShowList({
                   </p>
                 )}
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {show.venue.name}
+                  {/* venue name links to that venue's calendar (URL filter) */}
+                  <Link
+                    href={`/?venues=${show.venue.slug}`}
+                    className="hover:text-teal-700 hover:underline dark:hover:text-teal-300"
+                  >
+                    {show.venue.name}
+                  </Link>
                   {watchedVenueSlugs && (
                     <PinVenueButton
                       venueSlug={show.venue.slug}
