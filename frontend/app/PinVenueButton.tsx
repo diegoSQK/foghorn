@@ -1,8 +1,11 @@
 "use client";
 
-// Venue pin/unpin toggle (Phase 9 venue watchlist). Optimistic, like the
-// performer +/✓ button; other surfaces catch up on the next navigation.
+// Venue pin/unpin toggle (Phase 9 venue watchlist). Optimistic for the star
+// itself, then a soft router.refresh() so server-rendered surroundings (the
+// /venues feed, followed-chips row, picker ordering) pick the change up
+// without a manual reload.
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { API_BASE } from "./lib/api";
@@ -14,6 +17,7 @@ export default function PinVenueButton({
   venueSlug: string;
   initiallyOn: boolean;
 }) {
+  const router = useRouter();
   const [on, setOn] = useState(initiallyOn);
   const [busy, setBusy] = useState(false);
 
@@ -33,6 +37,7 @@ export default function PinVenueButton({
             body: JSON.stringify({ venue_slug: venueSlug }),
           });
       if (!res.ok) setOn(wasOn); // revert
+      else router.refresh(); // server-rendered feed/chips catch up now
     } catch {
       setOn(wasOn);
     } finally {
