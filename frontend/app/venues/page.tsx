@@ -84,31 +84,8 @@ export default async function VenuesPage({
             </div>
           )}
 
-          {watched.length === 0 ? (
-            <p className="mb-6 text-zinc-500 dark:text-zinc-400">
-              You aren&apos;t following any venues yet — star some below.
-            </p>
-          ) : (
-            <>
-              <Suspense fallback={null}>
-                <FilterBar venues={allVenues ?? []} />
-              </Suspense>
-              {shows.length === 0 ? (
-                <p className="text-zinc-500 dark:text-zinc-400">
-                  No shows at followed venues in this window.
-                </p>
-              ) : (
-                <ShowList
-                  shows={shows}
-                  watchlistCanon={watchlistCanon}
-                  watchedVenueSlugs={watchedSlugs}
-                />
-              )}
-            </>
-          )}
-
           {unfollowed.length > 0 && (
-            <details className="mt-8" open={watched.length === 0}>
+            <details className="mb-6" open={watched.length === 0}>
               <summary className="cursor-pointer select-none text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
                 All venues{" "}
                 <span className="text-zinc-400 dark:text-zinc-500">
@@ -134,6 +111,30 @@ export default async function VenuesPage({
               </div>
             </details>
           )}
+
+          {watched.length === 0 ? (
+            <p className="mb-6 text-zinc-500 dark:text-zinc-400">
+              You aren&apos;t following any venues yet — star some below.
+            </p>
+          ) : (
+            <>
+              <Suspense fallback={null}>
+                <FilterBar venues={allVenues ?? []} />
+              </Suspense>
+              {shows.length === 0 ? (
+                <p className="text-zinc-500 dark:text-zinc-400">
+                  No shows at followed venues in this window.
+                </p>
+              ) : (
+                <ShowList
+                  shows={shows}
+                  watchlistCanon={watchlistCanon}
+                  watchedVenueSlugs={watchedSlugs}
+                />
+              )}
+            </>
+          )}
+
         </>
       )}
     </main>
