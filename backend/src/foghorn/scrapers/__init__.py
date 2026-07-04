@@ -17,6 +17,8 @@ from collections.abc import Callable
 
 from foghorn.models import ScrapedShow
 from foghorn.scrapers import (
+    august_hall,
+    bimbos_365,
     bird_and_beckett,
     black_cat,
     boom_boom_room,
@@ -38,6 +40,7 @@ from foghorn.scrapers import (
     medicine_for_nightmares,
     mr_tipples,
     natural_grocery_annex,
+    neck_of_the_woods,
     ocean_ale_house,
     piedmont_piano,
     rickshaw_stop,
@@ -45,10 +48,19 @@ from foghorn.scrapers import (
     the_chapel,
     the_independent,
     the_knockout,
+    the_warfield,
+    thee_stork_club,
+    uc_theatre,
     yoshis,
 )
 
 REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
+    uc_theatre.VENUE_SLUG: uc_theatre.scrape,
+    thee_stork_club.VENUE_SLUG: thee_stork_club.scrape,
+    the_warfield.VENUE_SLUG: the_warfield.scrape,
+    neck_of_the_woods.VENUE_SLUG: neck_of_the_woods.scrape,
+    bimbos_365.VENUE_SLUG: bimbos_365.scrape,
+    august_hall.VENUE_SLUG: august_hall.scrape,
     bird_and_beckett.VENUE_SLUG: bird_and_beckett.scrape,
     black_cat.VENUE_SLUG: black_cat.scrape,
     boom_boom_room.VENUE_SLUG: boom_boom_room.scrape,

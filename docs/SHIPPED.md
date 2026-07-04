@@ -8,6 +8,29 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Venue batch 2: six more rooms (July 2026)
+
+The sweep's easy-leftovers batch, shipped through the normal branch/PR loop:
+**Bimbo's 365 Club** (North Beach; tw-/TicketWeb template, dark-in-July so 9
+shows is real), **Neck of the Woods** (Inner Richmond; tw- on the homepage,
+slash-separated bills split, signup-popup duplicates deduped), **August
+Hall** (Union Square; tw- "list2" — times only exist on per-event pages, so
+scrape fetches ~1 small page per show; "– Moved To …" title annotations
+resolved: stripped when moved *here*, dropped when moved *away* since the
+destination venue's scraper carries the show), **The Warfield** (Mid-Market;
+carbonhouse/AEG static blocks + the platform's events_ajax lazy-load feed,
+AXS links), **Thee Stork Club** (Uptown Oakland; SeeTickets, Rickshaw flavor,
+per-event genre flows into the override layer; off-site sister-venue cards
+dropped by venue line), **The UC Theatre** (Downtown Berkeley; static Webflow
+with per-event genre, doors, and prices). 126 shows on the first live run,
+zero errors; the tw- shared helper grew month-name dates, a price fallback,
+and a time_lookup hook (existing venue tests unchanged). 35 venues total.
+
+Remaining from the sweep list: Club Deluxe, Club Fox (Redwood City), The New
+Parish (TicketWeb widget API), the Ticketmaster Discovery API spike
+(Fillmore/Regency), and the North Bay region value (Mystic/Sweetwater/
+HopMonk).
+
 ## Layered genre resolution + performer-genre bootstrap (July 2026)
 
 Genre moved from a pure venue attribute to a three-layer resolution chain:

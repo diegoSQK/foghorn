@@ -49,7 +49,7 @@ def test_returns_expected_shows_sorted(parsed: list[ScrapedShow]) -> None:
     got = [(s.start_local.isoformat(), s.headliner_raw) for s in parsed]
     assert got == [
         ("2026-07-11T18:00:00", "Earlybirds Club"),
-        ("2026-07-15T19:00:00", "Low Cut Connie – Moved To August Hall"),
+        ("2026-07-15T19:00:00", "Low Cut Connie"),  # "– Moved To August Hall" stripped
         (
             "2026-09-05T19:30:00",
             "Valerie – A Tribute to Amy Winehouse (w/special guest Huney Knuckles)",
@@ -75,7 +75,7 @@ def test_window_size_is_respected() -> None:
     )
     assert [s.headliner_raw for s in shows] == [
         "Earlybirds Club",
-        "Low Cut Connie – Moved To August Hall",
+        "Low Cut Connie",
     ]
 
 
@@ -131,3 +131,22 @@ def test_optional_fields_default(parsed: list[ScrapedShow]) -> None:
         assert show.price_text is None
         assert show.event_type is None
         assert show.genre is None
+
+
+def test_moved_annotations_resolved() -> None:
+    from foghorn.scrapers.august_hall import _resolve_moved
+
+    def _show(title: str) -> ScrapedShow:
+        return ScrapedShow(
+            venue_slug="august_hall",
+            headliner_raw=title,
+            start_local=dt.datetime(2026, 7, 15, 19, 0),
+            source_url="https://example.com/x",
+        )
+
+    here = _resolve_moved(_show("Low Cut Connie – Moved To August Hall"))
+    assert here is not None and here.headliner_raw == "Low Cut Connie"
+    # Moved away: the destination venue's scraper carries it — drop here.
+    assert _resolve_moved(_show("Futurebirds – MOVED TO THE CHAPEL")) is None
+    plain = _resolve_moved(_show("Plain Old Band"))
+    assert plain is not None and plain.headliner_raw == "Plain Old Band"
