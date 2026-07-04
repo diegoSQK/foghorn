@@ -490,6 +490,32 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://www.theuctheatre.org/events/",
         genre="eclectic",
     ),
+    Venue(
+        slug="club_deluxe",
+        name="Club Deluxe",
+        neighborhood="Haight",
+        region="SF",
+        address="1511 Haight St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://thedeluxesf.com",
+        # Server-rendered Simple Calendar (simcal) list — see
+        # scrapers/club_deluxe.
+        calendar_url="https://thedeluxesf.com/calendar/",
+        genre="jazz",
+    ),
+    Venue(
+        slug="club_fox",
+        name="Club Fox",
+        neighborhood="Redwood City",
+        region="Peninsula",
+        address="2209 Broadway, Redwood City, CA",
+        tz="America/Los_Angeles",
+        website_url="https://clubfoxrwc.com",
+        # Hand-authored homepage show blocks + Eventbrite links — see
+        # scrapers/club_fox.
+        calendar_url="https://clubfoxrwc.com/",
+        genre="eclectic",
+    ),
 ]
 
 

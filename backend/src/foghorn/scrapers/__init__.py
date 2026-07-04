@@ -26,6 +26,8 @@ from foghorn.scrapers import (
     cafe_du_nord,
     california_jazz_conservatory,
     center_for_new_music,
+    club_deluxe,
+    club_fox,
     cornerstone_berkeley,
     dna_lounge,
     fox_theater_oakland,
@@ -55,6 +57,8 @@ from foghorn.scrapers import (
 )
 
 REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
+    club_fox.VENUE_SLUG: club_fox.scrape,
+    club_deluxe.VENUE_SLUG: club_deluxe.scrape,
     uc_theatre.VENUE_SLUG: uc_theatre.scrape,
     thee_stork_club.VENUE_SLUG: thee_stork_club.scrape,
     the_warfield.VENUE_SLUG: the_warfield.scrape,
