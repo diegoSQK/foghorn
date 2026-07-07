@@ -70,10 +70,23 @@ export default function InboxCard({
   }
 
   function approve() {
+    // The visible fields are what the reviewer is approving — validate here
+    // rather than letting a blanked field silently fall back to the stored
+    // draft guess on the server.
+    const missing = [
+      !headliner.trim() && "headliner",
+      !venueName.trim() && "venue",
+      !date && "date",
+      !time && "time",
+    ].filter(Boolean);
+    if (missing.length > 0) {
+      setError(`still missing: ${missing.join(", ")}`);
+      return;
+    }
     const body: Record<string, unknown> = {
-      headliner: headliner.trim() || null,
-      date: date || null,
-      time: time || null,
+      headliner: headliner.trim(),
+      date,
+      time,
       event_type: isJam ? "jam" : "show",
       genre: genre.trim() || null,
       source_url: link.trim() || null,
