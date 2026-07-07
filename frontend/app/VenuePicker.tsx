@@ -41,7 +41,7 @@ export default function VenuePicker({
 
   function setSelection(next: Set<string>): void {
     const nextParams = new URLSearchParams(params.toString());
-    if (next.size === 0 || next.size === venues.length) {
+    if (next.size === 0 || next.size === visible.length) {
       nextParams.delete("venues");
     } else {
       nextParams.set("venues", [...next].sort().join(","));
@@ -58,12 +58,21 @@ export default function VenuePicker({
   }
 
   const needle = query.trim().toLowerCase();
-  const matches = venues.filter(
+  const longTail = params.get("long_tail") === "true";
+  const visible = venues.filter(
+    (v) =>
+      v.source !== "aggregator" ||
+      longTail ||
+      watchedVenueSlugs.has(v.slug) ||
+      selected.has(v.slug),
+  );
+  const matches = visible.filter(
     (v) => !needle || v.name.toLowerCase().includes(needle),
   );
   const groups = new Map<string, VenueOption[]>();
   for (const v of matches) {
-    const region = v.region ?? "Other";
+    const region =
+      v.source === "aggregator" ? "Long tail" : (v.region ?? "Other");
     (groups.get(region) ?? groups.set(region, []).get(region)!).push(v);
   }
   const orderedRegions = [

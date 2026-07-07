@@ -8,6 +8,38 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Bay Improviser aggregator ingest (July 2026)
+
+The one aggregator the May spike green-lit, shipped under the decided
+quarantine-with-flag posture. A new **aggregator tier** distinct from
+per-venue scrapers: `AGGREGATOR_SOURCES` runs after the venue scrapers in
+every scrape (nightly + `make scrape`), recording an `aggregator:<source>`
+slice in the run. Bay Improviser's calendar embeds a Google-Calendar link
+per event (title / UTC start / free-text location) — parsed, converted to
+Pacific, all-day entries skipped.
+
+**Venue resolution:** exact canonical match (leading-"the" stripped) →
+token-subset match either direction ("Bird & Beckett" ⊆ "Bird & Beckett
+Books and Records") → a small alias map ("The Jazzschool" →
+california_jazz_conservatory) → else auto-create a quarantined
+`venues.source='aggregator'` row. **Duplicate guard:** community titles are
+free-text blobs, so before ingesting at a *tracked* venue, any same-venue
+same-date show whose headliner token-matches the blob marks it a duplicate —
+the venue's scraper is authoritative. First live run: 49 events → 33
+ingested, 16 correctly skipped as duplicates, 20 new quarantined venues
+(Berkeley Finnish Hall, Temescal Arts Center, Artists' Television Access…)
+— and **Little Hill Lounge**, unscrapeable directly (flyer-JPEG calendar),
+is now covered through the aggregator.
+
+**Quarantine semantics** (in the shows filter SQL): aggregator-venue shows
+are hidden unless the "Long tail" toggle is on (`?long_tail=true`, a chip
+that appears once aggregator venues exist), the venue is pinned (a ★
+promotes it into the main UI everywhere), the venue is explicitly selected,
+or the performer-watchlist filter is active — the watchlist always sees
+through the quarantine, so a followed artist's gig at an untracked space
+surfaces regardless. `/api/venues` now returns `source` so the picker groups
+long-tail venues separately and genre chips ignore them.
+
 ## Venue watchlist (Phase 9, July 2026)
 
 Follow venues the way the watchlist follows performers. `watched_venues`

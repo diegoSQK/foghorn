@@ -49,6 +49,8 @@ export default function FilterBar({
   const to = params.get("to") ?? addDaysISO(today, 14);
   const time = params.get("time_of_day");
   const myVenues = params.get("venue_watchlist") === "true";
+  const longTail = params.get("long_tail") === "true";
+  const hasLongTail = venues.some((v) => v.source === "aggregator");
   const venuesParam = params.get("venues");
   const selected = venuesParam
     ? new Set(venuesParam.split(",").filter(Boolean))
@@ -120,7 +122,7 @@ export default function FilterBar({
   // (sm+) always shows the full panel; this state only matters under sm.
   const [moreOpen, setMoreOpen] = useState(false);
   const advancedActive =
-    ["region", "neighborhood", "genre", "origin", "type", "venues", "venue_watchlist"].filter(
+    ["region", "neighborhood", "genre", "origin", "type", "venues", "venue_watchlist", "long_tail"].filter(
       (k) => params.get(k),
     ).length + (params.get("from") || params.get("to") ? 1 : 0);
 
@@ -199,6 +201,16 @@ export default function FilterBar({
               My venues ★
             </button>
           </>
+        )}
+        {hasLongTail && (
+          <button
+            type="button"
+            className={chipClass(longTail)}
+            title="Include shows at community-listed spaces foghorn doesn't scrape directly (via Bay Improviser)"
+            onClick={() => navigate({ long_tail: longTail ? null : "true" })}
+          >
+            Long tail
+          </button>
         )}
       </div>
 

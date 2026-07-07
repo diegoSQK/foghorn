@@ -41,6 +41,7 @@ export default async function WatchlistPage({
   const genre = first(sp.genre);
   const origin = first(sp.origin);
   const type = first(sp.type);
+  const longTail = first(sp.long_tail) === "true";
   const myVenues = first(sp.venue_watchlist) === "true";
 
   const query = new URLSearchParams({ from, to, watchlist: "true" });
@@ -54,6 +55,7 @@ export default async function WatchlistPage({
   if (genre) query.set("genre", genre);
   if (origin === "local" || origin === "touring") query.set("origin", origin);
   if (type === "show" || type === "jam") query.set("type", type);
+  if (longTail) query.set("long_tail", "true");
   if (myVenues) query.set("venue_watchlist", "true");
 
   const [shows, allVenues, watchlist, watchedVenues] = await Promise.all([

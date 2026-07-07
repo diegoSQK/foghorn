@@ -19,6 +19,10 @@ class VenueView(BaseModel):
     neighborhood: str | None
     region: str | None
     genre: str | None
+    # 'seed' | 'manual' | 'aggregator' — the frontend quarantines aggregator
+    # venues (hidden from pickers/chips unless the long-tail toggle or a pin
+    # surfaces them).
+    source: str
 
 
 @router.get("/api/venues", response_model=list[VenueView])
@@ -28,9 +32,10 @@ def list_venues() -> list[VenueView]:
         venues = venues_repo.list_all(conn)
     finally:
         conn.close()
-    # Venues foghorn actively scrapes, plus user-created manual venues (which
-    # have shows but no scraper). SFJAZZ — seeded but deferred with no scraper
-    # — stays excluded.
+    # Venues foghorn actively scrapes, user-created manual venues, and
+    # aggregator-discovered venues (flagged via `source` so the frontend can
+    # quarantine them). SFJAZZ — seeded but deferred with no scraper — stays
+    # excluded.
     return [
         VenueView(
             slug=v.slug,
@@ -38,7 +43,8 @@ def list_venues() -> list[VenueView]:
             neighborhood=v.neighborhood,
             region=v.region,
             genre=v.genre,
+            source=v.source,
         )
         for v in venues
-        if v.slug in REGISTERED_SCRAPERS or v.source == "manual"
+        if v.slug in REGISTERED_SCRAPERS or v.source in ("manual", "aggregator")
     ]
