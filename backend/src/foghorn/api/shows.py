@@ -29,7 +29,7 @@ DEFAULT_WINDOW_DAYS = 30
 
 # The known regions, used to narrow the free-text ?region= param to the
 # Region literal (and ignore anything else rather than 400).
-_REGIONS: tuple[Region, ...] = ("SF", "East Bay", "Peninsula", "South Bay")
+_REGIONS: tuple[Region, ...] = ("SF", "East Bay", "North Bay", "Peninsula", "South Bay")
 
 
 class VenueView(BaseModel):
@@ -142,6 +142,7 @@ def build_show_views(
     event_type: EventType | None = None,
     watchlist: bool = False,
     venue_watchlist: bool = False,
+    long_tail: bool = False,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
     it's unit-testable against a connection without going through HTTP."""
@@ -159,6 +160,7 @@ def build_show_views(
     filters = ShowFilters(
         venue_slugs=venue_slugs,
         watched_venue_slugs=watched_slugs,
+        include_long_tail=long_tail,
         from_date=from_date,
         to_date=to_date,
         time_of_day=time_of_day,
@@ -216,6 +218,10 @@ def list_shows(
     venue_watchlist: str | None = Query(
         default=None, description="'true' to filter to watched venues"
     ),
+    long_tail: str | None = Query(
+        default=None,
+        description="'true' to include shows at aggregator-discovered venues",
+    ),
 ) -> list[ShowView]:
     today = dt.date.today()
     from_date = from_ or today.isoformat()
@@ -265,6 +271,7 @@ def list_shows(
             event_type=etype,
             watchlist=watchlist == "true",
             venue_watchlist=venue_watchlist == "true",
+            long_tail=long_tail == "true",
         )
     finally:
         conn.close()

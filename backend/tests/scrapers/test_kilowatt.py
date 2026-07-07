@@ -6,8 +6,8 @@ so the 90-day window doesn't depend on the clock. The fixture
 events API exercising the edge cases — two shows on one local day, a comma
 bill with an Oxford-less "and" tail, a "w/" DJ-night bill, a co-bill left
 unsplit, a free show, an event with no lineup (no doors), non-music entries
-(karaoke, a World Cup watch party), and a far-future event excluded by the
-window.
+(karaoke, a World Cup watch party), a far-future event excluded by the
+window, and Dice ``genre_tags`` both present and absent.
 """
 
 from __future__ import annotations
@@ -114,6 +114,24 @@ def test_ticket_and_source_url_are_dice_event_link(parsed: list[ScrapedShow]) ->
     head_stone = next(s for s in parsed if s.headliner_raw == "Head Stone")
     assert head_stone.ticket_url == "https://link.dice.fm/Bd98dc7f3de3"
     assert head_stone.source_url == "https://link.dice.fm/Bd98dc7f3de3"
+
+
+def test_genre_from_genre_tags(parsed: list[ScrapedShow]) -> None:
+    # Dice namespaces its tags ("gig:indie"); the scraper strips the prefix
+    # and joins, leaving normalization to ingest.
+    head_stone = next(s for s in parsed if s.headliner_raw == "Head Stone")
+    assert head_stone.genre == "indie, rocknroll, psych"
+    twisterella = next(s for s in parsed if s.headliner_raw == "Twisterella")
+    assert twisterella.genre == "djcollective"
+    pearl = next(s for s in parsed if "Pearl Charles" in s.headliner_raw)
+    assert pearl.genre == "singersongwriter, pop, folk"
+
+
+def test_genre_none_without_genre_tags(parsed: list[ScrapedShow]) -> None:
+    la_sombra = next(s for s in parsed if s.headliner_raw == "La Sombra")
+    assert la_sombra.genre is None
+    dreamscape = next(s for s in parsed if s.headliner_raw == "Dreamscape DJ Night")
+    assert dreamscape.genre is None
 
 
 def test_venue_slug(parsed: list[ScrapedShow]) -> None:

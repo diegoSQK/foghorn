@@ -34,6 +34,7 @@ def test_run_records_per_venue_results_and_isolates_failure(
     run = run_scrape(
         conn,
         {"bird_and_beckett": _ok_scraper, "keys_jazz_bistro": _raising_scraper},
+            aggregators={},
     )
     assert run.id is not None
     by_slug = {v.venue_slug: v for v in run.venues}
@@ -49,7 +50,7 @@ def test_run_records_per_venue_results_and_isolates_failure(
 
 
 def test_run_persists_and_is_readable_as_latest(conn: sqlite3.Connection) -> None:
-    run = run_scrape(conn, {"bird_and_beckett": _ok_scraper})
+    run = run_scrape(conn, {"bird_and_beckett": _ok_scraper}, aggregators={})
     latest = scrape_runs_repo.latest(conn)
     assert latest is not None
     assert latest.id == run.id
@@ -60,7 +61,7 @@ def test_run_persists_and_is_readable_as_latest(conn: sqlite3.Connection) -> Non
 
 
 def test_run_records_error_for_unseeded_venue(conn: sqlite3.Connection) -> None:
-    run = run_scrape(conn, {"nope_not_a_venue": _ok_scraper})
+    run = run_scrape(conn, {"nope_not_a_venue": _ok_scraper}, aggregators={})
     venue = run.venues[0]
     assert venue.created == 0
     assert any("no seeded venue" in e for e in venue.errors)

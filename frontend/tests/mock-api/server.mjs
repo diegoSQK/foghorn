@@ -8,6 +8,12 @@
 // playwright.config.ts's webServer env). It returns static fixture JSON — the
 // specs assert URL/UI state on interaction, not backend filtering (that's
 // covered by the backend pytest suite).
+//
+// The watchlist is the one stateful route: /watchlist's add form and chips
+// POST/DELETE from the *browser* (cross-origin, app on 3200 → mock on 4010),
+// then router.refresh() re-fetches GET /api/watchlist server-side — so the
+// mock keeps an in-memory list (seeded from fixtures/watchlist.json) and
+// answers CORS preflights.
 
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
@@ -20,20 +26,79 @@ const fixtures = join(here, "..", "fixtures");
 const routes = {
   "/api/shows": readFileSync(join(fixtures, "shows.json"), "utf8"),
   "/api/venues": readFileSync(join(fixtures, "venues.json"), "utf8"),
+  "/api/venues/watchlist": "[]",
+};
+
+// In-memory performer watchlist, reset on server start.
+const watchlist = JSON.parse(
+  readFileSync(join(fixtures, "watchlist.json"), "utf8"),
+);
+
+// Rough stand-in for the backend's canonicalize(): lowercase, alnum tokens.
+function canonicalize(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+const CORS_HEADERS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET,POST,DELETE,OPTIONS",
+  "access-control-allow-headers": "content-type",
 };
 
 const port = Number(process.env.MOCK_API_PORT ?? 4010);
 
 createServer((req, res) => {
   const path = (req.url ?? "").split("?")[0];
-  const body = routes[path];
-  if (body === undefined) {
-    res.writeHead(404, { "content-type": "application/json" });
-    res.end(JSON.stringify({ error: "not_found" }));
+  const send = (status, body) => {
+    res.writeHead(status, { ...CORS_HEADERS, "content-type": "application/json" });
+    res.end(body);
+  };
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, CORS_HEADERS);
+    res.end();
     return;
   }
-  res.writeHead(200, { "content-type": "application/json" });
-  res.end(body);
+
+  if (path === "/api/watchlist" && req.method === "GET") {
+    send(200, JSON.stringify(watchlist));
+    return;
+  }
+  if (path === "/api/watchlist" && req.method === "POST") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const displayName = (JSON.parse(raw || "{}").display_name ?? "").trim();
+      const entry = {
+        canonical_name: canonicalize(displayName),
+        display_name: displayName,
+        added_at: new Date().toISOString(),
+        notes: null,
+      };
+      if (!watchlist.some((e) => e.canonical_name === entry.canonical_name)) {
+        watchlist.push(entry);
+      }
+      send(200, JSON.stringify(entry));
+    });
+    return;
+  }
+  if (path.startsWith("/api/watchlist/") && req.method === "DELETE") {
+    const canonical = decodeURIComponent(path.slice("/api/watchlist/".length));
+    const index = watchlist.findIndex((e) => e.canonical_name === canonical);
+    if (index !== -1) watchlist.splice(index, 1);
+    send(200, "{}");
+    return;
+  }
+
+  const body = routes[path];
+  if (body === undefined) {
+    send(404, JSON.stringify({ error: "not_found" }));
+    return;
+  }
+  send(200, body);
 }).listen(port, () => {
   // eslint-disable-next-line no-console
   console.log(`mock-api listening on http://localhost:${port}`);

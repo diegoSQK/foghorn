@@ -516,6 +516,32 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://clubfoxrwc.com/",
         genre="eclectic",
     ),
+    Venue(
+        slug="mystic_theatre",
+        name="Mystic Theatre",
+        neighborhood="Petaluma",
+        region="North Bay",
+        address="23 Petaluma Blvd N, Petaluma, CA",
+        tz="America/Los_Angeles",
+        website_url="https://mystictheatre.com",
+        # SeeTickets white-label — see scrapers/mystic_theatre.
+        calendar_url="https://mystictheatre.com/calendar/",
+        genre="rock",
+    ),
+    Venue(
+        slug="sweetwater_music_hall",
+        name="Sweetwater Music Hall",
+        neighborhood="Mill Valley",
+        region="North Bay",
+        address="19 Corte Madera Ave, Mill Valley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://sweetwatermusichall.org",
+        # Rockhouse/etix list view, server-rendered — see
+        # scrapers/sweetwater_music_hall.
+        calendar_url="https://sweetwatermusichall.org/events/?view=list",
+        # Roots/rock/reggae/bluegrass/tributes.
+        genre="eclectic",
+    ),
 ]
 
 

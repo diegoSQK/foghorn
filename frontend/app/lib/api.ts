@@ -41,6 +41,10 @@ export type VenueOption = {
   neighborhood: string | null;
   region: string | null;
   genre: string | null;
+  // 'seed' | 'manual' | 'aggregator' — aggregator venues are quarantined
+  // (hidden from pickers/chips unless the long-tail toggle or a pin
+  // surfaces them).
+  source: "seed" | "manual" | "aggregator";
 };
 
 export type WatchedVenueEntry = {

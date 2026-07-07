@@ -15,9 +15,9 @@ import {
   inputClass,
 } from "./lib/ui";
 
-// All four regions render; only those with scraped venues are interactive. The
+// All regions render; only those with scraped venues are interactive. The
 // rest show a "soon" affordance so the planned Phase 5 expansion is visible.
-const REGIONS = ["SF", "East Bay", "Peninsula", "South Bay"] as const;
+const REGIONS = ["SF", "East Bay", "North Bay", "Peninsula", "South Bay"] as const;
 
 export type VenueOption = {
   slug: string;
