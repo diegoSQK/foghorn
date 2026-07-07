@@ -124,7 +124,11 @@ Bottom of the Hill, The Independent, The Chapel all shipped (July 2026 batch), p
 
 Yoshi's, Cornerstone Berkeley, The New Parish → shipped except New Parish (TicketWeb widget API — in the next-block leftovers); Starline Social Club appears closed (July 2026 sweep). Also shipped beyond scope: CJC, Ivy Room, 924 Gilman, Natural Grocery Annex, Fox Theater, Greek Theatre, The Back Room.
 
-### Phase 8 — Mailing-list ingest (designed July 2026, not started)
+### Phase 8 — Mailing-list ingest — stage 1 ✅ / stage 2 parked
+
+Stage 1 shipped July 2026 — see [SHIPPED entry](SHIPPED.md#mailing-list-ingest-stage-1-phase-8-july-2026). Stage 2 (LLM extraction in the same review queue) awaits the enrichment-tier LLM decision shared with 7.4.
+
+<!-- original design:
 
 Artists in the creative-music scene (e.g. the two currently-followed ones) announce gigs primarily via their mailing lists — often the *only* machine-reachable source (Dillon Vado has no scrapeable footprint at all). Design agreed with Diego:
 
@@ -134,7 +138,7 @@ Artists in the creative-music scene (e.g. the two currently-followed ones) annou
 - **Stage 2 (optional LLM extraction, same queue):** an LLM fills drafts the rules fumble. Human approval keeps it out of ingest-of-record — the contained pilot for the Phase 6 question. Gated on the same LLM-dependency decision as 7.4's stage 2.
 - **Dedup warning:** email-approved gigs and later venue-scraped ones won't collapse on the natural key when billing strings differ; the review UI must warn on token-match against existing shows at that venue+date.
 
-Scope: Stage 1 ≈ one focused session. **Unblock condition:** none — ready to build; file the ticket when it's next in line.
+Scope: Stage 1 ≈ one focused session. **Unblock condition:** none — ready to build; file the ticket when it's next in line. -->
 
 ### Phase 9 — Venue watchlist (P2) ✅
 

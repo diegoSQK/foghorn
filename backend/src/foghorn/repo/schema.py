@@ -96,6 +96,34 @@ CREATE TABLE IF NOT EXISTS watched_venues (
     notes       TEXT
 );
 
+-- Mailing-list ingest (Phase 8 stage 1). mail_senders maps a newsletter's
+-- From: address to the artist it announces (artist ≈ headliner); the parser
+-- prefills drafts from it.
+CREATE TABLE IF NOT EXISTS mail_senders (
+    email           TEXT PRIMARY KEY,
+    artist_display  TEXT NOT NULL
+);
+
+-- The review queue: one row per ingested email. Draft fields (artist / venue /
+-- date / time) are parser guesses and stay NULL when the rules fumble — the
+-- raw text is always kept so a human can fill the gaps at approve time.
+-- Nothing enters `shows` unapproved. message_id (RFC 5322) makes IMAP polling
+-- idempotent; NULL for hand-pasted emails.
+CREATE TABLE IF NOT EXISTS pending_events (
+    id                INTEGER PRIMARY KEY,
+    received_at       TEXT NOT NULL,
+    from_addr         TEXT NOT NULL,
+    subject           TEXT NOT NULL,
+    message_id        TEXT UNIQUE,
+    raw_text          TEXT NOT NULL,
+    artist_display    TEXT,
+    venue_slug        TEXT,
+    venue_name_guess  TEXT,
+    date_guess        TEXT,  -- YYYY-MM-DD
+    time_guess        TEXT,  -- HH:MM (24h)
+    status            TEXT NOT NULL DEFAULT 'pending'  -- 'pending' | 'approved' | 'rejected'
+);
+
 CREATE TABLE IF NOT EXISTS scrape_run_venues (
     scrape_run_id  INTEGER NOT NULL REFERENCES scrape_runs(id),
     venue_slug     TEXT NOT NULL,

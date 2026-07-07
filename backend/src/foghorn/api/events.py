@@ -110,45 +110,52 @@ def _resolve_venue(conn: sqlite3.Connection, event: ManualEvent) -> Venue:
     )
 
 
+def create_manual_event(conn: sqlite3.Connection, event: ManualEvent) -> ManualEventView:
+    """The create-event internals, callable outside the route: the inbox
+    approve endpoint (Phase 8) funnels reviewed emails through this exact
+    path so every manual show is normalized/deduped identically."""
+    venue = _resolve_venue(conn, event)
+    scraped = ScrapedShow(
+        venue_slug=venue.slug,
+        headliner_raw=event.headliner.strip(),
+        support_raw=[s.strip() for s in event.support if s.strip()],
+        start_local=dt.datetime.combine(event.date, event.time),
+        doors_local=(
+            dt.datetime.combine(event.date, event.doors_time)
+            if event.doors_time is not None
+            else None
+        ),
+        ticket_url=event.ticket_url,
+        price_text=event.price_text,
+        source_url=event.source_url or MANUAL_SOURCE_URL,
+        event_type=event.event_type,
+        genre=event.genre,
+    )
+    result = ingest_scraped_shows(conn, venue, [scraped], source="manual")
+    if result.errors:
+        raise HTTPException(status_code=422, detail=result.errors[0])
+    stored = shows_repo.get_by_natural_key(
+        conn,
+        venue.id if venue.id is not None else -1,
+        event.date.isoformat(),
+        event.time.strftime("%H:%M"),
+        canonicalize(event.headliner),
+    )
+    assert stored is not None and stored.id is not None
+    return ManualEventView(
+        id=stored.id,
+        venue_slug=venue.slug,
+        headliner=event.headliner.strip(),
+        start_local_date=stored.start_local_date,
+        start_local_time=stored.start_local_time,
+    )
+
+
 @router.post("/api/events", response_model=ManualEventView, status_code=201)
 def create_event(event: ManualEvent) -> ManualEventView:
     conn = db.connect()
     try:
-        venue = _resolve_venue(conn, event)
-        scraped = ScrapedShow(
-            venue_slug=venue.slug,
-            headliner_raw=event.headliner.strip(),
-            support_raw=[s.strip() for s in event.support if s.strip()],
-            start_local=dt.datetime.combine(event.date, event.time),
-            doors_local=(
-                dt.datetime.combine(event.date, event.doors_time)
-                if event.doors_time is not None
-                else None
-            ),
-            ticket_url=event.ticket_url,
-            price_text=event.price_text,
-            source_url=event.source_url or MANUAL_SOURCE_URL,
-            event_type=event.event_type,
-            genre=event.genre,
-        )
-        result = ingest_scraped_shows(conn, venue, [scraped], source="manual")
-        if result.errors:
-            raise HTTPException(status_code=422, detail=result.errors[0])
-        stored = shows_repo.get_by_natural_key(
-            conn,
-            venue.id if venue.id is not None else -1,
-            event.date.isoformat(),
-            event.time.strftime("%H:%M"),
-            canonicalize(event.headliner),
-        )
-        assert stored is not None and stored.id is not None
-        return ManualEventView(
-            id=stored.id,
-            venue_slug=venue.slug,
-            headliner=event.headliner.strip(),
-            start_local_date=stored.start_local_date,
-            start_local_time=stored.start_local_time,
-        )
+        return create_manual_event(conn, event)
     finally:
         conn.close()
 

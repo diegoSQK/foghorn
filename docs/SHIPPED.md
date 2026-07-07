@@ -8,6 +8,35 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Mailing-list ingest, stage 1 (Phase 8, July 2026)
+
+The channel for artists whose gigs never reach a scrapeable surface (Dillon
+Vado announces exclusively by mailing list). Deterministic — no LLM — with a
+**review queue as the write gate**: emails parse into `pending_events`
+drafts, and nothing enters `shows` until approved in the new `/inbox` UI.
+
+- **Mail in, two ways:** an IMAP poller (`make mail-poll`; stdlib imaplib,
+  read-only, Message-ID-deduped; `FOGHORN_IMAP_*` env, Gmail-label folder
+  default "foghorn"; exits with a hint when unconfigured) — and a
+  paste-an-email form on /inbox (`POST /api/inbox/ingest`), which makes the
+  feature usable with zero configuration.
+- **Rules parser** (pure, injected `today`): artist from a hand-maintained
+  `mail_senders` map (managed in the UI), venue by scanning for known venue
+  names, date/time regexes resolved to the next future occurrence.
+  Unparseable emails still queue as raw text with the artist prefilled.
+- **/inbox** ("Inbox (N)" in the nav): editable draft cards over the raw
+  email, an amber token-match **possible-duplicate warning** (email-approved
+  and venue-scraped billings won't collapse on the natural key — the warning
+  is the stage-1 answer), Approve (creates the event through the manual-entry
+  path, provenance `manual://email/<message_id>`) / Reject. Approved and
+  rejected rows are kept as an audit trail.
+- Verified end-to-end in a cold-start browser run, which also caught and
+  fixed an approve-with-blanked-field bug (client now validates; the API 422
+  remains the backstop). 31 new tests.
+
+**Stage 2 (LLM extraction for emails the rules fumble) stays parked** on the
+same enrichment-tier decision as 7.4's LLM stage.
+
 ## Bay Improviser aggregator ingest (July 2026)
 
 The one aggregator the May spike green-lit, shipped under the decided
