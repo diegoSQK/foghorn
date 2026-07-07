@@ -190,6 +190,29 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         placeholders = ", ".join("?" for _ in filters.venue_slugs)
         clauses.append(f"v.slug IN ({placeholders})")
         params.extend(filters.venue_slugs)
+    # Aggregator quarantine (decided July 2026: quarantine-with-flag,
+    # watchlist bypass). Shows at aggregator-created venues are hidden unless:
+    # the long-tail toggle is on; the venue is pinned (watched_venues) — a pin
+    # promotes it into the main UI; the venue was explicitly selected; or the
+    # performer-watchlist filter is active (the watchlist always sees through
+    # the quarantine, so a followed artist's gig at an untracked space
+    # surfaces regardless).
+    if (
+        not filters.include_long_tail
+        and filters.watchlist_token_bags is None
+    ):
+        exemptions = [
+            "v.slug IN (SELECT venue_slug FROM watched_venues)",
+        ]
+        quarantine_params: builtins.list[object] = []
+        if filters.venue_slugs:
+            placeholders = ", ".join("?" for _ in filters.venue_slugs)
+            exemptions.append(f"v.slug IN ({placeholders})")
+            quarantine_params.extend(filters.venue_slugs)
+        clauses.append(
+            "(v.source != 'aggregator' OR " + " OR ".join(exemptions) + ")"
+        )
+        params.extend(quarantine_params)
     if filters.region:
         clauses.append("v.region = ?")
         params.append(filters.region)
