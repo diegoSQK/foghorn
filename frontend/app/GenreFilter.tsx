@@ -24,6 +24,7 @@ export default function GenreFilter({ venues }: { venues: VenueOption[] }) {
   const genres = [
     ...new Set(
       venues
+        .filter((v) => v.source !== "aggregator") // quarantined: no chip noise
         .map((v) => v.genre)
         .filter((g): g is string => Boolean(g) && g !== "eclectic"),
     ),

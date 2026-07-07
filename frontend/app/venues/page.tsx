@@ -37,6 +37,7 @@ export default async function VenuesPage({
   const performerQuery = first(sp.performer_query);
   const genre = first(sp.genre);
   const type = first(sp.type);
+  const longTail = first(sp.long_tail) === "true";
 
   const query = new URLSearchParams({ from, to, venue_watchlist: "true" });
   if (timeOfDay === "early" || timeOfDay === "late") {
@@ -45,6 +46,7 @@ export default async function VenuesPage({
   if (performerQuery) query.set("performer_query", performerQuery);
   if (genre) query.set("genre", genre);
   if (type === "show" || type === "jam") query.set("type", type);
+  if (longTail) query.set("long_tail", "true");
 
   const [shows, allVenues, watched, watchlist] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
