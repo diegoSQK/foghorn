@@ -210,6 +210,42 @@ class WatchedVenue(BaseModel):
     notes: str | None = None
 
 
+class MailSender(BaseModel):
+    """A mailing-list sender foghorn knows (Phase 8): the newsletter's From:
+    address mapped to the artist it announces. artist ≈ headliner for the
+    solo-project mailing lists this targets; the review queue is where that
+    assumption gets corrected when a list announces someone else's gig."""
+
+    email: str  # stored lowercased — the lookup key
+    artist_display: str
+
+
+# Review-queue lifecycle: rows are born 'pending'; approving creates the
+# manual event and stamps 'approved'; 'rejected' keeps the row (with its raw
+# text) as a record that a human looked and said no.
+PendingStatus = Literal["pending", "approved", "rejected"]
+
+
+class PendingEvent(BaseModel):
+    """One ingested mailing-list email awaiting review (Phase 8). The draft
+    fields are deterministic parser guesses — any of them may be None; the
+    verbatim ``raw_text`` always survives so the reviewer can fill gaps."""
+
+    id: int | None = None
+    received_at: str  # ISO 8601 UTC
+    from_addr: str
+    subject: str
+    # RFC 5322 Message-ID — the IMAP idempotency key. None for pasted emails.
+    message_id: str | None = None
+    raw_text: str
+    artist_display: str | None = None  # from the sender map
+    venue_slug: str | None = None  # a known venue found in the text
+    venue_name_guess: str | None = None  # that venue's display name
+    date_guess: str | None = None  # YYYY-MM-DD
+    time_guess: str | None = None  # HH:MM (24h)
+    status: PendingStatus = "pending"
+
+
 class Watchlist(BaseModel):
     """A performer the user follows. ``canonical_name`` (the canonicalized
     ``display_name``) is the match key + primary key; ``display_name`` is the
