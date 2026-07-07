@@ -11,7 +11,7 @@ import { useMemo, useState } from "react";
 import { API_BASE, type VenueOption } from "./lib/api";
 import { buttonClass, inputClass } from "./lib/ui";
 
-const REGIONS = ["SF", "East Bay", "Peninsula", "South Bay"] as const;
+const REGIONS = ["SF", "East Bay", "North Bay", "Peninsula", "South Bay"] as const;
 
 const labelClass =
   "flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400";

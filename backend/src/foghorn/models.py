@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # Closed enumerations stored as TEXT. Kept as Literals so seeds and ingest are
 # validated at construction time rather than silently writing typos to the DB.
-Region = Literal["SF", "East Bay", "Peninsula", "South Bay"]
+Region = Literal["SF", "East Bay", "North Bay", "Peninsula", "South Bay"]
 Role = Literal["headliner", "support"]
 # Performer origin (v1 of local/touring tagging). No scraped source publishes
 # this — it's inferred (heuristic bootstrap) or hand-set; None = unknown.
