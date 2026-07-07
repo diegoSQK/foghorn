@@ -19,16 +19,22 @@ from foghorn.ingest.pipeline import ingest_scraped_shows
 from foghorn.models import ScrapedShow
 from foghorn.repo import db
 from foghorn.repo import venues as venues_repo
+from foghorn.repo import watched_venues as watched_venues_repo
 from foghorn.repo import watchlist as watchlist_repo
 from foghorn.repo.seed_venues import seed
 
 TODAY = dt.date.today()
 
 
-def _show(headliner: str, day_offset: int, support: list[str] | None = None) -> ScrapedShow:
+def _show(
+    headliner: str,
+    day_offset: int,
+    support: list[str] | None = None,
+    venue_slug: str = "bird_and_beckett",
+) -> ScrapedShow:
     start = dt.datetime.combine(TODAY + dt.timedelta(days=day_offset), dt.time(20, 0))
     return ScrapedShow(
-        venue_slug="bird_and_beckett",
+        venue_slug=venue_slug,
         headliner_raw=headliner,
         support_raw=support or [],
         start_local=start,
@@ -98,6 +104,88 @@ def test_limit_caps_results(client: TestClient) -> None:
     body = client.get("/api/watchlist/digest", params={"limit": 1}).json()
     assert len(body["matches"]) == 1
     assert body["matches"][0]["headliner"]["display"] == "Joshua Redman Quartet"
+
+
+@pytest.fixture
+def venue_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+    """Fixture for ``include_venues``: a performer watchlist *and* a watched
+    venue (kilowatt), with a show that matches only a performer (+1), one only
+    the venue (+2), and one both ways (+3, the dedup case)."""
+    monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "venue_digest.db"))
+    conn = db.connect()
+    seed(conn)
+    bb = venues_repo.get_by_slug(conn, "bird_and_beckett")
+    kilowatt = venues_repo.get_by_slug(conn, "kilowatt")
+    assert bb is not None and kilowatt is not None
+    ingest_scraped_shows(conn, bb, [_show("Joshua Redman Quartet", 1)])
+    ingest_scraped_shows(
+        conn,
+        kilowatt,
+        [
+            _show("Venue Only Band", 2, venue_slug="kilowatt"),
+            _show("Kamasi Washington", 3, venue_slug="kilowatt"),
+        ],
+    )
+    watchlist_repo.add(conn, "Joshua Redman")
+    watchlist_repo.add(conn, "Kamasi Washington")
+    watched_venues_repo.add(conn, "kilowatt")
+    conn.close()
+    with TestClient(app) as test_client:
+        yield test_client
+
+
+def test_include_venues_off_is_old_behavior(venue_client: TestClient) -> None:
+    # Param off (default): performer matches only — the watched venue's
+    # unmatched show doesn't ride along, and no row is venue-flagged.
+    body = venue_client.get("/api/watchlist/digest").json()
+    assert _names(body["matches"]) == ["Joshua Redman Quartet", "Kamasi Washington"]
+    assert all(m["watched_venue"] is False for m in body["matches"])
+
+
+def test_include_venues_merges_flags_and_dedupes(venue_client: TestClient) -> None:
+    body = venue_client.get(
+        "/api/watchlist/digest", params={"include_venues": "true"}
+    ).json()
+    # Chronological union; the both-ways show appears exactly once.
+    assert _names(body["matches"]) == [
+        "Joshua Redman Quartet",
+        "Venue Only Band",
+        "Kamasi Washington",
+    ]
+    by_name = {m["headliner"]["display"]: m for m in body["matches"]}
+    # Performer-only row: matched names, no venue flag.
+    assert by_name["Joshua Redman Quartet"]["watchlist_matches"] == ["Joshua Redman"]
+    assert by_name["Joshua Redman Quartet"]["watched_venue"] is False
+    # Venue-only row: empty matches, flagged.
+    assert by_name["Venue Only Band"]["watchlist_matches"] == []
+    assert by_name["Venue Only Band"]["watched_venue"] is True
+    # Both ways: flagged *and* matched.
+    assert by_name["Kamasi Washington"]["watchlist_matches"] == ["Kamasi Washington"]
+    assert by_name["Kamasi Washington"]["watched_venue"] is True
+
+
+def test_include_venues_with_empty_performer_watchlist(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Venue shows still surface when nothing is on the performer watchlist.
+    monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "venues_only.db"))
+    conn = db.connect()
+    seed(conn)
+    kilowatt = venues_repo.get_by_slug(conn, "kilowatt")
+    assert kilowatt is not None
+    ingest_scraped_shows(
+        conn, kilowatt, [_show("Venue Only Band", 1, venue_slug="kilowatt")]
+    )
+    watched_venues_repo.add(conn, "kilowatt")
+    conn.close()
+    with TestClient(app) as test_client:
+        assert test_client.get("/api/watchlist/digest").json()["matches"] == []
+        body = test_client.get(
+            "/api/watchlist/digest", params={"include_venues": "true"}
+        ).json()
+    assert _names(body["matches"]) == ["Venue Only Band"]
+    assert body["matches"][0]["watchlist_matches"] == []
+    assert body["matches"][0]["watched_venue"] is True
 
 
 def test_empty_watchlist_returns_empty_matches(
