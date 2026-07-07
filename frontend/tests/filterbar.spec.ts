@@ -22,7 +22,9 @@ test("Tonight chip sets a single-day range and shows active", async ({ page }) =
 test("date inputs commit on blur and drag the range along", async ({ page }) => {
   await page.goto("/");
 
-  const fromInput = page.getByLabel("From");
+  // exact: the mock watchlist makes cards render "Remove X *from* watchlist"
+  // buttons, which a substring label match would also catch.
+  const fromInput = page.getByLabel("From", { exact: true });
   await fromInput.fill("2099-01-15"); // change event only; no blur yet
   await expect(page).toHaveURL((u) => !u.search.includes("from="));
 

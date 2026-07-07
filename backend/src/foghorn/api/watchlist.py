@@ -82,9 +82,13 @@ def delete_watchlist(canonical_name: str) -> Response:
 
 
 class DigestMatch(ShowView):
-    """A `/api/shows` row plus the watchlist name(s) that matched it."""
+    """A `/api/shows` row plus the watchlist name(s) that matched it. When the
+    digest is asked to ``include_venues``, rows at a watched venue carry
+    ``watched_venue: true`` — a row contributed *only* by its venue has an
+    empty ``watchlist_matches``."""
 
     watchlist_matches: list[str]
+    watched_venue: bool = False
 
 
 class DigestResponse(BaseModel):
@@ -96,29 +100,58 @@ class DigestResponse(BaseModel):
 def watchlist_digest(
     days: int = Query(default=14, ge=1, le=365, description="look-ahead window"),
     limit: int = Query(default=20, ge=1, le=200, description="max matches"),
+    include_venues: bool = Query(
+        default=False,
+        description="also include upcoming shows at watched venues",
+    ),
 ) -> DigestResponse:
     """Next upcoming watchlist matches, chronological — the read surface a future
     cron/email/push digest consumes. Reuses the ``?watchlist=true`` filter; the
-    only new bit is ``watchlist_matches`` per row (which watched name(s) hit)."""
+    only new bit is ``watchlist_matches`` per row (which watched name(s) hit).
+    With ``include_venues=true``, shows at venues on the venue watchlist are
+    merged in (deduped by show id, still chronological) and flagged
+    ``watched_venue``."""
     generated_at = dt.datetime.now(dt.UTC).isoformat()
     conn = db.connect()
     try:
         entries = watchlist_repo.list_all(conn)
-        if not entries:
-            return DigestResponse(generated_at=generated_at, matches=[])
         today = dt.date.today()
-        views = build_show_views(
-            conn,
-            venue_slugs=None,
-            from_date=today.isoformat(),
-            to_date=(today + dt.timedelta(days=days)).isoformat(),
-            watchlist=True,
-        )
+        from_date = today.isoformat()
+        to_date = (today + dt.timedelta(days=days)).isoformat()
+        performer_views: list[ShowView] = []
+        if entries:
+            performer_views = build_show_views(
+                conn,
+                venue_slugs=None,
+                from_date=from_date,
+                to_date=to_date,
+                watchlist=True,
+            )
+        venue_views: list[ShowView] = []
+        if include_venues:
+            venue_views = build_show_views(
+                conn,
+                venue_slugs=None,
+                from_date=from_date,
+                to_date=to_date,
+                venue_watchlist=True,
+            )
     finally:
         conn.close()
 
+    # Merge the two lists, deduped by show id — a show matching both ways keeps
+    # its watchlist_matches *and* gains the watched_venue flag. Each source list
+    # is start_utc-ordered; re-sort the union on the local instant (single-tz
+    # region, so local order == UTC order).
+    watched_venue_ids = {view.id for view in venue_views}
+    performer_ids = {view.id for view in performer_views}
+    views = performer_views + [
+        view for view in venue_views if view.id not in performer_ids
+    ]
+    views.sort(key=lambda view: (view.start_local_date, view.start_local_time, view.id))
+
     matches: list[DigestMatch] = []
-    for view in views[:limit]:  # already ordered by start_utc, watchlist-filtered
+    for view in views[:limit]:
         performer_canonicals = [view.headliner.canonical] + [
             performer.canonical for performer in view.support
         ]
@@ -131,6 +164,10 @@ def watchlist_digest(
             )
         ]
         matches.append(
-            DigestMatch(**view.model_dump(), watchlist_matches=matched_names)
+            DigestMatch(
+                **view.model_dump(),
+                watchlist_matches=matched_names,
+                watched_venue=view.id in watched_venue_ids,
+            )
         )
     return DigestResponse(generated_at=generated_at, matches=matches)

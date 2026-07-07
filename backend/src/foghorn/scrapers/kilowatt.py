@@ -190,6 +190,25 @@ def _price_text(event: dict[str, object]) -> str | None:
     return f"{_format_cents(low)}–{_format_cents(high)}"
 
 
+def _genre_text(event: dict[str, object]) -> str | None:
+    """Dice tags events with ``genre_tags`` like ``["gig:indie",
+    "gig:rocknroll"]``. Strip the ``gig:`` namespace and join the tags —
+    ingest's ``normalize_genre`` keyword-matches the joined string against the
+    coarse vocabulary (junk → None, venue default applies)."""
+    raw_tags = event.get("genre_tags")
+    if not isinstance(raw_tags, list):
+        return None
+    tags: list[str] = []
+    for raw in raw_tags:
+        if not isinstance(raw, str):
+            continue
+        tag = raw.partition(":")[2] if ":" in raw else raw
+        tag = tag.strip()
+        if tag:
+            tags.append(tag)
+    return ", ".join(tags) if tags else None
+
+
 def _split_tail(text: str) -> list[str]:
     """Split "X, Y and Z" into acts: commas separate, and only the final
     comma segment is split on " and " (Oxford-less list tail)."""
@@ -252,6 +271,7 @@ def parse_events(
                 ticket_url=dice_url,
                 price_text=_price_text(event),
                 source_url=dice_url or CALENDAR_URL,
+                genre=_genre_text(event),
             )
         )
     shows.sort(key=lambda show: show.start_local)
