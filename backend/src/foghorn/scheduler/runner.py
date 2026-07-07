@@ -23,6 +23,9 @@ from datetime import UTC, datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from foghorn.aggregators import AGGREGATOR_SOURCES
+from foghorn.aggregators.ingest import ingest_aggregated_events
+from foghorn.aggregators.models import AggregatedEvent
 from foghorn.ingest.pipeline import ingest_scraped_shows
 from foghorn.models import ScrapedShow, ScrapeRun, ScrapeRunVenue
 from foghorn.repo import db
@@ -51,12 +54,15 @@ def run_scrape(
     conn: sqlite3.Connection,
     scrapers: ScraperMap | None = None,
     *,
+    aggregators: dict[str, Callable[[], list[AggregatedEvent]]] | None = None,
     keep_runs: int = scrape_runs_repo.DEFAULT_KEEP,
 ) -> ScrapeRun:
-    """Run every scraper through ingest and record the run. ``scrapers``
-    defaults to ``REGISTERED_SCRAPERS`` (injectable for tests)."""
+    """Run every scraper + aggregator source through ingest and record the
+    run. Both maps default to the live registries (injectable for tests)."""
     if scrapers is None:
         scrapers = REGISTERED_SCRAPERS
+    if aggregators is None:
+        aggregators = AGGREGATOR_SOURCES
     seed(conn)  # ensure venues exist before ingest
     run_started = _now()
     venue_results: list[ScrapeRunVenue] = []
@@ -90,6 +96,33 @@ def run_scrape(
                 venue_slug=slug,
                 started_at=venue_started,
                 finished_at=venue_finished,
+                created=created,
+                updated=updated,
+                errors=errors,
+            )
+        )
+    # Aggregator sources run after the venue scrapers so the duplicate guard
+    # defers to fresh authoritative rows. Each records one pseudo-venue slice
+    # (slug "aggregator:<source>") in the run, same isolation contract.
+    for source_id, fetch in aggregators.items():
+        source_started = _now()
+        created = updated = 0
+        errors = []
+        try:
+            result = ingest_aggregated_events(conn, fetch(), source_id)
+            created, updated = result.created, result.updated
+            errors = list(result.errors)
+        except Exception as exc:
+            errors.append(f"{type(exc).__name__}: {exc}")
+        logger.info(
+            "scrape.aggregator",
+            extra={"source": source_id, "created": created, "errors": len(errors)},
+        )
+        venue_results.append(
+            ScrapeRunVenue(
+                venue_slug=f"aggregator:{source_id}",
+                started_at=source_started,
+                finished_at=_now(),
                 created=created,
                 updated=updated,
                 errors=errors,

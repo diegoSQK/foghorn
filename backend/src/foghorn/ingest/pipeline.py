@@ -168,7 +168,7 @@ def _to_show(
     venue: Venue,
     scraped: ScrapedShow,
     scraped_at: str,
-    source: Literal["scrape", "manual"] = "scrape",
+    source: Literal["scrape", "manual", "aggregator"] = "scrape",
 ) -> Show:
     """Build a persistable ``Show`` from a ``ScrapedShow``, applying the venue
     tz to the naive local times to derive ``start_utc``."""
@@ -264,7 +264,7 @@ def ingest_scraped_shows(
     conn: sqlite3.Connection,
     venue: Venue,
     scraped: list[ScrapedShow],
-    source: Literal["scrape", "manual"] = "scrape",
+    source: Literal["scrape", "manual", "aggregator"] = "scrape",
 ) -> IngestResult:
     """Normalize, dedupe, and persist a venue's scraped shows.
 

@@ -50,8 +50,10 @@ class Venue(BaseModel):
     # phase (7.2).
     genre: str | None = None
     # "seed" = from seed_venues (scraped or planned); "manual" = created by
-    # the user through POST /api/events for a venue foghorn doesn't track.
-    source: Literal["seed", "manual"] = "seed"
+    # the user through POST /api/events; "aggregator" = auto-created by an
+    # aggregator ingest (quarantined from the main UI behind the long-tail
+    # toggle; pinning promotes — see repo/shows quarantine clause).
+    source: Literal["seed", "manual", "aggregator"] = "seed"
 
 
 class Performer(BaseModel):
@@ -103,8 +105,9 @@ class Show(BaseModel):
     source_url: str
     scraped_at: str  # ISO 8601 UTC
     # "scrape" = written by the ingest pipeline from a venue scraper;
-    # "manual" = user-entered via POST /api/events (deletable through the API).
-    source: Literal["scrape", "manual"] = "scrape"
+    # "manual" = user-entered via POST /api/events (deletable through the
+    # API); "aggregator" = ingested from an aggregator source.
+    source: Literal["scrape", "manual", "aggregator"] = "scrape"
     event_type: EventType = "show"
     # Per-show genre (Phase 7.2), normalized at ingest from sources that
     # publish per-event genre. Genre resolution is layered: this override
@@ -166,6 +169,11 @@ class ShowFilters(BaseModel):
     # Venue watchlist filter (Phase 9): shows at any of these venue slugs.
     # Empty list = no matches (empty watchlist); None = filter not requested.
     watched_venue_slugs: list[str] | None = None
+    # Long-tail toggle (aggregator quarantine): False hides shows at
+    # aggregator-created venues unless the venue is pinned (watched_venues),
+    # explicitly selected, or the performer-watchlist filter is active —
+    # the watchlist always sees through the quarantine.
+    include_long_tail: bool = False
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
     time_of_day: Literal["early", "late"] | None = None
 
