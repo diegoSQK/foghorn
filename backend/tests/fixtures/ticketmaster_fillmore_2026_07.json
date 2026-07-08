@@ -1,0 +1,474 @@
+{
+ "_embedded": {
+  "events": [
+   {
+    "dates": {
+     "start": {
+      "localDate": "2026-07-24",
+      "localTime": "20:00:00",
+      "dateTime": "2026-07-25T03:00:00Z",
+      "dateTBD": false,
+      "dateTBA": false,
+      "timeTBA": false,
+      "noSpecificTime": false
+     },
+     "timezone": "America/Los_Angeles",
+     "status": {
+      "code": "onsale"
+     },
+     "spanMultipleDays": false
+    },
+    "name": "Chance Pe\u00f1a",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAeA",
+       "name": "Rock"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7v6F1",
+       "name": "Pop"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "Chance Pe\u00f1a"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/chance-pena-san-francisco-california-07-24-2026/event/1C00638AF3D1E6C0"
+   },
+   {
+    "dates": {
+     "start": {
+      "localDate": "2026-07-25",
+      "localTime": "20:00:00",
+      "dateTime": "2026-07-26T03:00:00Z",
+      "dateTBD": false,
+      "dateTBA": false,
+      "timeTBA": false,
+      "noSpecificTime": false
+     },
+     "timezone": "America/Los_Angeles",
+     "status": {
+      "code": "onsale"
+     },
+     "spanMultipleDays": false
+    },
+    "name": "Chance Pe\u00f1a",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAeA",
+       "name": "Rock"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7v6F1",
+       "name": "Pop"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "Chance Pe\u00f1a"
+      },
+      {
+       "name": "Hans Williams"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/chance-pena-san-francisco-california-07-25-2026/event/1C00637ACE99B469"
+   },
+   {
+    "dates": {
+     "start": {
+      "localDate": "2026-08-05",
+      "localTime": "20:00:00",
+      "dateTime": "2026-08-06T03:00:00Z",
+      "dateTBD": false,
+      "dateTBA": false,
+      "timeTBA": false,
+      "noSpecificTime": false
+     },
+     "timezone": "America/Los_Angeles",
+     "status": {
+      "code": "onsale"
+     },
+     "spanMultipleDays": false
+    },
+    "name": "Old 97's",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAeA",
+       "name": "Rock"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7v6F1",
+       "name": "Pop"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "Old 97's"
+      },
+      {
+       "name": "River Shook"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/old-97s-san-francisco-california-08-05-2026/event/1C006462C198E993"
+   },
+   {
+    "dates": {
+     "start": {
+      "localDate": "2026-08-08",
+      "localTime": "20:00:00",
+      "dateTime": "2026-08-09T03:00:00Z",
+      "dateTBD": false,
+      "dateTBA": false,
+      "timeTBA": false,
+      "noSpecificTime": false
+     },
+     "timezone": "America/Los_Angeles",
+     "status": {
+      "code": "onsale"
+     },
+     "spanMultipleDays": false
+    },
+    "name": "Like a Star: Celebrating 20 Years of Corinne Bailey Rae",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAeA",
+       "name": "Rock"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7v6F1",
+       "name": "Pop"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "Corinne Bailey Rae"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/like-a-star-celebrating-20-years-san-francisco-california-08-08-2026/event/1C006454A6813640"
+   },
+   {
+    "dates": {
+     "start": {
+      "localDate": "2026-08-18",
+      "localTime": "20:00:00",
+      "dateTime": "2026-08-19T03:00:00Z",
+      "dateTBD": false,
+      "dateTBA": false,
+      "timeTBA": false,
+      "noSpecificTime": false
+     },
+     "timezone": "America/Los_Angeles",
+     "status": {
+      "code": "onsale"
+     },
+     "spanMultipleDays": false
+    },
+    "name": "honestav - The Sweet American Boy Tour ",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAv1",
+       "name": "Hip-Hop/Rap"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7vaEI",
+       "name": "Trap"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "honestav"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/honestav-the-sweet-american-boy-tour-san-francisco-california-08-18-2026/event/1C0064C403CB9779"
+   },
+   {
+    "dates": {
+     "start": {
+      "localDate": "2026-08-19",
+      "localTime": "20:00:00",
+      "dateTime": "2026-08-20T03:00:00Z",
+      "dateTBD": false,
+      "dateTBA": false,
+      "timeTBA": false,
+      "noSpecificTime": false
+     },
+     "timezone": "America/Los_Angeles",
+     "status": {
+      "code": "onsale"
+     },
+     "spanMultipleDays": false
+    },
+    "name": "Pi'erre Bourne - Made in Paris",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAv1",
+       "name": "Hip-Hop/Rap"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7vaEI",
+       "name": "Trap"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "Pi'erre Bourne"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/pierre-bourne-made-in-paris-san-francisco-california-08-19-2026/event/1C0064D2ABF8DD08"
+   },
+   {
+    "dates": {
+     "start": {
+      "localDate": "2026-07-24",
+      "localTime": "20:00:00",
+      "dateTime": "2026-07-25T03:00:00Z",
+      "dateTBD": false,
+      "dateTBA": false,
+      "timeTBA": false,
+      "noSpecificTime": false
+     },
+     "timezone": "America/Los_Angeles",
+     "status": {
+      "code": "cancelled"
+     },
+     "spanMultipleDays": false
+    },
+    "name": "Cancelled Act",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAeA",
+       "name": "Rock"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7v6F1",
+       "name": "Pop"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "Cancelled Act"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/chance-pena-san-francisco-california-07-24-2026/event/1C00638AF3D1E6C0"
+   },
+   {
+    "dates": {
+     "start": {
+      "localDate": "2026-08-01"
+     },
+     "status": {
+      "code": "onsale"
+     }
+    },
+    "name": "TBA Act",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAeA",
+       "name": "Rock"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7v6F1",
+       "name": "Pop"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "TBA Act"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/chance-pena-san-francisco-california-07-24-2026/event/1C00638AF3D1E6C0"
+   },
+   {
+    "dates": {
+     "start": {
+      "localDate": "2027-06-01",
+      "localTime": "20:00:00"
+     },
+     "status": {
+      "code": "onsale"
+     }
+    },
+    "name": "Far Future Act",
+    "classifications": [
+     {
+      "primary": true,
+      "segment": {
+       "id": "KZFzniwnSyZfZ7v7nJ",
+       "name": "Music"
+      },
+      "genre": {
+       "id": "KnvZfZ7vAeA",
+       "name": "Rock"
+      },
+      "subGenre": {
+       "id": "KZazBEonSMnZfZ7v6F1",
+       "name": "Pop"
+      },
+      "type": {
+       "id": "KZAyXgnZfZ7v7nI",
+       "name": "Undefined"
+      },
+      "subType": {
+       "id": "KZFzBErXgnZfZ7v7lJ",
+       "name": "Undefined"
+      },
+      "family": false
+     }
+    ],
+    "_embedded": {
+     "attractions": [
+      {
+       "name": "Far Future Act"
+      }
+     ]
+    },
+    "url": "https://www.ticketmaster.com/chance-pena-san-francisco-california-07-24-2026/event/1C00638AF3D1E6C0"
+   }
+  ]
+ }
+}
