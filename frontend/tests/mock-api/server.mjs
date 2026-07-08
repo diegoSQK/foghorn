@@ -4,16 +4,18 @@
 // async *server* component — it fetches /api/shows and /api/venues from the
 // Next server process, not the browser. page.route() only intercepts browser
 // requests, so it can't see those server-side fetches. Instead we run this
-// process and point the app at it via NEXT_PUBLIC_API_BASE_URL (set in
+// process and point the app at it via BACKEND_URL (set in
 // playwright.config.ts's webServer env). It returns static fixture JSON — the
 // specs assert URL/UI state on interaction, not backend filtering (that's
 // covered by the backend pytest suite).
 //
 // The watchlist is the one stateful route: /watchlist's add form and chips
-// POST/DELETE from the *browser* (cross-origin, app on 3200 → mock on 4010),
-// then router.refresh() re-fetches GET /api/watchlist server-side — so the
-// mock keeps an in-memory list (seeded from fixtures/watchlist.json) and
-// answers CORS preflights.
+// POST/DELETE from the *browser*. Those go relative to the app (app on 3200),
+// which the next.config.ts rewrite proxies to the mock (:4010); then
+// router.refresh() re-fetches GET /api/watchlist server-side — so the mock
+// keeps an in-memory list (seeded from fixtures/watchlist.json). Browser
+// requests are same-origin via the rewrite, so the CORS headers below are now
+// belt-and-suspenders (harmless if a spec ever hits the mock cross-origin).
 
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
