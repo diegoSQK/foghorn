@@ -570,6 +570,33 @@ SEED_VENUES: list[Venue] = [
         # Rock/metal/punk + DJ dance nights.
         genre="eclectic",
     ),
+    Venue(
+        slug="the_fillmore",
+        name="The Fillmore",
+        neighborhood="Fillmore",
+        region="SF",
+        address="1805 Geary Blvd, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://thefillmore.com",
+        # Ticketmaster Discovery API (the venue site is a Live Nation JS
+        # shell) — see scrapers/the_fillmore + the TM spike memo. Needs
+        # TM_API_KEY in the environment.
+        calendar_url="https://thefillmore.com/calendar/",
+        genre="rock",
+    ),
+    Venue(
+        slug="regency_ballroom",
+        name="The Regency Ballroom",
+        neighborhood="Van Ness",
+        region="SF",
+        address="1300 Van Ness Ave, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://theregencyballroom.com",
+        # Ticketmaster Discovery API (the venue site 403s scrapers) — see
+        # scrapers/regency_ballroom. Needs TM_API_KEY.
+        calendar_url="https://theregencyballroom.com/events/",
+        genre="rock",
+    ),
 ]
 
 
