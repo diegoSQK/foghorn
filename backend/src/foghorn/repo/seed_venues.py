@@ -542,6 +542,34 @@ SEED_VENUES: list[Venue] = [
         # Roots/rock/reggae/bluegrass/tributes.
         genre="eclectic",
     ),
+    Venue(
+        slug="sjz_break_room",
+        name="SJZ Break Room",
+        neighborhood="SoFA",
+        region="South Bay",
+        address="310 S. First Street, San Jose, CA",
+        tz="America/Los_Angeles",
+        website_url="https://sanjosejazz.org",
+        # Yoast event-sitemap walk + server-rendered event pages (the events
+        # archive only renders upcoming) — see scrapers/sjz_break_room. Zero
+        # shows between SJZ series is normal.
+        calendar_url="https://sanjosejazz.org/events/",
+        genre="jazz",
+    ),
+    Venue(
+        slug="the_ritz",
+        name="The Ritz",
+        neighborhood="SoFA",
+        region="South Bay",
+        address="400 South 1st Street, San Jose, CA",
+        tz="America/Los_Angeles",
+        website_url="https://theritzsanjose.com",
+        # IronBand theme: POST ajax=1 to the homepage returns the full gig
+        # list as server-rendered fragments — see scrapers/the_ritz.
+        calendar_url="https://theritzsanjose.com/",
+        # Rock/metal/punk + DJ dance nights.
+        genre="eclectic",
+    ),
 ]
 
 
