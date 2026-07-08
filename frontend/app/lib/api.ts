@@ -54,6 +54,37 @@ export type WatchedVenueEntry = {
   notes: string | null;
 };
 
+export type DuplicateView = {
+  show_id: number;
+  headliner: string;
+  venue_slug: string;
+  start_local_date: string;
+  start_local_time: string;
+  source: "scrape" | "manual";
+};
+
+// A mailing-list email awaiting review (Phase 8). Draft fields are parser
+// guesses — any may be null; raw_text always survives for the reviewer.
+export type PendingEventView = {
+  id: number;
+  received_at: string;
+  from_addr: string;
+  subject: string;
+  raw_text: string;
+  artist_display: string | null;
+  venue_slug: string | null;
+  venue_name_guess: string | null;
+  date_guess: string | null;
+  time_guess: string | null;
+  status: "pending" | "approved" | "rejected";
+  possible_duplicates: DuplicateView[];
+};
+
+export type MailSenderEntry = {
+  email: string;
+  artist_display: string;
+};
+
 export type WatchlistEntry = {
   canonical_name: string;
   display_name: string;

@@ -1,4 +1,4 @@
-.PHONY: gate backend-gate frontend-gate frontend-test install scrape tag-origins tag-genres backend-run frontend-run
+.PHONY: gate backend-gate frontend-gate frontend-test install scrape mail-poll tag-origins tag-genres backend-run frontend-run
 
 # Full lint / type / test gate across both packages. Runs the backend half
 # then the frontend half; make stops at the first target that exits non-zero.
@@ -32,6 +32,13 @@ install:
 # per-venue counts. Writes to the SQLite DB (FOGHORN_DB_PATH or the default).
 scrape:
 	cd backend && python -m foghorn.cli.scrape
+
+# Poll the IMAP folder of artist-newsletter emails into the review queue
+# (Phase 8). Needs FOGHORN_IMAP_HOST/USER/PASSWORD (+ optional
+# FOGHORN_IMAP_FOLDER, default "foghorn"); exits 0 with a hint when unset.
+# Not on the in-process scheduler — run manually or from cron.
+mail-poll:
+	cd backend && python -m foghorn.cli.mail_poll
 
 # Apply the local/touring origin heuristic to performers in the DB.
 # Idempotent; run after scrapes as history accumulates. Manual tags are kept.

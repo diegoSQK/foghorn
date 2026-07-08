@@ -3,7 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 
 import "./globals.css";
-import { getJSON, type WatchlistEntry } from "./lib/api";
+import {
+  getJSON,
+  type PendingEventView,
+  type WatchlistEntry,
+} from "./lib/api";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,10 +29,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Server-rendered per request, so the count reflects the watchlist on every
+  // Server-rendered per request, so the counts reflect current state on every
   // navigation. (Optimistic add/remove on cards catches up on the next nav.)
-  const watchlist = await getJSON<WatchlistEntry[]>("/api/watchlist");
+  const [watchlist, inbox] = await Promise.all([
+    getJSON<WatchlistEntry[]>("/api/watchlist"),
+    getJSON<PendingEventView[]>("/api/inbox"),
+  ]);
   const count = watchlist?.length ?? 0;
+  const inboxCount = inbox?.length ?? 0;
 
   return (
     <html
@@ -54,6 +62,9 @@ export default async function RootLayout({
           </Link>
           <Link href="/add" className="hover:text-teal-700 dark:hover:text-teal-300">
             Add event
+          </Link>
+          <Link href="/inbox" className="hover:text-teal-700 dark:hover:text-teal-300">
+            Inbox{inboxCount > 0 ? ` (${inboxCount})` : ""}
           </Link>
         </nav>
         {children}

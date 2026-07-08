@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from foghorn.api.events import router as events_router
 from foghorn.api.health import router as health_router
+from foghorn.api.inbox import router as inbox_router
 from foghorn.api.performers import router as performers_router
 from foghorn.api.shows import router as shows_router
 from foghorn.api.venue_watchlist import router as venue_watchlist_router
@@ -59,6 +60,7 @@ app.add_middleware(
 )
 
 app.include_router(events_router)
+app.include_router(inbox_router)
 app.include_router(performers_router)
 app.include_router(shows_router)
 app.include_router(venue_watchlist_router)
