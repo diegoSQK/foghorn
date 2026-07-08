@@ -35,7 +35,7 @@ Identity lives in the claim *comment* because when all agents authenticate as th
 
 **Coding agents work in an isolated git worktree off `main` by default — set one up before starting, every time, and do not begin work in the user's main working tree.** The shared main tree is single-HEAD: concurrent `git checkout`s in it collide, and a branch switch under another agent can land your commit on the wrong branch or leave their work stranded. The main tree is a narrow exception, used only when you're certain you're the only agent active *and* the user has explicitly asked you to work there directly; in that case the working tree may be dirty between iterations by design — don't clean up aggressively.
 
-**Loop.** Find an open issue (skip ones with a winning claim) or notice a friction → claim it per the claim-signal protocol above (stake, then re-read tiebreak) → set up an isolated worktree (the default — see the workspace rule above) → implement → run the full lint / type / test gate before every commit (project-specific — see Commands below) → push atomic commits (`git add` by file name, not `-A`) → open a PR that resolves the ticket on merge (GitHub: `Closes #N` in the description; other trackers map this differently — see `docs/TRACKER.md`) → auto-merge the PR once CI is green.
+**Loop.** Find an open issue (skip ones with a winning claim) or notice a friction → claim it per the claim-signal protocol above (stake, then re-read tiebreak) → set up an isolated worktree (the default — see the workspace rule above) → implement → run the full lint / type / test gate before every commit (project-specific — see Commands below) → push atomic commits (`git add` by file name, not `-A`) → open a PR that resolves the ticket on merge (GitHub: `Closes #N` in the description; other trackers map this differently — see `docs/TRACKER.md`) → auto-merge the PR once CI is green → refresh the live test deployment: `fleet sync foghorn` (see **Live test deployment (fleet)** below).
 
 **Ship-time docs convention.** In the same PR that lands the feature, append the as-shipped narrative to `docs/SHIPPED.md` as a new section, and collapse the corresponding entry in `docs/PROJECT_PLAN.md` to a one-line `✅ Shipped <month year> — see [anchor](SHIPPED.md#anchor)` reference. Two files instead of one, same atomicity. **Don't restructure other docs** — cross-doc reorganization, compaction passes, and AGENTS.md edits are the PM thread's job, not the shipping agent's.
 
@@ -90,6 +90,15 @@ npm run build  # surfaces type / config issues that lint misses
 ```
 
 Root `Makefile` wraps both halves: `make gate` runs backend then frontend; `make backend-gate` / `make frontend-gate` run the halves individually; `make install` installs both sides' deps.
+
+## Live test deployment (fleet)
+
+The foghorn instance Diego actually uses — laptop and phone via Tailscale — is not served from any working tree. It runs under PM2 from a detached serve worktree at `~/fleet/serve/foghorn`, managed by the fleet CLI (github.com/diegoSQK/fleet): API on **:8100**, web on **:3100**, pointed at the canonical DB (`backend/foghorn.db` in the main tree) via `FOGHORN_DB_PATH`.
+
+- **After your PR merges, run `fleet sync foghorn`** — deploys `origin/main`, reinstalls deps only if lockfiles/pyproject changed, restarts both processes. Idempotent and conflict-free; this is the last step of shipping.
+- **To demo unmerged work:** push your branch, then `fleet preview foghorn <branch>`; `fleet sync foghorn` returns the deployment to main.
+- **Never edit files under `~/fleet/serve/`** — serve trees change only via the fleet CLI.
+- Ad-hoc dev runs from a working tree must not bind :8100/:3100 — use alternate ports (fleet port + 1000). Check `~/fleet/PORTS.md` before binding anything; something off? Run `fleet doctor` first.
 
 ## Architecture Debugging Map
 
