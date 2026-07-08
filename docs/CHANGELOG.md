@@ -6,6 +6,33 @@ Versions are semver, locked across the project's packages.
 
 ---
 
+## v0.4.0 — 2026-07-07
+
+**Following + channels.** v0.3.0 built the catalog; v0.4.0 makes foghorn follow things and listen to channels venue scrapers can't reach. All five region chips are live (41 scraped venues + ~20 quarantined long-tail venues, ~1,600 shows), the watchlist grew a venue-following twin, and two new ingest channels landed: the Bay Improviser aggregator (under the quarantine-with-flag posture) and stage-1 mailing-list ingest with a human review queue.
+
+### Headline shipments
+
+- **Venue batches 2–3 (+8 venues → 37 scraped).** Bimbo's 365, Neck of the Woods, August Hall, The Warfield, Thee Stork Club, The UC Theatre, Club Deluxe, Club Fox — plus resolved "Moved To" annotations at August Hall and a documented New Parish block (its TicketWeb API works; the venue's inventory is empty everywhere). See [Venue batch 2](SHIPPED.md#venue-batch-2-six-more-rooms-july-2026) and [Venue batch 3](SHIPPED.md#venue-batch-3-club-deluxe--club-fox-new-parish-blocked-july-2026).
+- **Venue watchlist (Phase 9) + first-class venue UX.** Follow venues with ★ pins anywhere; /venues page; ?venue_watchlist= filter; "My venues" chip; venue names link to their calendars; the checkbox grid replaced by a searchable picker. See [Venue watchlist](SHIPPED.md#venue-watchlist-phase-9-july-2026) and [Search + venue-UX arc](SHIPPED.md#search--venue-ux-arc-july-2026) (which also covers token-prefix search and follow-by-name).
+- **Bay Improviser aggregator ingest** under the decided quarantine-with-flag + watchlist-bypass posture: a new aggregator tier resolves community events to known venues (token matching + aliases), fuzzy-dedupes against scraped rows, and auto-creates quarantined long-tail venues (Little Hill Lounge — unscrapeable directly — is now covered). "Long tail" toggle; pins promote. See [Bay Improviser aggregator ingest](SHIPPED.md#bay-improviser-aggregator-ingest-july-2026).
+- **Mailing-list ingest, stage 1 (Phase 8)** — deterministic, review-queue-gated: IMAP poller + paste-an-email form → parsed drafts in an /inbox UI with duplicate warnings; approval creates the event through the manual path. Built for artists who announce only by mailing list. See [Mailing-list ingest, stage 1](SHIPPED.md#mailing-list-ingest-stage-1-phase-8-july-2026).
+- **North Bay + South Bay regions real.** Mystic Theatre + Sweetwater Music Hall (North Bay); SJZ Break Room + The Ritz (South Bay — The Ritz via its ajax=1 gig-list endpoint after the sweep had rated it HARD). HopMonk (Eventim bot wall) and Poor House Bistro (JPEG calendar) documented blocked; Café Pink House and Art Boutiki confirmed closed.
+- **Smaller:** Kilowatt threads Dice genre tags (40/51 shows tagged); the watchlist digest gained `include_venues`; watchlist e2e specs (suite now 9); e2e app port moved off 3100 so test runs can't collide with a live dev server.
+
+### Decisions recorded
+
+- **Aggregator discovery posture:** quarantine-with-flag with watchlist bypass (shipped as designed).
+- **LLM in the enrichment tier: declined for now** — 7.4 stage 2 (performer-genre LLM pass) and Phase 8 stage 2 (LLM email extraction) both stay parked on this one call; the deterministic layers are their validation baselines if it's ever reopened.
+
+### Known follow-ons
+
+- **Ticketmaster Discovery API spike** (Fillmore/Regency coverage) — in flight at cut time; lands as a memo + POC after this release.
+- **New Parish recheck** in ~2–4 weeks (endpoint pre-solved; inventory empty everywhere as of 2026-07-07).
+- **Hosting + alerts delivery** — the digest endpoint (now venue-aware) computes "what's coming up for you"; delivery and reachability are the unbuilt half. The usage pattern (daily dogfooding, two watchlists) increasingly argues for this pairing next.
+- Blocked venues with unblock conditions: SFJAZZ, HopMonk Novato, Poor House Bistro, Freight & Salvage, The Midway, El Rio (see PROJECT_PLAN deferred list).
+
+---
+
 ## v0.3.0 — 2026-07-03
 
 **Breadth + the reading surface.** The venue-expansion arc: foghorn grew from 3 scraped venues to 29 (≈1,200 upcoming shows across SF, East Bay, and the Peninsula), and the calendar grew the structure to read it — genre/origin/type facets, day/week/month views, manual entry for what scrapers can't see. Built as a user-directed feature-branch push (no per-venue tickets); the per-platform scraping playbook it established lives in the SHIPPED entries.

@@ -37,6 +37,25 @@ drafts, and nothing enters `shows` until approved in the new `/inbox` UI.
 **Stage 2 (LLM extraction for emails the rules fumble) stays parked** on the
 same enrichment-tier decision as 7.4's LLM stage.
 
+## Search + venue-UX arc (July 2026)
+
+Dogfooding fixes from tracking real artists, shipped as small PRs (#39,
+#41–#45):
+
+- **Token-prefix search** — "mezz" now matches "mezzacappa" while typing;
+  watchlist matching stays whole-token for precision.
+- **Follow a performer by name** on /watchlist — a bare "Lisa Mezzacappa"
+  entry tracks the person across every billing shape; previously the only
+  entry point was the '+' on a venue's verbatim billing string (which, for a
+  multi-artist bill, tracks only that exact billing).
+- **First-class venue UX**: venue names everywhere link to that venue's
+  calendar (/?venues=slug); a "My venues ★" quick chip filters any view to
+  followed venues; the 37-checkbox grid was replaced by VenuePicker
+  (search-as-you-type, region groups, followed-first with ★s, removable
+  selected chips — empty honestly means "all venues"), reused in follow mode
+  on /venues; pins soft-refresh the surrounding server-rendered feed; event
+  rows gained a "details" link to the event's own page alongside "tickets".
+
 ## Bay Improviser aggregator ingest (July 2026)
 
 The one aggregator the May spike green-lit, shipped under the decided
