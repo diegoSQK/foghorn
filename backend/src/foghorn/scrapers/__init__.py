@@ -47,11 +47,13 @@ from foghorn.scrapers import (
     ocean_ale_house,
     piedmont_piano,
     rickshaw_stop,
+    sjz_break_room,
     sweetwater_music_hall,
     the_back_room,
     the_chapel,
     the_independent,
     the_knockout,
+    the_ritz,
     the_warfield,
     thee_stork_club,
     uc_theatre,
@@ -59,6 +61,8 @@ from foghorn.scrapers import (
 )
 
 REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
+    the_ritz.VENUE_SLUG: the_ritz.scrape,
+    sjz_break_room.VENUE_SLUG: sjz_break_room.scrape,
     sweetwater_music_hall.VENUE_SLUG: sweetwater_music_hall.scrape,
     mystic_theatre.VENUE_SLUG: mystic_theatre.scrape,
     club_fox.VENUE_SLUG: club_fox.scrape,
