@@ -2,7 +2,13 @@ import { defineConfig, devices } from "@playwright/test";
 
 // Two managed servers, started in parallel and waited on before tests run:
 //   1. the mock backend (returns fixture JSON for /api/shows + /api/venues)
-//   2. the Next app, built+started with NEXT_PUBLIC_API_BASE_URL pointed at (1)
+//   2. the Next app, built+started with BACKEND_URL pointed at (1)
+//
+// BACKEND_URL (not NEXT_PUBLIC_API_BASE_URL) is what production uses, so the
+// suite exercises the real wiring: server components fetch it directly, and
+// browser fetches go relative to the app, which the next.config.ts rewrite
+// proxies to BACKEND_URL. The mock is therefore same-origin from the browser's
+// view — the rewrite path itself is under test, not sidestepped via CORS.
 //
 // We run a built production app (`npm run build && npm run start`), not `dev`:
 // it's what `next build` already validates in the gate, exercises the real
@@ -40,7 +46,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       env: {
         PORT: String(APP_PORT),
-        NEXT_PUBLIC_API_BASE_URL: `http://localhost:${MOCK_API_PORT}`,
+        BACKEND_URL: `http://localhost:${MOCK_API_PORT}`,
       },
     },
   ],

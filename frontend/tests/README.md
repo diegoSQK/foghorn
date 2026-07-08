@@ -27,8 +27,10 @@ Playwright starts two servers and waits for both before running:
 
 1. **Mock backend** — `tests/mock-api/server.mjs`, a ~30-line Node HTTP server
    that returns the fixture JSON below for `/api/shows` and `/api/venues`.
-2. **The app** — `npm run build && npm run start` on port **3100**, built with
-   `NEXT_PUBLIC_API_BASE_URL` pointed at the mock.
+2. **The app** — `npm run build && npm run start` on port **3200**, run with
+   `BACKEND_URL` pointed at the mock. Server components fetch it directly;
+   browser fetches go relative and the `next.config.ts` rewrite proxies them
+   to the mock.
 
 **Why a mock *server* and not Playwright's `page.route()`?** `app/page.tsx` is
 an async *server* component: it fetches the API from the Next server process,

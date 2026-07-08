@@ -1,8 +1,30 @@
 // Shared API base, fetch helper, and response types used by the server
 // components (/, /watchlist, layout) and inlined by client components.
 
+// API_BASE is prepended to every /api/* path. Its value depends on where the
+// fetch runs, because the two contexts have different constraints:
+//
+//   • Browser (client components POSTing to the API): an EMPTY base, i.e. a
+//     relative URL. The request then goes to whatever host served the page —
+//     the laptop directly, or the laptop over Tailscale from a phone — and the
+//     next.config.ts rewrite proxies /api/* to the backend server-side. An
+//     absolute "http://localhost:…" base would resolve to the *device's* own
+//     localhost, so remote access could never work (and the backend binds
+//     127.0.0.1 only).
+//
+//   • Server (async server components rendering the initial page): a relative
+//     URL has no origin to resolve against, so we need an absolute base. These
+//     fetches run on the Next server (the laptop), so they hit the backend
+//     directly at BACKEND_URL — default 127.0.0.1:8100 (foghorn's port; 8000
+//     is ficycle's on this machine, so it must never be the default).
+//
+// NEXT_PUBLIC_API_BASE_URL stays as an explicit override for both contexts
+// (the e2e suite points it, or BACKEND_URL, at its mock backend).
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  (typeof window === "undefined"
+    ? process.env.BACKEND_URL ?? "http://127.0.0.1:8100"
+    : "");
 
 export type PerformerView = {
   display: string;
