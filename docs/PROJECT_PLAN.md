@@ -126,7 +126,7 @@ Yoshi's, Cornerstone Berkeley, The New Parish → shipped except New Parish (Tic
 
 ### Phase 8 — Mailing-list ingest — stage 1 ✅ / stage 2 parked
 
-Stage 1 shipped July 2026 — see [SHIPPED entry](SHIPPED.md#mailing-list-ingest-stage-1-phase-8-july-2026). Stage 2 (LLM extraction in the same review queue) awaits the enrichment-tier LLM decision shared with 7.4.
+Stage 1 shipped July 2026 — see [SHIPPED entry](SHIPPED.md#mailing-list-ingest-stage-1-phase-8-july-2026). Stage 2 (LLM extraction in the same review queue): **decided against for now (July 2026)** — same call as 7.4's stage 2; revisit only if Diego reopens it.
 
 <!-- original design:
 
@@ -176,7 +176,7 @@ Shipped July 2026 — see [Performer origin tagging v1](SHIPPED.md#performer-ori
 
 #### 7.4 Performer-level metadata — deterministic stage ✅ / LLM stage deferred
 
-**Stage 1 (deterministic) shipped July 2026** (venue-expansion branch): `performers.genre` + `genre_source` with a unanimous-evidence bootstrap (`make tag-genres`) over per-show genre overrides, venue leans, and performer-name keywords; genre resolution chain is show override > headliner performer genre > venue default. First run tagged 353/1,368 performers; manual corrections via `PUT /api/performers/{canonical}/genre` are permanent. **Stage 2 (LLM pass for the remaining ~75%) deliberately deferred** — Diego is weighing whether to accept an LLM dependency in the enrichment tier at all (it would not enter ingest-of-record or serving; tags would carry `genre_source='llm'` provenance and be bulk-revocable). The deterministic layer is the validation baseline if it proceeds. Unlike previously assumed, stage 2 does NOT depend on Phase 6 — it needs only an API key + a batching CLI.
+**Stage 1 (deterministic) shipped July 2026** (venue-expansion branch): `performers.genre` + `genre_source` with a unanimous-evidence bootstrap (`make tag-genres`) over per-show genre overrides, venue leans, and performer-name keywords; genre resolution chain is show override > headliner performer genre > venue default. First run tagged 353/1,368 performers; manual corrections via `PUT /api/performers/{canonical}/genre` are permanent. **Stage 2 (LLM pass for the remaining ~75%): DECIDED AGAINST for now (July 2026)** — Diego declined the LLM dependency in the enrichment tier (it would not enter ingest-of-record or serving; tags would carry `genre_source='llm'` provenance and be bulk-revocable). The deterministic layer is the validation baseline if it proceeds. Unlike previously assumed, stage 2 does NOT depend on Phase 6 — it needs only an API key + a batching CLI.
 
 #### 7.4b (formerly 7.4) LLM-inferred metadata (P2, depends on Phase 6)
 
