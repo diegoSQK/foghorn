@@ -59,6 +59,7 @@ from foghorn.scrapers import (
     the_warfield,
     thee_stork_club,
     uc_theatre,
+    wyldflowr_arts,
     yoshis,
 )
 
@@ -105,5 +106,6 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     the_chapel.VENUE_SLUG: the_chapel.scrape,
     the_independent.VENUE_SLUG: the_independent.scrape,
     the_knockout.VENUE_SLUG: the_knockout.scrape,
+    wyldflowr_arts.VENUE_SLUG: wyldflowr_arts.scrape,
     yoshis.VENUE_SLUG: yoshis.scrape,
 }

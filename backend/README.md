@@ -250,6 +250,20 @@ reservation link) and `price_text` (`cost`) on top of the basics. Same
 fetch/parse split; the `httpx.Client` is injectable so pagination is
 mock-transport-testable.
 
+**A third pattern (see `wyldflowr_arts`).** When a venue's calendar is an
+embedded third-party widget, the widget's own JS names the API to target.
+Wyldflowr Arts ticket through Viewcy and embed it as a `viewcyembed.com`
+iframe; reading the embed's bundle gave up
+`www.viewcy.com/api/o/<org>/courses` — public JSON, no auth. Two things
+generalize. First, **the calendar is invisible to a plain fetch** of the venue's
+own page, because it renders client-side; render the page in a browser when a
+site looks maintained but its calendar looks stale. Second, **a venue's
+legacy endpoint may still answer 200** — `wyldflowrarts.com/events?format=json`
+serves an abandoned Squarespace collection that stops in Aug 2025, which reads
+convincingly as a dormant venue. Verify a source is *current* before believing
+what it implies. Viewcy nests dated `events` under a `course`, so one course
+flattens to N shows.
+
 **Adding a venue:** implement `scrapers/<slug>.py` with `scrape()`, register it
 in `REGISTERED_SCRAPERS`, set the venue's `calendar_url` in the seed, and add a
 fixture-driven parser test.

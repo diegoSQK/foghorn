@@ -8,6 +8,53 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Wyldflowr Arts scraper + promotion out of aggregator quarantine (July 2026)
+
+Wyldflowr Arts (809 37th St, North Oakland) — the nonprofit BIPOC-woman-owned
+arts space founded by Dr. Nora Free and Dr. Tiffany Austin — is now a
+first-class scraped venue. Diego flagged it as a favorite he was missing.
+
+- **Source: the venue's Viewcy org API**, not its own site. Wyldflowr sells and
+  lists through [Viewcy](https://www.viewcy.com) (a live-music ticketing
+  platform) and embeds it on `/events` as a `viewcyembed.com` iframe. The
+  embed's own JS revealed the endpoint — `www.viewcy.com/api/o/wyldflowrarts/courses`
+  — public, unauthenticated, no Cloudflare, and `robots.txt` disallows only
+  `/auth`, `/register`, `/manage`, `/ticket*`. Clean JSON beat parsing the DOM.
+- **The trap worth remembering.** `wyldflowrarts.com/events?format=json` also
+  answers 200 with a plausible Squarespace events collection — but it's a
+  **stale leftover** whose newest item is 2025-08-24. The live calendar renders
+  client-side from the iframe, so a plain HTTP fetch of the venue's own page
+  sees nothing current, and paginating that collection reads as a *dormant
+  venue* — which is exactly the wrong conclusion. Rendering the page in a
+  browser is what surfaced the real source. If a Squarespace venue looks
+  abandoned but the site is otherwise maintained, look for an embed.
+- **Model.** Viewcy nests dated `events` under a `course` (its unit of
+  programming), flattened here to one `ScrapedShow` per event. `starts_at` is a
+  UTC instant, converted to naive venue-local (the date rolls back a day for
+  evening shows — a naive truncation would file them late).
+- **Non-music filter.** Items carry a `category_id` that today splits classes
+  (359) from events (360) perfectly, but those ids are org-authored groupings
+  the embed's JS never reads, so they'd churn if the venue reorganized. We
+  filter on the self-describing signals instead — workshop-ish tags, then a
+  narrow title check — erring toward inclusion for untagged named bookings, as
+  Bird & Beckett does. Mike Monford's 8/30 master class + evening concert are
+  separate courses, so "keep the concert, drop the workshop" falls out for free.
+  `Wyld Jam` is tagged `jam-session`, which sets `event_type="jam"` explicitly —
+  the ingest's jam-title regex would miss it (no "session"/"night"/genre word).
+- **Promotion needed no migration.** Bay Improviser had auto-created
+  `wyldflowr_arts` as a `source='aggregator'` quarantined row (venue 54) holding
+  3 community-entered shows. `venues.upsert` overwrites `source` from the
+  seed row, so adding the seed entry flips `aggregator` → `seed` on the next
+  seed run. (Note: the ticket asked for `source='scraper'`; the enum is
+  `seed | manual | aggregator` — `'seed'` is the first-class value.)
+- **The aggregator rows deduped away entirely.** Ingest reported
+  `created=9 updated=3`: all 3 Bay Improviser rows matched the natural key
+  exactly (Super P's 7/30 19:30, David Boyce 8/8 14:00, Mike Monford 8/30 16:00
+  — same times as Viewcy's ground truth), so the scraper's rows overwrote them
+  in place with `source='scrape'`. No duplicates, no `DELETE` cleanup needed.
+- 12 shows live (2026-07-16 → 09-04), all visible with the long-tail toggle off
+  and nothing pinned. 10 fixture tests over the real 14-course slate.
+
 ## Mailing-list ingest, stage 1 (Phase 8, July 2026)
 
 The channel for artists whose gigs never reach a scrapeable surface (Dillon
