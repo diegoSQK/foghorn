@@ -597,6 +597,21 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://theregencyballroom.com/events/",
         genre="rock",
     ),
+    Venue(
+        slug="wyldflowr_arts",
+        name="Wyldflowr Arts",
+        neighborhood="North Oakland",
+        region="East Bay",
+        address="809 37th St, Oakland, CA 94608",
+        tz="America/Los_Angeles",
+        website_url="https://wyldflowrarts.com",
+        # The page embeds a Viewcy iframe; the scraper reads Viewcy's org API
+        # behind it — see scrapers/wyldflowr_arts. Seeding this row also
+        # promotes the venue out of the Bay Improviser aggregator quarantine:
+        # upsert overwrites `source`, so 'aggregator' becomes 'seed' here.
+        calendar_url="https://wyldflowrarts.com/events",
+        genre="jazz",
+    ),
 ]
 
 

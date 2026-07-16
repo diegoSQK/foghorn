@@ -1,0 +1,633 @@
+{
+ "object": "list",
+ "data": [
+  {
+   "object": "course",
+   "id": 27078,
+   "uuid": "shreyas_ravindra__sk",
+   "category_id": 360,
+   "name": "Prayog - An Evening of Hindustani Classical Music",
+   "description": "<div>Experience an evening of Hindustani classical vocal music carried forward from one of India's most revered lineages - that of Pt. Basavaraj Rajguru, throug",
+   "url": "https://www.viewcy.com/event/shreyas_ravindra__sk",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 8343,
+     "name": "wyldflowr-arts"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "Early Bird",
+     "price": "21.87",
+     "currency": "usd"
+    },
+    {
+     "object": "ticket",
+     "name": "General Admission",
+     "price": "0.0",
+     "currency": "usd"
+    },
+    {
+     "object": "ticket",
+     "name": "Student / Senior",
+     "price": "19.78",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "69914f44-da08-4672-8264-c3dd5e0e0769",
+     "name": "Prayog - An Evening of Hindustani Classical Music",
+     "starts_at": "2026-07-17T02:30:00.000Z",
+     "ends_at": "2026-07-17T04:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/shreyas_ravindra__sk"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27688,
+   "uuid": "wyld_jam_7",
+   "category_id": 360,
+   "name": "Wyld Jam ",
+   "description": "<div>It's that time again! Wyld Jam ensues on July 18th, 1-4pm. Bring your primary, secondary and tertiary instruments. Bring a friend, and be ready for a truly",
+   "url": "https://www.viewcy.com/event/wyld_jam_7",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 17,
+     "name": "live-music"
+    },
+    {
+     "object": "tag",
+     "id": 27,
+     "name": "jazz"
+    },
+    {
+     "object": "tag",
+     "id": 229,
+     "name": "jam-session"
+    },
+    {
+     "object": "tag",
+     "id": 7854,
+     "name": "oakland-venue"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "Wyld Jam General Admission $5 - $15",
+     "price": "0.0",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "6c09c561-8a14-4533-b24e-9add2239a317",
+     "name": "Wyld Jam ",
+     "starts_at": "2026-07-18T20:00:00.000Z",
+     "ends_at": "2026-07-18T23:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/wyld_jam_7"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27079,
+   "uuid": "akshay_anantapadmanab",
+   "category_id": 360,
+   "name": "Akshay Anantapadmanabhan's Nam Dhi Ensemble - A Contemporary Carnatic Percussive Taalavaadya",
+   "description": "<div>Akshay Anantapadmanabhan’s Nam Dhi Ensemble (Carnatic Percussive Talavadya)<br><br>Prepare for a high-octane rhythmic experience as award-winning mridangam",
+   "url": "https://www.viewcy.com/event/akshay_anantapadmanab",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 8343,
+     "name": "wyldflowr-arts"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "Early Bird",
+     "price": "21.87",
+     "currency": "usd"
+    },
+    {
+     "object": "ticket",
+     "name": "General Admission",
+     "price": "0.0",
+     "currency": "usd"
+    },
+    {
+     "object": "ticket",
+     "name": "Student / Senior",
+     "price": "19.78",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "c5fdf53f-971d-426d-86e8-50c96e79f93a",
+     "name": "Akshay Anantapadmanabhan's Nam Dhi Ensemble - A Contemporary Carnatic Percussive Taalavaadya",
+     "starts_at": "2026-07-24T02:30:00.000Z",
+     "ends_at": "2026-07-24T04:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/akshay_anantapadmanab"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 26406,
+   "uuid": "maddie_liu__jitn__w",
+   "category_id": 360,
+   "name": "Maddie Liu - JiTN @ Wyldflowr Arts",
+   "description": "<div>Jazz in the Neighborhood and Wyldflowr Arts co-present:<br><br>Maddie Liu isa singer-songwriter, multi-instrumentalist, producer and rapper, she checks man",
+   "url": "https://www.viewcy.com/event/maddie_liu__jitn__w",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 17,
+     "name": "live-music"
+    },
+    {
+     "object": "tag",
+     "id": 27,
+     "name": "jazz"
+    },
+    {
+     "object": "tag",
+     "id": 7854,
+     "name": "oakland-venue"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "General Admission - $20",
+     "price": "21.87",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "1fa4035b-b3a1-4726-ba8b-7da506aa9ca4",
+     "name": "Maddie Liu - JiTN @ Wyldflowr Arts",
+     "starts_at": "2026-07-25T21:00:00.000Z",
+     "ends_at": "2026-07-25T23:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/maddie_liu__jitn__w"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 26803,
+   "uuid": "mark_rickey_birthday",
+   "category_id": 360,
+   "name": "Mark Rickey: Birthday Fundraiser for Wyldflowr Arts",
+   "description": "<blockquote>Wyldflowr Arts is currently in the process of setting up a new 501(c)(3) Non-Profit Organization with a mission to provide music &amp; arts educatio",
+   "url": "https://www.viewcy.com/event/mark_rickey_birthday",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 17,
+     "name": "live-music"
+    },
+    {
+     "object": "tag",
+     "id": 27,
+     "name": "jazz"
+    },
+    {
+     "object": "tag",
+     "id": 7854,
+     "name": "oakland-venue"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "General Admission - $20",
+     "price": "21.87",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "5d13a387-107c-4684-b0cc-130497b380c8",
+     "name": "Mark Rickey: Birthday Fundraiser for Wyldflowr Arts",
+     "starts_at": "2026-07-26T02:00:00.000Z",
+     "ends_at": "2026-07-26T05:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/mark_rickey_birthday"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27682,
+   "uuid": "tiffany_austin_train",
+   "category_id": 359,
+   "name": "Tiffany Austin: Trainwreck! Vocal Workshop",
+   "description": "<div>Ever been caught in a trainwreck onstage? Learn how to expertly avoid musical pitfalls in a safe and supportive environment. We'll have a full band (piano,",
+   "url": "https://www.viewcy.com/event/tiffany_austin_train",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 5925,
+     "name": "vocal-class"
+    },
+    {
+     "object": "tag",
+     "id": 111,
+     "name": "workshop"
+    },
+    {
+     "object": "tag",
+     "id": 8953,
+     "name": "technique"
+    }
+   ],
+   "tickets": [],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "4faa13b5-bcad-43e8-8891-b69f5b0c4829",
+     "name": "Tiffany Austin: Trainwreck! Vocal Workshop",
+     "starts_at": "2026-07-26T18:30:00.000Z",
+     "ends_at": "2026-07-26T21:30:00.000Z",
+     "book_url": "https://www.viewcy.com/event/tiffany_austin_train"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27236,
+   "uuid": "730_the_super_ps_",
+   "category_id": 360,
+   "name": "The Super P's - Unpil Baek, Chris Trinidad, Jimmy Biala ",
+   "description": "<div>Unpil Baek – piano and keyboard instruments<br>Chris Trinidad – bass guitar and synth bass<br>Jimmy Biala – drums and percussion<br><br>Players, polyglots,",
+   "url": "https://www.viewcy.com/event/730_the_super_ps_",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 8343,
+     "name": "wyldflowr-arts"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "Early Bird",
+     "price": "21.87",
+     "currency": "usd"
+    },
+    {
+     "object": "ticket",
+     "name": "General Admission",
+     "price": "0.0",
+     "currency": "usd"
+    },
+    {
+     "object": "ticket",
+     "name": "Student / Senior",
+     "price": "19.78",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "4d4ff5de-a105-4102-bfb5-f2f5e2ee60bc",
+     "name": "The Super P's - Unpil Baek, Chris Trinidad, Jimmy Biala ",
+     "starts_at": "2026-07-31T02:30:00.000Z",
+     "ends_at": "2026-07-31T04:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/730_the_super_ps_"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27964,
+   "uuid": "andrew_dixon_plays_co",
+   "category_id": 360,
+   "name": "Andrew Dixon plays Coltrane ",
+   "description": "<div>Andrew Dixon continues his monthly tributes to John Coltrane. This time the performance will feature the Ascension and Ole albums.&nbsp;</div>",
+   "url": "https://www.viewcy.com/event/andrew_dixon_plays_co",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 27,
+     "name": "jazz"
+    },
+    {
+     "object": "tag",
+     "id": 17,
+     "name": "live-music"
+    },
+    {
+     "object": "tag",
+     "id": 50,
+     "name": "concert"
+    },
+    {
+     "object": "tag",
+     "id": 636,
+     "name": "saxophone"
+    },
+    {
+     "object": "tag",
+     "id": 6257,
+     "name": "coltrane"
+    },
+    {
+     "object": "tag",
+     "id": 3240,
+     "name": "free-jazz"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "GA",
+     "price": "21.87",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "a1a20013-ede0-4f6d-a2c5-b4fbe9356339",
+     "name": "Andrew Dixon plays Coltrane ",
+     "starts_at": "2026-08-01T02:00:00.000Z",
+     "ends_at": "2026-08-01T04:30:00.000Z",
+     "book_url": "https://www.viewcy.com/event/andrew_dixon_plays_co"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27897,
+   "uuid": "nora_free_liberation",
+   "category_id": 360,
+   "name": "Nora Free Liberation Qtet",
+   "description": "<div>Please join us as Nora Free's Liberation Qtet takes the stage at Wyldflowr for the first time since last summer. The Wyld-founder herself will premiere new",
+   "url": "https://www.viewcy.com/event/nora_free_liberation",
+   "timezone": "America/Los_Angeles",
+   "tags": [],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "GA",
+     "price": "25.0",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "bbca578b-4c29-46d0-b609-175bcc73ec06",
+     "name": "Nora Free Liberation Qtet",
+     "starts_at": "2026-08-02T02:00:00.000Z",
+     "ends_at": "2026-08-02T04:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/nora_free_liberation"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 26407,
+   "uuid": "david_boyce__jitn_",
+   "category_id": 360,
+   "name": "David Boyce - JiTN @ Wyldflowr Arts",
+   "description": "<div>&nbsp;Jazz in the Neighborhood and Wyldflowr Arts co-present:<br><br><strong>A long-time force on the Bay Area jazz/hip hop/afro-funk music scene, David Bo",
+   "url": "https://www.viewcy.com/event/david_boyce__jitn_",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 17,
+     "name": "live-music"
+    },
+    {
+     "object": "tag",
+     "id": 2231,
+     "name": "oakland"
+    },
+    {
+     "object": "tag",
+     "id": 27,
+     "name": "jazz"
+    }
+   ],
+   "tickets": [],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "6e411088-38bb-4af3-bf8c-bd504688a9bd",
+     "name": "David Boyce - JiTN @ Wyldflowr Arts",
+     "starts_at": "2026-08-08T21:00:00.000Z",
+     "ends_at": "2026-08-08T23:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/david_boyce__jitn_"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 26408,
+   "uuid": "rumi_abe__jitn__wyl",
+   "category_id": 360,
+   "name": "Rumi Abe - JiTN @ Wyldflowr Arts",
+   "description": "<div>&nbsp;Jazz in the Neighborhood and Wyldflowr Arts co-present:<br><br>Rumi Abe, a pianist from Nagoya, Japan, began playing Electone at age 4 and studying m",
+   "url": "https://www.viewcy.com/event/rumi_abe__jitn__wyl",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 17,
+     "name": "live-music"
+    },
+    {
+     "object": "tag",
+     "id": 27,
+     "name": "jazz"
+    },
+    {
+     "object": "tag",
+     "id": 7854,
+     "name": "oakland-venue"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "General Admission - $20",
+     "price": "21.87",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "331b9d2b-7634-4204-9b1c-7795a7a17c07",
+     "name": "Rumi Abe - JiTN @ Wyldflowr Arts",
+     "starts_at": "2026-08-22T21:00:00.000Z",
+     "ends_at": "2026-08-22T23:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/rumi_abe__jitn__wyl"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27668,
+   "uuid": "clinic_bebop_blues",
+   "category_id": 359,
+   "name": "Master Class: \"Bebop, Blues & Afrofuturism\" with Mike Monford",
+   "description": "<div>Detroit-based alto saxophonist, composer, and jazz historian <a href=\"https://www.mikemonfordmusic.com/\">Mike Monford</a> leads an interactive master class",
+   "url": "https://www.viewcy.com/event/clinic_bebop_blues",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 111,
+     "name": "workshop"
+    },
+    {
+     "object": "tag",
+     "id": 8950,
+     "name": "clinic"
+    },
+    {
+     "object": "tag",
+     "id": 8951,
+     "name": "bebop"
+    },
+    {
+     "object": "tag",
+     "id": 718,
+     "name": "blues"
+    },
+    {
+     "object": "tag",
+     "id": 8949,
+     "name": "afrofuturism"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "Workshop - $45",
+     "price": "47.9",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "905f1e0e-5eb0-4b0e-a36f-fae46ea701ea",
+     "name": "Master Class: \"Bebop, Blues & Afrofuturism\" with Mike Monford",
+     "starts_at": "2026-08-30T19:00:00.000Z",
+     "ends_at": "2026-08-30T22:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/clinic_bebop_blues"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27667,
+   "uuid": "mike_monford_an_eveni",
+   "category_id": 360,
+   "name": "Concert: Mike Monford - An Evening Of  Jazz & Afrofuturism ",
+   "description": "<div>Featuring &nbsp;</div><div>Mike Monford: Alto Saxophone&nbsp;</div><div>Kev Choice : Piano&nbsp;</div><div>Destiny Muhammad Trio</div><div>Lufuki: Guitar&n",
+   "url": "https://www.viewcy.com/event/mike_monford_an_eveni",
+   "timezone": "America/Los_Angeles",
+   "tags": [
+    {
+     "object": "tag",
+     "id": 17,
+     "name": "live-music"
+    },
+    {
+     "object": "tag",
+     "id": 27,
+     "name": "jazz"
+    },
+    {
+     "object": "tag",
+     "id": 2231,
+     "name": "oakland"
+    },
+    {
+     "object": "tag",
+     "id": 8949,
+     "name": "afrofuturism"
+    }
+   ],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "General Admission - $20",
+     "price": "21.87",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "101e67b6-4c14-4cff-ab41-606bb4c8a44a",
+     "name": "Concert: Mike Monford - An Evening Of  Jazz & Afrofuturism ",
+     "starts_at": "2026-08-30T23:00:00.000Z",
+     "ends_at": "2026-08-31T01:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/mike_monford_an_eveni"
+    }
+   ]
+  },
+  {
+   "object": "course",
+   "id": 27678,
+   "uuid": "morley__chris_bruce",
+   "category_id": 360,
+   "name": "Morley & Chris Bruce: Soul, Jazz & Folk",
+   "description": "<div>Morley weaves the threads of jazz, soul, and folk traditions into a singular tapestry of vocal and acoustic splendor — the sound wave of a life lived with ",
+   "url": "https://www.viewcy.com/event/morley__chris_bruce",
+   "timezone": "America/Los_Angeles",
+   "tags": [],
+   "tickets": [
+    {
+     "object": "ticket",
+     "name": "General Admission - $20",
+     "price": "21.87",
+     "currency": "usd"
+    }
+   ],
+   "events": [
+    {
+     "object": "event",
+     "uuid": "0abd417e-a5ed-4515-8eab-63e7327f5f5b",
+     "name": "Morley & Chris Bruce: Soul, Jazz & Folk",
+     "starts_at": "2026-09-05T02:00:00.000Z",
+     "ends_at": "2026-09-05T04:00:00.000Z",
+     "book_url": "https://www.viewcy.com/event/morley__chris_bruce"
+    }
+   ]
+  }
+ ],
+ "has_more": false,
+ "total_count": 14,
+ "url": ""
+}
