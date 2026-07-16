@@ -49,7 +49,7 @@ None at present. foghorn's surface is the website itself — users browse the sh
 
 ## Where things live
 
-- `docs/PROJECT_PLAN.md` — active roadmap (in flight, queued, deferred). The strategic narrative: phases, dependencies, sequencing, blockers. Shipped items are collapsed to one-line status pointers; the full as-shipped detail lives in SHIPPED.md.
+- `docs/PROJECT_PLAN.md` — **canonical source for current status**: what's shipped, in flight, queued, and deferred. The strategic narrative: phases, dependencies, sequencing, blockers. Shipped items are collapsed to one-line status pointers; the full as-shipped detail lives in SHIPPED.md. If you need to know "where is foghorn now?" the answer lives here, not in this file.
 - `docs/SHIPPED.md` — chronological history of completed work. Each entry preserves the as-shipped narrative as scar tissue (why-it-was-done context that informs new work). Read on demand when scoping similar work; not a daily-read file.
 - `docs/CHANGELOG.md` — indexed version history. One section per release tag, with anchor links into SHIPPED.md. Cut at release events per `RELEASE_PROCESS.md`.
 - `docs/RELEASE_PROCESS.md` — release cadence (event-triggered) + version policy (semver-locked) + the ritual the PM thread runs each release. Read once to internalize; reference at release-cut time.
@@ -57,21 +57,17 @@ None at present. foghorn's surface is the website itself — users browse the sh
 - `docs/TRACKER.md` — tracker adapter. The five operations the working model needs from a work tracker, mapped to GitHub Issues (default) and Linear. Read the section for your tracker; you don't need both. foghorn uses GitHub Issues as-default; no extra configuration required.
 - `docs/SETUP.md` — environment configuration: repo + GitHub PAT + label creation + filling in template placeholders. One-time setup reference.
 - `docs/EXAMPLES.md` — worked examples (issue ticket, SHIPPED entry, PROJECT_PLAN phase) drawn from a real project, with annotations on shape.
-- `backend/README.md` — authoritative reference for the backend's data model (shows, venues, performers), scraper interface, ingest pipeline, and API surface. Filled in across Phase 1.
+- `backend/README.md` — authoritative reference for the backend's data model (shows, venues, performers), scraper interface, ingest pipeline, and API surface.
 - **The work tracker** — where work items live (GitHub Issues by default; pluggable — see `docs/TRACKER.md`). Tickets are queued / claimed / resolved; the ticket body is the spec; a merged PR resolves its ticket. The default GitHub-Issues mechanics use labels + `Closes #N` (see the **GitHub Issue Labels** section below); Linear and other trackers map the same operations to native fields and PR linking.
 
 ## Project Shape
 
 Two-package monorepo, both in the repo root:
 
-- `backend/` — Python 3.11+. FastAPI for the HTTP surface, stdlib `sqlite3` for storage (Postgres deferred until hosting is decided), per-venue scrapers in `backend/scrapers/<venue_slug>.py`. Scraping primarily with `httpx` + `beautifulsoup4`; `playwright` reserved for venues that require it (JS-rendered calendars or anti-bot challenges). Daily scrape scheduled via a small in-process scheduler (APScheduler) when the backend is the long-running process; switch to cron / systemd timer if/when we add a separate worker.
+- `backend/` — Python 3.11+. FastAPI for the HTTP surface, stdlib `sqlite3` for storage, per-venue scrapers in `backend/scrapers/<venue_slug>.py` plus a separate aggregator-tier that runs after them. Scraping primarily with `httpx` + `beautifulsoup4`; `playwright` reserved for venues that require it (JS-rendered calendars or anti-bot challenges). Daily scrape scheduled via a small in-process scheduler (APScheduler) when the backend is the long-running process; switch to cron / systemd timer if/when we add a separate worker.
 - `frontend/` — Next.js 16 + React 19 + TypeScript + Tailwind. Server components fetch from the backend API; client components for filtering / search interactivity. No database / auth in the frontend itself.
 
-Both packages are scaffolded (Phase 1.1) with the data-model spine in place (Phase 1.2). See `backend/README.md` for the data-model + storage details; see PROJECT_PLAN Phase 2 for in-flight scraper work.
-
-## Current State
-
-Phase 1 shipped (May 2026): backend + frontend scaffolding + CI gate (1.1), and the SQLite schema + repo layer + ingest pipeline + four-venue seed (1.2). Phase 2.1 — first scraper end-to-end + the `/api/shows` endpoint + minimal frontend list page + `make scrape` / `make backend-run` / `make frontend-run` targets — is in flight against **Bird & Beckett**, which publishes a public Google Calendar `.ics` (clean, structured, no anti-bot challenges). **SFJAZZ**, originally scoped as the 2.1 pilot, is blocked behind a Cloudflare managed challenge and deferred — see `Deferred Workstream` below.
+See `backend/README.md` for the data-model + storage details. **Current phase status, in-flight work, and deferred items live in `docs/PROJECT_PLAN.md`** — don't infer them from anything in this file.
 
 ## Commands
 
@@ -151,16 +147,3 @@ The complete current set is whatever `gh label list` returns; the categories abo
 - Commit atomically. `git add` by file name rather than `-A` — secrets and local artifacts can sneak in otherwise.
 - Force-push only on feature branches you own — never on shared branches like `main`. Never `git reset --hard` without an explicit ask. Never skip hooks.
 - The working tree can be dirty during iterative sessions by design — don't clean up aggressively.
-
-## Deferred Workstream
-
-Explicitly deferred to keep early phases focused:
-
-- **SFJAZZ scraper.** Originally the Phase 2.1 pilot. SFJAZZ's calendar sits behind a Cloudflare managed challenge that 403s every plain HTTP client (both the polite `foghorn-scraper` UA and a browser UA), and the sitemap host in `robots.txt` 404s. Cloudflare-bypass was out of scope for the original ticket; Phase 2.1 pivoted to Bird & Beckett (public `.ics` feed) instead. **Unblock condition:** willingness to take on per-venue Playwright (headless browser) complexity, or discovery of a cleaner SFJAZZ data feed (sitemap, third-party calendar, public API). Will file a fresh ticket when unblocked.
-- **Travel-time ETAs from home/work/studio.** Deferred to a later phase. Decision on map provider (Google / Mapbox / ORS / coarse neighborhood lookup) deferred with it.
-- **Hosting / deployment.** Phases 1–N run locally. Decision on Vercel + Python host vs. single VPS deferred until the app is usable enough to deploy.
-- **Multi-user accounts.** Watchlist is local / single-user-shaped in early phases. Real accounts wait until the app goes public.
-- **Alerts / notifications** (email or push when a watchlist performer is announced). Deferred until the watchlist proves valuable in the manual-check shape.
-- **Postgres / non-SQLite storage.** SQLite is fine through Phases 1–N at single-user scale. Migrate when hosting requires it.
-- **LLM-assisted scraping.** Hand-rolled parsers for the seed venues first; LLM-assisted extraction (with hand-tuned overrides) added in a later phase to scale venue count without per-venue parser work.
-- **Mobile app.** Web-first. Native app only if the web experience has obvious mobile-specific friction that responsive design can't solve.
