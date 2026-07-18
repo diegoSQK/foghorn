@@ -48,10 +48,12 @@ _SCHEDULING_RE = re.compile(
     r'"timeZoneId":"([^"]+)"'
 )
 _OG_TITLE_RE = re.compile(r'property="og:title" content="([^"]+)"')
-# "(Fri 7/31 - 5 PM seating)" style suffixes — sometimes typed with
-# fullwidth parens, sometimes unclosed; normalize before stripping.
+# "(Fri 7/31 - 5 PM seating)" / "(7/18-5pm)" style suffixes — sometimes
+# typed with fullwidth parens, sometimes unclosed, sometimes without the
+# weekday; normalize before stripping.
 _SEATING_SUFFIX_RE = re.compile(
-    r"\s*\((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[^)]*\)?\s*$", re.IGNORECASE
+    r"\s*\((?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)|\d{1,2}/\d{1,2})[^)]*\)?\s*$",
+    re.IGNORECASE,
 )
 _SITE_SUFFIX_RE = re.compile(r"\s*\|\s*Meyhouse[^|]*$", re.IGNORECASE)
 _PALO_ALTO_SIGNALS = ("Palo Alto Stage", "Emerson St")
