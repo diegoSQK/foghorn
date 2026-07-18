@@ -691,6 +691,59 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="indexical",
+        name="Indexical",
+        neighborhood="Tannery Arts Center",
+        region="Santa Cruz",
+        address="1050 River St #119, Santa Cruz, CA",
+        tz="America/Los_Angeles",
+        website_url="https://indexical.org",
+        # Server-rendered listing with dates in event slugs — see
+        # scrapers/indexical. BI slug match promotes it out of quarantine.
+        calendar_url="https://indexical.org/events",
+        genre="eclectic",
+    ),
+    Venue(
+        slug="make_out_room",
+        name="Make-Out Room",
+        neighborhood="Mission",
+        region="SF",
+        address="3225 22nd St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        # HTTPS is broken on the venue's site (TLS handshake failure); the
+        # scraper fetches plain HTTP — see scrapers/make_out_room. ~4-5 day
+        # posting horizon; the nightly poll is the coverage model.
+        website_url="http://www.makeoutroom.com",
+        calendar_url="http://www.makeoutroom.com/",
+        genre="eclectic",
+    ),
+    Venue(
+        slug="meyhouse_jazz",
+        name="Meyhouse Jazz",
+        neighborhood="Downtown Palo Alto",
+        region="Peninsula",
+        address="640 Emerson St, Palo Alto, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.meyhousejazz.com",
+        # Wix Events scheduling JSON on server-rendered detail pages,
+        # filtered to the Palo Alto stage — see scrapers/meyhouse_jazz.
+        calendar_url="https://www.meyhousejazz.com/event-list",
+        genre="jazz",
+    ),
+    Venue(
+        slug="poor_house_bistro",
+        name="Poor House Bistro",
+        neighborhood="Little Italy",
+        region="South Bay",
+        address="317 Sharks Way, San Jose, CA",
+        tz="America/Los_Angeles",
+        website_url="https://poorhousebistro.com",
+        # Monthly calendar-grid JPEG via the pluggable OCR layer — see
+        # scrapers/poor_house_bistro. Not a BI venue; new row.
+        calendar_url="https://poorhousebistro.com/",
+        genre="eclectic",
+    ),
+    Venue(
         slug="wyldflowr_arts",
         name="Wyldflowr Arts",
         neighborhood="North Oakland",

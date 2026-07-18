@@ -8,6 +8,56 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Venue batch 4: Indexical, Meyhouse Jazz, Make-Out Room, Poor House Bistro (July 2026)
+
+Four scrapers from the audit docket (two "easy", two "best effort" per
+Diego), plus an OCR-layer upgrade. Also in this pass: **The New Parish
+re-verified still-empty** (the pre-solved admin-ajax endpoint answers
+``{"events":[]}`` as of 2026-07-18 — recheck again in a few weeks), and
+**The Monkey House is fetch-blocked** (Wix 429s every request from this
+IP even at browser UA after long cooldowns; the OCR pattern is ready if
+the throttle passes — retry on a later pass, gently).
+
+- **Indexical** (Tannery Arts Center, Santa Cruz — second Santa Cruz
+  venue) — server-rendered Rails listing whose event slugs carry the date
+  (``/events/2026-07-27-…``), so future pages are known before fetching;
+  detail pages state "Doors at 6:30pm | Show at 7pm" (sometimes "Event
+  at"), price or "FREE to Attend". Monthly synth-co-op *meetups* drop on
+  slug signal; open mics stay (inference types them jams).
+- **Meyhouse Jazz** (Downtown Palo Alto, jazz) — the SFJAZZ-designed
+  listening room inside Meyhouse restaurant. The Wix surface looks
+  JS-locked but server-renders everything needed: ``/event-list`` links +
+  per-page **Wix Events scheduling JSON** (UTC start + timeZoneId) +
+  og:title + stage address. Filtered to the Palo Alto stage (Sunnyvale /
+  San Ramon exist); 5 PM / 8 PM seatings kept as separate shows (Yoshi's
+  precedent); fullwidth-paren seating suffixes stripped from titles.
+- **Make-Out Room** (Mission, eclectic) — the fleet's oddest fetch:
+  HTTPS is broken (TLS handshake failure), so plain HTTP; the calendar is
+  hand-written Weebly blog posts on the homepage with a ~4–5 day horizon
+  (nightly polling IS the coverage model; the RSS mirror has empty
+  bodies). Parser: date from the post header; blocks close on time-range
+  lines (including as suffixes); multi-line billings join ("JAZZ" / "at
+  the" / "MAKE OUT ROOM!"); "7pm show" overrides range starts; trailing
+  SET LISTS (gated on time-only marker lines — the thing that separates
+  them from Instagram-promo prose) become support, so the watchlist sees
+  Lorin Benedict behind "JAZZ at the MAKE OUT ROOM!".
+- **Poor House Bistro** (San Jose Little Italy, eclectic — new venue, not
+  in BI) — the OCR pattern's second venue and first **month-grid** flyer.
+  Two lessons for the pattern: (1) small flyers OCR measurably worse —
+  both engines now upscale sub-1600px images 2× (this fixed "BLUFM-OCKERS"
+  → "BLUES ROCKERS"); (2) **compute grid dates, don't read them** — day
+  numbers merge into neighboring act text, so cell dates derive from the
+  month's first weekday + weekday-header columns + anchor-row bands, with
+  a majority sanity check against cleanly-read anchors that refuses a
+  shifted grid outright. Cells split into (act, time-range) segments
+  (two-slot Sundays work); CLOSED cells drop; the Wednesday "WILLIAM
+  JOHNSTON TRIO HOST PHB JAZZ JAM & <brewery>" residency and THEME JAMs
+  are explicitly typed jams. Known noise: a couple of garbled Sunday-cell
+  names per month ride along verbatim.
+
+Live at ship time: 2 / 13 / 8 / 8 shows respectively (Meyhouse counts both
+seatings; MOR counts multiple events per night).
+
 ## Manual event-type correction — clickable jam badges (July 2026)
 
 Mark Clifford's Standards Hang at Little Hill is a jam session, but nothing
