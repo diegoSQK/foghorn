@@ -8,6 +8,38 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Pluggable OCR engines (July 2026)
+
+Follow-up to the Little Hill OCR scraper, per Diego: future hosting or
+open-sourcing must not be locked to Apple Vision. OCR is now a seam, not a
+dependency.
+
+- **`foghorn/ocr/`** defines the engine contract — a callable
+  ``(image_bytes) -> list[OcrLine]`` in normalized bottom-left box space —
+  plus ``get_engine()``: explicit name → ``FOGHORN_OCR_ENGINE`` env var →
+  platform default (``apple_vision`` on macOS, ``rapidocr`` elsewhere).
+  Scrapers import only the contract; the Little Hill parser didn't change
+  shape at all.
+- **Two real engines, both validated on the live July flyer.**
+  ``apple_vision`` (moved from the scraper) remains the darwin default and
+  quality bar. ``rapidocr`` (ONNX PP-OCR via ``rapidocr-onnxruntime``, the
+  new ``rapidocr`` extra) runs anywhere with no system binaries — verdict
+  from the side-by-side: all rows detected with correct geometry and it
+  even reads "OoO" better than Vision, but **inter-word spaces are lost on
+  this flyer's font** ("RainbowCityPark"), which degrades act-name
+  fidelity and watchlist token matching. Structure survives; prefer Vision
+  where available.
+- **Parser hardening from the second engine's real output** (both engines'
+  fixtures are checked in and tested): date cells without spaces
+  ("WED7/1") and fullwidth commas ("(Greek，8pm") are normalized —
+  RapidOCR's fixture parses to the identical 24-show/skip structure as
+  Vision's.
+
+Live-verified by running the same scraper under both engines
+(``FOGHORN_OCR_ENGINE=…``): identical show structure, the documented name
+degradation on rapidocr. A future engine (hosted OCR API, a better local
+model) is one ~50-line module implementing ``recognize``.
+
 ## Little Hill Lounge via on-device OCR — the flyer-venue pattern (July 2026)
 
 Little Hill (El Cerrito) publishes its calendar **only as a monthly flyer

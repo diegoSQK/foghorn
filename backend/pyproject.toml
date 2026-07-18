@@ -21,9 +21,10 @@ dependencies = [
     "pydantic==2.13.4",
     "icalendar==7.1.2",
     "recurring-ical-events==3.8.2",
-    # Apple Vision OCR for flyer-only venues (see scrapers/little_hill_lounge).
+    # Apple Vision — the default OCR engine on macOS (see foghorn/ocr).
     # Darwin-only: the nightly scrape runs on a Mac; CI (ubuntu) skips these
-    # and exercises the pure parser from a checked-in OCR fixture.
+    # and exercises the pure parser from checked-in OCR fixtures. Non-mac
+    # hosts use the `rapidocr` extra instead.
     "pyobjc-framework-Vision==12.2.1; sys_platform == 'darwin'",
     "pyobjc-framework-Quartz==12.2.1; sys_platform == 'darwin'",
 ]
@@ -33,6 +34,11 @@ dev = [
     "pytest==9.0.3",
     "ruff==0.15.14",
     "mypy==2.1.0",
+]
+# Cross-platform OCR engine (FOGHORN_OCR_ENGINE=rapidocr; the default off
+# macOS) — for hosting the scraper somewhere Apple Vision doesn't exist.
+rapidocr = [
+    "rapidocr-onnxruntime==1.4.4",
 ]
 
 [tool.hatch.build.targets.wheel]

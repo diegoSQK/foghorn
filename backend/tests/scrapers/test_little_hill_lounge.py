@@ -1,15 +1,15 @@
 """Tests for the Little Hill Lounge (flyer OCR) scraper.
 
-``parse_flyer`` is pure and driven from the real Vision OCR output of the
-July 2026 flyer (``fixtures/little_hill_2026_07_ocr.json`` — 69
-observations incl. the logo misreads and header/footer noise). Covered:
-row pairing across the two columns (including descriptions whose OCR order
-precedes their date line), multi-line continuation bills, comma-bill
-splitting with "w/" prefixes and an unbalanced-parenthetical typo,
-time-range starts, non-music skips (karaoke/bingo/movie/"OPEN FOR"), the
-no-time row skipped rather than fabricated, and window enforcement. The
-OCR step itself is macOS-only and exercised implicitly by live runs; here
-``ocr_image`` is only asserted to fail cleanly off-macOS.
+``parse_flyer`` is pure and driven from the real OCR output of the July
+2026 flyer from BOTH engines (``fixtures/little_hill_2026_07_ocr.json`` —
+Apple Vision, 69 observations; ``…_rapidocr.json`` — RapidOCR, 70
+observations with its spacing-less date cells and fullwidth commas).
+Covered: row pairing across the two columns (including descriptions whose
+OCR order precedes their date line), multi-line continuation bills,
+comma-bill splitting with "w/" prefixes and an unbalanced-parenthetical
+typo, time-range starts, non-music skips, the no-time row skipped rather
+than fabricated, window enforcement, and engine-selection behavior
+(``foghorn.ocr.get_engine``).
 """
 
 from __future__ import annotations
@@ -21,17 +21,26 @@ from pathlib import Path
 
 import pytest
 
+from foghorn.ocr import OcrLine, get_engine
 from foghorn.scrapers import little_hill_lounge
-from foghorn.scrapers.little_hill_lounge import OcrLine
 
 FIXTURE = (
     Path(__file__).parent.parent / "fixtures" / "little_hill_2026_07_ocr.json"
 )
+RAPIDOCR_FIXTURE = (
+    Path(__file__).parent.parent
+    / "fixtures"
+    / "little_hill_2026_07_rapidocr.json"
+)
+
+
+def _load(path: Path) -> list[OcrLine]:
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return [OcrLine(r["text"], r["x"], r["y"], r["w"], r["h"]) for r in raw]
 
 
 def _lines() -> list[OcrLine]:
-    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    return [OcrLine(r["text"], r["x"], r["y"], r["w"], r["h"]) for r in raw]
+    return _load(FIXTURE)
 
 
 def _parse(today: dt.date) -> list:
@@ -91,7 +100,32 @@ def test_window_and_past_rows_excluded() -> None:
     assert len(shows) == 11
 
 
+def test_rapidocr_fixture_parses_same_structure() -> None:
+    # The other engine's real output: spacing-less date cells ("WED7/1") and
+    # a fullwidth comma. Structure must survive even though word spacing
+    # inside act names degrades.
+    shows = little_hill_lounge.parse_flyer(
+        _load(RAPIDOCR_FIXTURE), 2026, 7, dt.date(2026, 7, 1)
+    )
+    assert len(shows) == 24  # same rows kept/skipped as the Vision fixture
+    by_day = {s.start_local.date().day: s for s in shows}
+    assert by_day[17].start_local.time() == dt.time(20, 0)
+    assert len(by_day[17].support_raw) == 3  # commas preserved the bill
+    # The fullwidth-comma row still yields its time and a trimmed headliner.
+    assert by_day[26].headliner_raw == "Disciples of Markos"
+    assert by_day[26].start_local.time() == dt.time(20, 0)
+
+
+def test_get_engine_selection() -> None:
+    with pytest.raises(RuntimeError, match="unknown OCR engine"):
+        get_engine("nope")
+    # Explicit names resolve regardless of platform defaults.
+    assert callable(get_engine("apple_vision"))
+
+
 @pytest.mark.skipif(sys.platform == "darwin", reason="darwin has Vision")
-def test_ocr_unavailable_off_macos() -> None:
-    with pytest.raises(RuntimeError, match="Apple Vision"):
-        little_hill_lounge.ocr_image(b"not-an-image")
+def test_apple_vision_engine_unavailable_off_macos() -> None:
+    from foghorn.ocr import apple_vision
+
+    with pytest.raises(RuntimeError, match="needs macOS"):
+        apple_vision.recognize(b"not-an-image")
