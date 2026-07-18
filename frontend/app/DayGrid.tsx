@@ -61,10 +61,15 @@ export default function DayGrid({ shows }: { shows: ShowView[] }) {
   );
 
   // A stated end earlier than its start crosses midnight ("9:30pm-2am").
+  // Equal-to-start and absurdly long (>10h) ends are degenerate calendar
+  // data — treat as unstated rather than drawing a day-long block.
   const endMinutesOf = (s: ShowView): number | null => {
     if (!s.end_local_time) return null;
-    const end = minutesOf(s.end_local_time);
-    return end <= minutesOf(s.start_local_time) ? end + 24 * 60 : end;
+    const start = minutesOf(s.start_local_time);
+    let end = minutesOf(s.end_local_time);
+    if (end === start) return null;
+    if (end < start) end += 24 * 60;
+    return end - start > 10 * 60 ? null : end;
   };
   const starts = shows.map((s) => minutesOf(s.start_local_time));
   const blockEnds = shows.map(
