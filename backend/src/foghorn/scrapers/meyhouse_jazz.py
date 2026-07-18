@@ -48,11 +48,13 @@ _SCHEDULING_RE = re.compile(
     r'"timeZoneId":"([^"]+)"'
 )
 _OG_TITLE_RE = re.compile(r'property="og:title" content="([^"]+)"')
-# "(Fri 7/31 - 5 PM seating)" / "(7/18-5pm)" style suffixes — sometimes
-# typed with fullwidth parens, sometimes unclosed, sometimes without the
-# weekday; normalize before stripping.
+# Trailing title noise, stripped repeatedly: seating suffixes in all their
+# observed shapes — "(Fri 7/31 - 5 PM seating)", "(7/18-5pm)",
+# "(7/18 Sat-8pm)", fullwidth or unclosed parens — plus Wix's "(1)" dedup
+# counters, which can stack AFTER a seating suffix.
 _SEATING_SUFFIX_RE = re.compile(
-    r"\s*\((?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)|\d{1,2}/\d{1,2})[^)]*\)?\s*$",
+    r"\s*\((?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)|\d{1,2}/\d{1,2})[^)]*\)?\s*$"
+    r"|\s*\(\d+\)\s*$",
     re.IGNORECASE,
 )
 _SITE_SUFFIX_RE = re.compile(r"\s*\|\s*Meyhouse[^|]*$", re.IGNORECASE)
@@ -114,7 +116,11 @@ def parse_event_page(page_html: str, url: str) -> ScrapedShow | None:
     title = " ".join(html_lib.unescape(title_match.group(1)).split())
     title = title.replace("\uff08", "(").replace("\uff09", ")")
     title = _SITE_SUFFIX_RE.sub("", title)
-    title = _SEATING_SUFFIX_RE.sub("", title).strip()
+    while True:  # suffixes stack ("… (7/18 Sat-8pm) (1)"); peel until stable
+        stripped = _SEATING_SUFFIX_RE.sub("", title).strip()
+        if stripped == title:
+            break
+        title = stripped
     if not title:
         return None
     return ScrapedShow(
