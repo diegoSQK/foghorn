@@ -1,8 +1,8 @@
 "use client";
 
-// "Your watchlist" chip row on /watchlist. Removing a chip DELETEs the entry
-// then router.refresh()es so the server re-fetches the (now narrower) matches,
-// the chip row, and the nav count.
+// "Your watchlist" chip row, shown on / while the watchlist filter is
+// active. Removing a chip DELETEs the entry then router.refresh()es so the
+// server re-fetches the (now narrower) matches and the chip row.
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";

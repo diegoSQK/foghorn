@@ -27,6 +27,18 @@ export const linkClass =
 export const buttonClass =
   "rounded-full border border-teal-700 bg-teal-700 px-4 py-1.5 text-sm text-white transition-colors hover:border-teal-800 hover:bg-teal-800 disabled:opacity-50 dark:border-teal-500 dark:bg-teal-500 dark:text-zinc-950 dark:hover:border-teal-400 dark:hover:bg-teal-400";
 
+/** Left-accent border for a day-grid show block, hue-matched to the genre
+ * badge palette below; unknown/untagged genres fall back to the accent teal. */
+export function genreAccentClass(genre: string | null | undefined): string {
+  const palette: Record<string, string> = {
+    jazz: "border-indigo-400 dark:border-indigo-600",
+    rock: "border-rose-400 dark:border-rose-600",
+    funk: "border-orange-400 dark:border-orange-600",
+    electronic: "border-violet-400 dark:border-violet-600",
+  };
+  return palette[genre ?? ""] ?? "border-teal-500 dark:border-teal-600";
+}
+
 /** Tiny tinted badge for a venue genre. Colors are fixed per genre value so
  * scanning a mixed list works; unknown genres fall back to neutral. */
 export function genreBadgeClass(genre: string): string {

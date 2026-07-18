@@ -23,6 +23,7 @@ import { chipClass, inputClass } from "./lib/ui";
 export default function FilterBar({
   venues,
   watchedVenueSlugs,
+  watchlistCount = 0,
   showOriginFilter = false,
   showDateControls = true,
   showMyVenuesChip = false,
@@ -30,24 +31,28 @@ export default function FilterBar({
   venues: VenueOption[];
   // Followed venues (venue watchlist): sorts the picker and drives its ★s.
   watchedVenueSlugs?: Set<string>;
+  // Performer-watchlist size, shown on the Watchlist chip. The chip renders
+  // even at 0 — it's the feature's entry point now that /watchlist is gone.
+  watchlistCount?: number;
   // Origin tags cover only part of the catalog; the server component sets
   // this when tagged performers exist in the result (or ?origin= is active).
   showOriginFilter?: boolean;
   // The day/week/month views derive their own window from ?anchor=, so the
   // list's quick date chips + from/to inputs hide there.
   showDateControls?: boolean;
-  // "My venues" quick chip (?venue_watchlist=true); pages enable it when the
-  // venue watchlist is non-empty (hidden on /venues, which always filters).
+  // "My venues" quick chip (?venue_watchlist=true); enabled when the venue
+  // watchlist is non-empty.
   showMyVenuesChip?: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
-  const pathname = usePathname(); // keep filters on the current route (/ or /watchlist)
+  const pathname = usePathname();
 
   const today = todayISO();
   const from = params.get("from") ?? today;
   const to = params.get("to") ?? addDaysISO(today, 14);
   const time = params.get("time_of_day");
+  const watchlistOn = params.get("watchlist") === "true";
   const myVenues = params.get("venue_watchlist") === "true";
   const longTail = params.get("long_tail") === "true";
   const hasLongTail = venues.some((v) => v.source === "aggregator");
@@ -185,22 +190,32 @@ export default function FilterBar({
         >
           Late (9pm+)
         </button>
+        {/* The "following" cluster: performer watchlist + followed venues.
+            These were standalone pages; now they're filters on the one
+            calendar, so every view (list/day/week/month) works with them. */}
+        <span
+          className="mx-1 hidden h-4 w-px bg-zinc-300 sm:inline-block dark:bg-zinc-700"
+          aria-hidden="true"
+        />
+        <button
+          type="button"
+          className={chipClass(watchlistOn)}
+          title="Only shows where a performer you follow is on the bill"
+          onClick={() => navigate({ watchlist: watchlistOn ? null : "true" })}
+        >
+          Watchlist{watchlistCount > 0 ? ` (${watchlistCount})` : ""}
+        </button>
         {showMyVenuesChip && (
-          <>
-            <span
-              className="mx-1 hidden h-4 w-px bg-zinc-300 sm:inline-block dark:bg-zinc-700"
-              aria-hidden="true"
-            />
-            <button
-              type="button"
-              className={chipClass(myVenues)}
-              onClick={() =>
-                navigate({ venue_watchlist: myVenues ? null : "true" })
-              }
-            >
-              My venues ★
-            </button>
-          </>
+          <button
+            type="button"
+            className={chipClass(myVenues)}
+            title="Only shows at venues you follow (★)"
+            onClick={() =>
+              navigate({ venue_watchlist: myVenues ? null : "true" })
+            }
+          >
+            My venues ★
+          </button>
         )}
         {hasLongTail && (
           <button
@@ -279,7 +294,6 @@ export default function FilterBar({
           <VenuePicker
             venues={venues}
             watchedVenueSlugs={watchedVenueSlugs ?? new Set()}
-            mode="filter"
           />
         </div>
       </details>

@@ -8,6 +8,50 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## UI consolidation: one browsing surface + day time×venue grid + sticky date headers (July 2026)
+
+A user-directed UX tightening pass (dogfooding, no ticket) with one structural
+change and two view refinements.
+
+- **The `/watchlist` and `/venues` pages folded into `/` as filters.** Both
+  pages had become near-clones of the main page — same FilterBar, same
+  ShowList — but *without* the List/Day/Week/Month view switcher, so the two
+  "following" features were second-class exactly where they mattered most.
+  The backend already treated them as filters (`?watchlist=true` /
+  `?venue_watchlist=true`); now the UI does too. A **Watchlist (N)** chip
+  joins the existing **My venues ★** chip in a "following" cluster in the
+  FilterBar's quick-chip row, and each filter's management surface (the
+  follow-by-name form + removable entry chips; the followed-venues row with
+  unfollow ★s) renders inline under the filter bar only while its filter is
+  active — the default calendar stays clean, and following now works in every
+  view. The old routes remain as param-preserving `redirect()` stubs so
+  bookmarks and shared links keep working; the nav slimmed to
+  `Shows | Add event | Inbox` (the watchlist count moved from the nav onto
+  the chip). VenuePicker's now-unused "follow" mode (only `/venues` used it)
+  was removed. Lesson recorded: when a feature page duplicates the main
+  surface minus capabilities, it wants to be a filter, not a page.
+- **Day view became a time × venue grid** (`DayGrid.tsx`). The old day view
+  rendered the same list as List view scoped to one day — near-zero marginal
+  value. Now venues with shows that day form columns (ordered by earliest set
+  time), an hour ruler runs down a sticky left axis, and each show is a block
+  positioned at its start time, so an evening reads as one glance: what
+  overlaps, what's early vs. late, what's bookable back-to-back. The data has
+  no end times, so blocks get a nominal 90-minute length clamped against the
+  venue's next set (no overlaps) with a legibility floor. Blocks carry a
+  genre-hued left accent matched to the badge palette and link out to tickets
+  (falling back to the source page). Busy nights scroll horizontally; the day
+  view joined week/month at the wide page width.
+- **Sticky date headers in List view.** The per-day headers now stick just
+  below the sticky nav (translucent + backdrop-blur, matching the nav's
+  treatment) so the date stays visible while scrolling a long window. The
+  `showDateHeaders` prop died with the old day view, so ShowList always
+  renders headers now.
+
+E2e coverage moved with the features: the watchlist suite now exercises the
+chip toggle, the redirects (bare + deep-linked param merging), and the inline
+management panel; a new `day-grid.spec.ts` covers the grid's columns, hour
+ruler, and ticket-link blocks.
+
 ## Wyldflowr Arts scraper + promotion out of aggregator quarantine (July 2026)
 
 Wyldflowr Arts (809 37th St, North Oakland) — the nonprofit BIPOC-woman-owned

@@ -1,5 +1,5 @@
-// Date-grouped show list, shared by `/` and `/watchlist`. Server component;
-// each performer name carries a client add/remove button whose initial state
+// Date-grouped show list (the default view on `/`). Server component; each
+// performer name carries a client add/remove button whose initial state
 // comes from the server-computed `watchlistCanon` set.
 
 import Link from "next/link";
@@ -56,24 +56,21 @@ export default function ShowList({
   shows,
   watchlistCanon,
   watchedVenueSlugs,
-  showDateHeaders = true,
 }: {
   shows: ShowView[];
   watchlistCanon: Set<string>;
   // Slugs of venues on the venue watchlist; drives the ★ next to venue names.
   watchedVenueSlugs?: Set<string>;
-  // The day view renders its own date title, so the group header would repeat.
-  showDateHeaders?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-8">
       {groupByDate(shows).map(([date, dayShows]) => (
         <section key={date}>
-          {showDateHeaders && (
-            <h2 className="mb-3 border-b border-teal-600/25 pb-1 text-sm font-semibold uppercase tracking-wide text-teal-800 dark:border-teal-400/25 dark:text-teal-300">
-              {formatDate(date)}
-            </h2>
-          )}
+          {/* Sticky just below the sticky nav (top offset = nav height), with
+              a translucent blur backdrop so rows scroll under it legibly. */}
+          <h2 className="sticky top-[45px] z-[5] mb-3 border-b border-teal-600/25 bg-white/90 pb-1 pt-1 text-sm font-semibold uppercase tracking-wide text-teal-800 backdrop-blur dark:border-teal-400/25 dark:bg-zinc-950/90 dark:text-teal-300">
+            {formatDate(date)}
+          </h2>
           <ul className="flex flex-col gap-4">
             {dayShows.map((show, i) => (
               <li

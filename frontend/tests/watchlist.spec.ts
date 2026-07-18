@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-// /watchlist against the mock backend: two fixture entries ("David Parker
+// The watchlist against the mock backend: two fixture entries ("David Parker
 // Sextet", "Late Night Trio" — see fixtures/watchlist.json) and the static
-// shows fixture. The mock's watchlist route is stateful (POST appends), so the
-// add-form spec uses a name no other spec asserts on.
+// shows fixture. Since the UI consolidation the watchlist lives on the main
+// page as the ?watchlist=true filter (with its management panel inline);
+// /watchlist survives only as a param-preserving redirect. The mock's
+// watchlist route is stateful (POST appends), so the add-form spec uses a
+// name no other spec asserts on.
 
 // The chip row's remove buttons share their accessible name with the show
 // cards' on-watchlist toggles, so chip assertions scope to the section under
@@ -14,17 +17,44 @@ function chipRow(page: import("@playwright/test").Page) {
     .filter({ has: page.getByRole("heading", { name: "Your watchlist" }) });
 }
 
-test("watchlist page renders entry chips and matching shows", async ({ page }) => {
-  await page.goto("/watchlist");
+test("the Watchlist chip filters and reveals the management panel", async ({
+  page,
+}) => {
+  await page.goto("/");
 
+  // Chip carries the entry count — but the count is shared mutable mock
+  // state (the add-form spec grows it in a parallel worker), so the locator
+  // stays count-agnostic. The panel is hidden until the chip is active.
+  const chip = page.getByRole("button", { name: /^Watchlist \(\d+\)$/ });
+  await expect(
+    page.getByRole("heading", { name: "Your watchlist" }),
+  ).toHaveCount(0);
+
+  await chip.click();
+  await expect(page).toHaveURL(/[?&]watchlist=true/);
   await expect(
     page.getByRole("heading", { name: "Your watchlist" }),
   ).toBeVisible();
-  // Each fixture entry renders as a chip with its remove affordance.
   await expect(
     chipRow(page).getByRole("button", {
       name: "Remove David Parker Sextet from watchlist",
     }),
+  ).toBeVisible();
+
+  // Toggling off clears the param and the panel.
+  await chip.click();
+  await expect(page).not.toHaveURL(/watchlist=true/);
+  await expect(
+    page.getByRole("heading", { name: "Your watchlist" }),
+  ).toHaveCount(0);
+});
+
+test("/watchlist redirects into the main-page filter", async ({ page }) => {
+  await page.goto("/watchlist");
+
+  await expect(page).toHaveURL(/\/\?.*watchlist=true/);
+  await expect(
+    page.getByRole("heading", { name: "Your watchlist" }),
   ).toBeVisible();
   await expect(
     chipRow(page).getByRole("button", {
@@ -40,7 +70,7 @@ test("watchlist page renders entry chips and matching shows", async ({ page }) =
 test("follow-by-name form posts and the new chip appears on refresh", async ({
   page,
 }) => {
-  await page.goto("/watchlist");
+  await page.goto("/?watchlist=true");
 
   await page
     .getByRole("textbox", { name: "Follow a performer by name" })
@@ -60,10 +90,15 @@ test("follow-by-name form posts and the new chip appears on refresh", async ({
   ).toHaveValue("");
 });
 
-test("a deep-linked filter URL is reflected in the watchlist controls", async ({
+test("a deep-linked /watchlist filter URL survives the redirect", async ({
   page,
 }) => {
   await page.goto("/watchlist?venues=keys_jazz_bistro&time_of_day=late");
+
+  // The redirect lands on / with every param carried across.
+  await expect(page).toHaveURL(/[?&]watchlist=true/);
+  await expect(page).toHaveURL(/[?&]venues=keys_jazz_bistro/);
+  await expect(page).toHaveURL(/[?&]time_of_day=late/);
 
   // The venue picker reflects ?venues=: a removable chip for Keys, and only Keys.
   await expect(
@@ -82,4 +117,9 @@ test("a deep-linked filter URL is reflected in the watchlist controls", async ({
 
   // Watchlist matches still render (the mock returns a non-empty list).
   await expect(page.getByText("Keys Quartet")).toBeVisible();
+});
+
+test("/venues redirects into the venue-watchlist filter", async ({ page }) => {
+  await page.goto("/venues");
+  await expect(page).toHaveURL(/\/\?.*venue_watchlist=true/);
 });
