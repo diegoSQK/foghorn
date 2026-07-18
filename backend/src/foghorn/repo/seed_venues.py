@@ -675,6 +675,22 @@ SEED_VENUES: list[Venue] = [
         genre="jazz",
     ),
     Venue(
+        slug="little_hill_lounge",
+        name="Little Hill Lounge",
+        neighborhood="El Cerrito",
+        region="East Bay",
+        address="10753 San Pablo Ave, El Cerrito, CA",
+        tz="America/Los_Angeles",
+        website_url="https://littlehillelcerrito.com",
+        # The calendar is a monthly flyer JPEG, read via Apple Vision OCR —
+        # see scrapers/little_hill_lounge (macOS-only at scrape time; the
+        # parser is fixture-tested everywhere). Slug matches the Bay
+        # Improviser row, so seeding promotes it out of quarantine.
+        calendar_url="https://littlehillelcerrito.com/",
+        # Punk/indie/jazz/DJ mix.
+        genre="eclectic",
+    ),
+    Venue(
         slug="wyldflowr_arts",
         name="Wyldflowr Arts",
         neighborhood="North Oakland",
