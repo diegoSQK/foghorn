@@ -9,6 +9,7 @@ import EventTypeToggle from "./EventTypeToggle";
 import PinVenueButton from "./PinVenueButton";
 import RemoveEventButton from "./RemoveEventButton";
 import type { ShowView } from "./lib/api";
+import { sortFollowedFirst } from "./lib/precedence";
 import { genreBadgeClass } from "./lib/ui";
 
 // Subtle inline badge for heuristically/hand-tagged local acts. Touring gets
@@ -57,15 +58,23 @@ export default function ShowList({
   shows,
   watchlistCanon,
   watchedVenueSlugs,
+  followedIds,
 }: {
   shows: ShowView[];
   watchlistCanon: Set<string>;
   // Slugs of venues on the venue watchlist; drives the ★ next to venue names.
   watchedVenueSlugs?: Set<string>;
+  // Shows with display precedence (watched venue / watchlist match): they
+  // lead each date group. The rows' ✓ and ★ affordances explain the float.
+  followedIds?: Set<number>;
 }) {
   return (
     <div className="flex flex-col gap-8">
-      {groupByDate(shows).map(([date, dayShows]) => (
+      {groupByDate(shows).map(([date, grouped]) => {
+        const dayShows = followedIds
+          ? sortFollowedFirst(grouped, followedIds)
+          : grouped;
+        return (
         <section key={date}>
           {/* Sticky just below the sticky nav (top offset = nav height), with
               a translucent blur backdrop so rows scroll under it legibly. */}
@@ -191,7 +200,8 @@ export default function ShowList({
             ))}
           </ul>
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -1,5 +1,27 @@
 [
   {
+    "id": 4,
+    "venue": {
+      "slug": "keys_jazz_bistro",
+      "name": "Keys Jazz Bistro",
+      "neighborhood": "North Beach",
+      "region": "SF"
+    },
+    "start_local_date": "2026-06-05",
+    "start_local_time": "18:00",
+    "end_local_time": null,
+    "doors_local_time": null,
+    "headliner": {
+      "display": "Early Openers",
+      "canonical": "early openers"
+    },
+    "support": [],
+    "ticket_url": null,
+    "price_text": null,
+    "source_url": "https://example.com/show/4",
+    "event_type": "show"
+  },
+  {
     "venue": {
       "slug": "bird_and_beckett",
       "name": "Bird & Beckett Books and Records",

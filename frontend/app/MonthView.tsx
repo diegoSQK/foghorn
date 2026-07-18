@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import type { ShowView } from "./lib/api";
 import { addDaysISO, mondayOfISO, todayISO } from "./lib/dates";
+import { sortFollowedFirst } from "./lib/precedence";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -15,11 +16,14 @@ export default function MonthView({
   monthStart, // YYYY-MM-01
   monthEnd, // YYYY-MM-<last>
   dayHref,
+  followedIds,
 }: {
   shows: ShowView[];
   monthStart: string;
   monthEnd: string;
   dayHref: (dateISO: string) => string;
+  // Followed shows fill the cells' visible headliner slots first.
+  followedIds?: Set<number>;
 }) {
   const byDate = new Map<string, ShowView[]>();
   for (const show of shows) {
@@ -47,7 +51,10 @@ export default function MonthView({
       <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-zinc-200 bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800">
         {cells.map((date) => {
           const inMonth = date >= monthStart && date <= monthEnd;
-          const dayShows = byDate.get(date) ?? [];
+          const grouped = byDate.get(date) ?? [];
+          const dayShows = followedIds
+            ? sortFollowedFirst(grouped, followedIds)
+            : grouped;
           const isToday = date === today;
           return (
             <Link

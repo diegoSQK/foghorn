@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import type { ShowView } from "./lib/api";
 import { addDaysISO, todayISO } from "./lib/dates";
+import { sortFollowedFirst } from "./lib/precedence";
 
 function shortTime(hhmm: string): string {
   const [hour, minute] = hhmm.split(":").map(Number);
@@ -27,10 +28,13 @@ export default function WeekView({
   shows,
   weekStart,
   dayHref,
+  followedIds,
 }: {
   shows: ShowView[];
   weekStart: string; // Monday, YYYY-MM-DD
   dayHref: (dateISO: string) => string;
+  // Followed shows lead each day column.
+  followedIds?: Set<number>;
 }) {
   const days = Array.from({ length: 7 }, (_, i) => addDaysISO(weekStart, i));
   const byDate = new Map<string, ShowView[]>(days.map((d) => [d, []]));
@@ -40,7 +44,10 @@ export default function WeekView({
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7 lg:gap-2">
       {days.map((date) => {
-        const dayShows = byDate.get(date) ?? [];
+        const grouped = byDate.get(date) ?? [];
+        const dayShows = followedIds
+          ? sortFollowedFirst(grouped, followedIds)
+          : grouped;
         const isToday = date === today;
         return (
           <section

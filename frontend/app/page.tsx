@@ -34,6 +34,7 @@ import {
   mondayOfISO,
   todayISO,
 } from "./lib/dates";
+import { followedShowIds } from "./lib/precedence";
 
 const DEFAULT_WINDOW_DAYS = 14;
 
@@ -131,6 +132,13 @@ export default async function Home({
   const watchlistEntries = watchlist ?? [];
   const watchlistCanon = new Set(
     watchlistEntries.map((entry) => entry.canonical_name),
+  );
+  // Followed shows (watched venue or watchlist-matched performer) take
+  // display precedence in every view.
+  const followedIds = followedShowIds(
+    shows ?? [],
+    watchlistCanon,
+    watchedVenueSlugs,
   );
 
   // Hrefs for the calendar navigation — plain links that preserve every
@@ -249,13 +257,19 @@ export default async function Home({
           )}
 
           {view === "week" ? (
-            <WeekView shows={shows} weekStart={from} dayHref={dayHref} />
+            <WeekView
+              shows={shows}
+              weekStart={from}
+              dayHref={dayHref}
+              followedIds={followedIds}
+            />
           ) : view === "month" ? (
             <MonthView
               shows={shows}
               monthStart={from}
               monthEnd={to}
               dayHref={dayHref}
+              followedIds={followedIds}
             />
           ) : shows.length === 0 ? (
             <p className="text-zinc-500 dark:text-zinc-400">
@@ -266,12 +280,13 @@ export default async function Home({
                   : "No shows match these filters. Try widening the date range or clearing filters."}
             </p>
           ) : view === "day" ? (
-            <DayGrid shows={shows} />
+            <DayGrid shows={shows} followedIds={followedIds} />
           ) : (
             <ShowList
               shows={shows}
               watchlistCanon={watchlistCanon}
               watchedVenueSlugs={watchedVenueSlugs}
+              followedIds={followedIds}
             />
           )}
         </>
