@@ -39,7 +39,7 @@ import importlib
 import json
 import re
 import sys
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import httpx
 
@@ -163,8 +163,10 @@ def ocr_image(image_bytes: bytes) -> list[OcrLine]:
 
     lines: list[OcrLine] = []
 
-    def handler(request: object, _error: object) -> None:
-        for obs in request.results():  # type: ignore[attr-defined]
+    # ``Any``: the request is a pyobjc proxy whose attributes mypy can't see
+    # (and whose availability is darwin-only anyway).
+    def handler(request: Any, _error: object) -> None:
+        for obs in request.results():
             box = obs.boundingBox()
             lines.append(
                 OcrLine(
