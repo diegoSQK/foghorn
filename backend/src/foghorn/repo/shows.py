@@ -13,10 +13,23 @@ import sqlite3
 from foghorn.models import Show, ShowFilters, ShowPerformer
 from foghorn.repo.performer_match import token_match_sql
 
+# ``event_type`` resolves through the manual-override rules at read time
+# (see ``event_type_overrides`` in the schema): the stored column is what
+# ingest inferred; a matching venue+billing rule wins. Aliased back to
+# ``event_type`` so row mapping stays uniform.
+_EVENT_TYPE_RESOLVED = (
+    "COALESCE((SELECT o.event_type FROM event_type_overrides o "
+    "WHERE o.venue_id = {alias}.venue_id "
+    "AND o.headliner_canonical = {alias}.headliner_canonical), "
+    "{alias}.event_type)"
+)
+
 _SHOW_COLUMNS = (
     "id, venue_id, start_utc, start_local_date, start_local_time, "
     "doors_local_time, headliner_canonical, ticket_url, price_text, "
-    "source_url, scraped_at, source, event_type, genre_override"
+    "source_url, scraped_at, source, "
+    + _EVENT_TYPE_RESOLVED.format(alias="shows")
+    + " AS event_type, genre_override"
 )
 
 
@@ -249,7 +262,9 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         else:
             clauses.append("1 = 0")  # empty venue watchlist -> no matches
     if filters.event_type:
-        clauses.append("s.event_type = ?")
+        # Filter on the RESOLVED type so manual corrections move shows
+        # between the Shows/Jam facets.
+        clauses.append(_EVENT_TYPE_RESOLVED.format(alias="s") + " = ?")
         params.append(filters.event_type)
     if filters.from_date:
         clauses.append("s.start_local_date >= ?")
@@ -286,8 +301,12 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         clauses.append("s.start_local_time >= ?")
         params.append("21:00")
 
+    resolved = _EVENT_TYPE_RESOLVED.format(alias="s")
     sql = (
-        f"SELECT {', '.join('s.' + c.strip() for c in _SHOW_COLUMNS.split(','))} "
+        "SELECT s.id, s.venue_id, s.start_utc, s.start_local_date, "
+        "s.start_local_time, s.doors_local_time, s.headliner_canonical, "
+        "s.ticket_url, s.price_text, s.source_url, s.scraped_at, s.source, "
+        f"{resolved} AS event_type, s.genre_override "
         "FROM shows s JOIN venues v ON v.id = s.venue_id"
     )
     if clauses:
@@ -325,3 +344,40 @@ def delete_manual(conn: sqlite3.Connection, show_id: int) -> bool:
     conn.execute("DELETE FROM shows WHERE id = ?", (show_id,))
     conn.commit()
     return True
+
+
+def set_event_type_override(
+    conn: sqlite3.Connection,
+    venue_id: int,
+    headliner_canonical: str,
+    event_type: str,
+) -> None:
+    """Record a manual event-type correction for this venue + billing. The
+    rule survives re-ingest (it lives off the show row) and applies to every
+    show with the same billing at the venue — past, present, and future
+    instances of a recurring session."""
+    conn.execute(
+        """
+        INSERT INTO event_type_overrides (venue_id, headliner_canonical,
+                                          event_type, created_at)
+        VALUES (?, ?, ?, datetime('now'))
+        ON CONFLICT(venue_id, headliner_canonical)
+        DO UPDATE SET event_type = excluded.event_type
+        """,
+        (venue_id, headliner_canonical, event_type),
+    )
+    conn.commit()
+
+
+def clear_event_type_override(
+    conn: sqlite3.Connection, venue_id: int, headliner_canonical: str
+) -> bool:
+    """Remove a manual correction; the ingest-inferred type applies again.
+    Returns whether a rule existed."""
+    cursor = conn.execute(
+        "DELETE FROM event_type_overrides "
+        "WHERE venue_id = ? AND headliner_canonical = ?",
+        (venue_id, headliner_canonical),
+    )
+    conn.commit()
+    return cursor.rowcount > 0

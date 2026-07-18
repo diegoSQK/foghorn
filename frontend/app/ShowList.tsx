@@ -5,6 +5,7 @@
 import Link from "next/link";
 
 import AddToWatchlistButton from "./AddToWatchlistButton";
+import EventTypeToggle from "./EventTypeToggle";
 import PinVenueButton from "./PinVenueButton";
 import RemoveEventButton from "./RemoveEventButton";
 import type { ShowView } from "./lib/api";
@@ -80,14 +81,13 @@ export default function ShowList({
                 <div className="flex items-baseline justify-between gap-4">
                   <span className="font-medium">
                     {show.headliner.display}
-                    {show.event_type === "jam" && (
-                      <span
-                        className="ml-1 rounded-full border border-amber-300 px-1.5 py-px align-middle text-[10px] font-medium uppercase tracking-wide text-amber-700 dark:border-amber-800 dark:text-amber-400"
-                        title="Jam session — bring your instrument"
-                      >
-                        jam
-                      </span>
-                    )}
+                    {/* jam badge or the faint "jam?" correction affordance —
+                        foghorn can't infer every session from titles, so
+                        the type is user-correctable in place. */}
+                    <EventTypeToggle
+                      showId={show.id}
+                      initialType={show.event_type}
+                    />
                     <LocalBadge origin={show.headliner.origin} />
                     <AddToWatchlistButton
                       displayName={show.headliner.display}

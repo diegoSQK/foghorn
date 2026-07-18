@@ -65,6 +65,25 @@ createServer((req, res) => {
     return;
   }
 
+  // Event-type correction (PUT/DELETE /api/shows/:id/event_type): accept
+  // and echo — specs assert the optimistic UI, not server state.
+  if (/^\/api\/shows\/\d+\/event_type$/.test(path)) {
+    if (req.method === "PUT") {
+      let raw = "";
+      req.on("data", (chunk) => (raw += chunk));
+      req.on("end", () => {
+        const eventType = JSON.parse(raw || "{}").event_type ?? "show";
+        send(200, JSON.stringify({ show_id: 0, event_type: eventType, applies_to_billing: "" }));
+      });
+      return;
+    }
+    if (req.method === "DELETE") {
+      res.writeHead(204, CORS_HEADERS);
+      res.end();
+      return;
+    }
+  }
+
   if (path === "/api/watchlist" && req.method === "GET") {
     send(200, JSON.stringify(watchlist));
     return;

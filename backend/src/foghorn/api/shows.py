@@ -12,7 +12,7 @@ import datetime as dt
 import sqlite3
 from typing import Literal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from foghorn.ingest.pipeline import canonicalize
@@ -274,6 +274,57 @@ def list_shows(
             watchlist=watchlist == "true",
             venue_watchlist=venue_watchlist == "true",
             long_tail=long_tail == "true",
+        )
+    finally:
+        conn.close()
+
+
+class EventTypeUpdate(BaseModel):
+    event_type: EventType
+
+
+class EventTypeView(BaseModel):
+    show_id: int
+    event_type: EventType
+    # The correction is stored as a venue+billing rule, so it also covers
+    # future instances of a recurring session — surfaced so callers/UIs can
+    # explain the scope.
+    applies_to_billing: str
+
+
+@router.put("/api/shows/{show_id}/event_type", response_model=EventTypeView)
+def set_event_type(show_id: int, update: EventTypeUpdate) -> EventTypeView:
+    """Manual event-type correction ("this is a jam session"). Permanent —
+    stored as a venue+billing override rule that re-ingest never touches and
+    that recurring instances of the same billing inherit. Same single-tenant
+    no-auth posture as the performer origin/genre corrections."""
+    conn = db.connect()
+    try:
+        show = shows_repo.get_by_id(conn, show_id)
+        if show is None:
+            raise HTTPException(status_code=404, detail="unknown show")
+        shows_repo.set_event_type_override(
+            conn, show.venue_id, show.headliner_canonical, update.event_type
+        )
+        return EventTypeView(
+            show_id=show_id,
+            event_type=update.event_type,
+            applies_to_billing=show.headliner_canonical,
+        )
+    finally:
+        conn.close()
+
+
+@router.delete("/api/shows/{show_id}/event_type", status_code=204)
+def clear_event_type(show_id: int) -> None:
+    """Remove the manual correction; ingest's inferred type applies again."""
+    conn = db.connect()
+    try:
+        show = shows_repo.get_by_id(conn, show_id)
+        if show is None:
+            raise HTTPException(status_code=404, detail="unknown show")
+        shows_repo.clear_event_type_override(
+            conn, show.venue_id, show.headliner_canonical
         )
     finally:
         conn.close()
