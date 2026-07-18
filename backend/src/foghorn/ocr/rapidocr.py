@@ -45,6 +45,12 @@ def recognize(image_bytes: bytes) -> list[OcrLine]:
     image = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_COLOR)
     if image is None:
         raise RuntimeError("image bytes are not decodable")
+    # Same small-image normalization as the apple_vision engine: dense
+    # flyer text at ~1080px garbles; 2x reads clean.
+    if max(image.shape[:2]) < 1600:
+        image = cv2.resize(
+            image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC
+        )
     height, width = image.shape[:2]
 
     result, _elapsed = engine(image)

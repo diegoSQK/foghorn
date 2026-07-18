@@ -32,6 +32,7 @@ def recognize(image_bytes: bytes) -> list[OcrLine]:
     if source is None:
         raise RuntimeError("image bytes are not decodable")
     image = Quartz.CGImageSourceCreateImageAtIndex(source, 0, None)
+    image = _upscale_if_small(Quartz, image)
 
     lines: list[OcrLine] = []
 
@@ -62,3 +63,34 @@ def recognize(image_bytes: bytes) -> list[OcrLine]:
     if not ok:
         raise RuntimeError(f"Vision text recognition failed: {error}")
     return lines
+
+
+# Small flyers (~1080px) read measurably worse than the same image at 2x —
+# dense calendar-grid text garbles (verified on the Poor House Bistro
+# calendar). Normalizing small inputs up front costs little and helps every
+# flyer venue; boxes stay normalized so callers never notice.
+_MIN_DIMENSION = 1600
+
+
+def _upscale_if_small(Quartz: Any, image: Any) -> Any:
+    width = Quartz.CGImageGetWidth(image)
+    height = Quartz.CGImageGetHeight(image)
+    if max(width, height) >= _MIN_DIMENSION:
+        return image
+    scale = 2
+    context = Quartz.CGBitmapContextCreate(
+        None,
+        width * scale,
+        height * scale,
+        8,
+        0,
+        Quartz.CGColorSpaceCreateDeviceRGB(),
+        Quartz.kCGImageAlphaPremultipliedLast,
+    )
+    Quartz.CGContextSetInterpolationQuality(context, Quartz.kCGInterpolationHigh)
+    Quartz.CGContextDrawImage(
+        context,
+        Quartz.CGRectMake(0, 0, width * scale, height * scale),
+        image,
+    )
+    return Quartz.CGBitmapContextCreateImage(context)
