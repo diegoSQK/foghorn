@@ -29,7 +29,9 @@ DEFAULT_WINDOW_DAYS = 30
 
 # The known regions, used to narrow the free-text ?region= param to the
 # Region literal (and ignore anything else rather than 400).
-_REGIONS: tuple[Region, ...] = ("SF", "East Bay", "North Bay", "Peninsula", "South Bay")
+_REGIONS: tuple[Region, ...] = (
+    "SF", "East Bay", "North Bay", "Peninsula", "South Bay", "Santa Cruz",
+)
 
 
 class VenueView(BaseModel):
@@ -198,7 +200,7 @@ def list_shows(
         default=None, description="free-text performer name (canonicalized)"
     ),
     region: str | None = Query(
-        default=None, description="SF | East Bay | Peninsula | South Bay"
+        default=None, description="SF | East Bay | Peninsula | South Bay | Santa Cruz"
     ),
     neighborhood: str | None = Query(
         default=None, description="venue neighborhood (case-insensitive exact)"

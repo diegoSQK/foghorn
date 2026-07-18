@@ -8,6 +8,46 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Kuumbwa Jazz Center + the Santa Cruz region (July 2026)
+
+Follow-through on the long-tail audit's biggest unclaimed prize, per Diego's
+call to add the region rather than skip the venue.
+
+- **Santa Cruz region.** ``"Santa Cruz"`` joined the Region literal
+  (backend), the API's `_REGIONS`, and the frontend's region chip +
+  venue-picker group ordering. The chip auto-activates the moment a
+  Santa Cruz venue exists (the "(soon)" affordance handles the interim on
+  empty fixtures/tests).
+- **Kuumbwa Jazz Center** (Downtown Santa Cruz, jazz) — Tribe Events REST,
+  46 shows in the 90-day window at ship time. **The trap worth remembering:
+  a UA-keyed LiteSpeed cache.** For non-browser User-Agents the site serves
+  one stale cached API response for *any* query string — `per_page`,
+  `start_date`, and `page` are all silently ignored, which makes
+  `next_rest_url` pagination loop forever on the same ten events and makes
+  the API look param-deaf. A browser UA bypasses that cache tier entirely
+  and the API behaves. The scraper uses a browser UA (documented exception
+  to the polite `foghorn-scraper` string) plus an id-seen pagination guard
+  so a cache regression degrades to a partial scrape, not a hang. Title
+  conventions: `CANCELLED – …` rows drop, `RESCHEDULED: ` prefixes strip,
+  master classes/workshops drop on signal. Slug matches the BI row →
+  promoted out of quarantine (19 → 18 quarantined venues).
+
+Two related verdicts from the same session, recorded so they don't recur:
+
+- **Arc Gallery: scraper declined on data.** Diego initially called for an
+  ICS scraper with a music filter, but the calendar's content killed the
+  premise: of 156 events across Jan 2025–Jul 2026, exactly **2** were
+  music, and the upcoming window (43 events through Oct 2027) contains
+  zero — it's install/de-install logistics, receptions, figure drawing,
+  reading series. A music-filtered scraper would emit ~1 show/year against
+  real maintenance surface. Arc stays in the aggregator quarantine, where
+  BI carries whatever music actually happens there.
+- **Red Poppy Art House: dormant, watch-listed.** Not in foghorn and not
+  even in BI's venue list. The site runs Tribe (endpoint answers validly)
+  but publishes **zero events** — the events archive renders 2011-era
+  imports. Nothing to scrape until they resume publishing; the endpoint is
+  pre-solved for that day (deferred-list watch item).
+
 ## Long-tail audit + four scraper promotions: Dresher, The Lab, Gray Area, Mills Littlefield (July 2026)
 
 A user-directed audit of all 25 Bay Improviser quarantine venues ("which of
