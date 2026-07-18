@@ -264,6 +264,15 @@ convincingly as a dormant venue. Verify a source is *current* before believing
 what it implies. Viewcy nests dated `events` under a `course`, so one course
 flattens to N shows.
 
+**A fourth pattern (see `little_hill_lounge`).** Flyer-image-only venues go
+through the **pluggable OCR layer** (`foghorn/ocr/`): engines are callables
+`(image_bytes) -> list[OcrLine]` (normalized bottom-left boxes), selected via
+`FOGHORN_OCR_ENGINE` — `apple_vision` (macOS default, best quality) or
+`rapidocr` (any platform, `pip install .[rapidocr]`; loses inter-word spacing
+on some flyer fonts). Scrapers depend only on the `OcrLine` contract and keep
+their layout parsers pure/fixture-tested, so hosting off-macOS or adding an
+engine never touches a scraper.
+
 **Adding a venue:** implement `scrapers/<slug>.py` with `scrape()`, register it
 in `REGISTERED_SCRAPERS`, set the venue's `calendar_url` in the seed, and add a
 fixture-driven parser test.

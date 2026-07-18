@@ -3,13 +3,16 @@
 Source: littlehillelcerrito.com publishes its calendar **only as a monthly
 flyer JPEG** (the "COMING UP" section; a former Tribe install was removed).
 The flyer is cleanly typeset — a ``DAY M/D`` date column beside a
-description column with times — so on-device OCR reads it essentially
-verbatim: this scraper fetches the flyer image and runs **Apple's Vision
-framework** (``VNRecognizeTextRequest``), which ships with macOS: no
-service, no API key, no model download. foghorn's nightly scrape runs on a
-Mac, so the platform coupling is acceptable; on other platforms ``scrape()``
-raises a clear error that surfaces in ``/api/health/scrape`` (the parser
-itself is pure and tested from a checked-in OCR fixture on any platform).
+description column with times — so OCR reads it essentially verbatim: this
+scraper fetches the flyer image and runs it through the **pluggable OCR
+layer** (``foghorn.ocr``, selected via ``FOGHORN_OCR_ENGINE``; Apple
+Vision by default on macOS, RapidOCR elsewhere — see that module for the
+engine contract and quality notes). The parser tolerates engine
+differences that don't break structure: spacing-less date cells
+("WED7/1", RapidOCR) and fullwidth commas are normalized; a missing
+engine dependency raises clearly into ``/api/health/scrape``. The parser
+itself is pure and tested from checked-in fixtures of both engines' real
+output on any platform.
 
 **Layout → shows.** OCR observations carry normalized bounding boxes.
 Lines matching ``DAY M/D`` anchor rows; description-column lines pair to
@@ -35,15 +38,13 @@ ingest pipeline.
 from __future__ import annotations
 
 import datetime as dt
-import importlib
 import json
 import re
-import sys
-from typing import Any, NamedTuple
 
 import httpx
 
 from foghorn.models import ScrapedShow
+from foghorn.ocr import OcrLine, get_engine
 
 VENUE_SLUG = "little_hill_lounge"
 
@@ -62,8 +63,9 @@ _FLYER_IMG_RE = re.compile(
 )
 _SCALED_SUFFIX_RE = re.compile(r"-\d{2,4}x\d{2,4}(\.(?:jpe?g|png))$", re.IGNORECASE)
 
+# \s* not \s+: RapidOCR drops the space in date cells ("WED7/1").
 _DATE_LINE_RE = re.compile(
-    r"^(?:MON|TUE|WED|THU|FRI|SAT|SUN)\s+(\d{1,2})/(\d{1,2})$", re.IGNORECASE
+    r"^(?:MON|TUE|WED|THU|FRI|SAT|SUN)\s*(\d{1,2})/(\d{1,2})$", re.IGNORECASE
 )
 # Trailing time, permissive: ", 8pm" / ", 7-11pm" / ", 7pm - 12am" /
 # ", 7:30pm". Ranges keep the start; a bare-start range ("7-11pm") borrows
@@ -88,21 +90,6 @@ _NON_MUSIC_SIGNALS = (
 # description centers land well inside 0.013; successive rows sit ~0.02
 # apart (measured on the 2026-07 flyer at 1080×1350).
 _SAME_ROW_TOLERANCE = 0.013
-
-
-class OcrLine(NamedTuple):
-    """One Vision text observation: string + normalized bounding box
-    (origin bottom-left, per Vision's convention)."""
-
-    text: str
-    x: float
-    y: float
-    w: float
-    h: float
-
-    @property
-    def cy(self) -> float:
-        return self.y + self.h / 2
 
 
 def fetch_flyer(
@@ -140,56 +127,6 @@ def fetch_flyer(
     finally:
         if own_client:
             client.close()
-
-
-def ocr_image(image_bytes: bytes) -> list[OcrLine]:
-    """Run Apple Vision text recognition over the flyer bytes. macOS-only —
-    imports the pyobjc bridges lazily so the module (and the pure parser)
-    stays importable everywhere; raises a clear error elsewhere."""
-    if sys.platform != "darwin":
-        raise RuntimeError(
-            "Little Hill's flyer OCR needs Apple Vision (macOS); "
-            "this platform can't scrape it"
-        )
-    Foundation = importlib.import_module("Foundation")
-    Quartz = importlib.import_module("Quartz")
-    Vision = importlib.import_module("Vision")
-
-    data = Foundation.NSData.dataWithBytes_length_(image_bytes, len(image_bytes))
-    source = Quartz.CGImageSourceCreateWithData(data, None)
-    if source is None:
-        raise RuntimeError("flyer bytes are not a decodable image")
-    image = Quartz.CGImageSourceCreateImageAtIndex(source, 0, None)
-
-    lines: list[OcrLine] = []
-
-    # ``Any``: the request is a pyobjc proxy whose attributes mypy can't see
-    # (and whose availability is darwin-only anyway).
-    def handler(request: Any, _error: object) -> None:
-        for obs in request.results():
-            box = obs.boundingBox()
-            lines.append(
-                OcrLine(
-                    text=str(obs.topCandidates_(1)[0].string()),
-                    x=float(box.origin.x),
-                    y=float(box.origin.y),
-                    w=float(box.size.width),
-                    h=float(box.size.height),
-                )
-            )
-
-    request = Vision.VNRecognizeTextRequest.alloc().initWithCompletionHandler_(
-        handler
-    )
-    request.setRecognitionLevel_(Vision.VNRequestTextRecognitionLevelAccurate)
-    request.setUsesLanguageCorrection_(True)
-    handler_obj = Vision.VNImageRequestHandler.alloc().initWithCGImage_options_(
-        image, None
-    )
-    ok, error = handler_obj.performRequests_error_([request], None)
-    if not ok:
-        raise RuntimeError(f"Vision text recognition failed: {error}")
-    return lines
 
 
 def _start_time(text: str) -> tuple[str, dt.time] | None:
@@ -279,7 +216,9 @@ def parse_flyer(
         if not (today <= date <= window_end):
             continue
         parts = [text for _, text in sorted(rows[date], key=lambda r: -r[0])]
-        text = " ".join(" ".join(parts).split())
+        # RapidOCR emits fullwidth commas on some glyphs; normalize
+        # before signal checks, time parsing, and bill splitting.
+        text = " ".join(" ".join(parts).split()).replace("\uff0c", ",")
         if not text or any(s in text.lower() for s in _NON_MUSIC_SIGNALS):
             continue
         timed = _start_time(text)
@@ -308,9 +247,11 @@ def parse_flyer(
 
 
 def scrape() -> list[ScrapedShow]:
-    """Fetch the current flyer, OCR it, and parse the next ~90 days."""
+    """Fetch the current flyer, OCR it (pluggable engine — see
+    ``foghorn.ocr``), and parse the next ~90 days."""
     image_bytes, year, month = fetch_flyer()
-    return parse_flyer(ocr_image(image_bytes), year, month, dt.date.today())
+    recognize = get_engine()
+    return parse_flyer(recognize(image_bytes), year, month, dt.date.today())
 
 
 def main() -> None:
