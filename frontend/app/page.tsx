@@ -1,16 +1,24 @@
-// Show calendar (/). A server component whose state lives entirely in the
-// URL search params: it parses them, fetches the filtered shows + venues +
-// watchlist, and renders the URL-driven <FilterBar> over one of four views —
-// the default date-grouped list, or day/week/month calendar views (?view=)
-// whose date window derives from ?anchor= instead of from/to.
+// Show calendar (/) — the single browsing surface. A server component whose
+// state lives entirely in the URL search params: it parses them, fetches the
+// filtered shows + venues + watchlist, and renders the URL-driven <FilterBar>
+// over one of four views — the default date-grouped list, a day time×venue
+// grid, or week/month calendars (?view=) whose date window derives from
+// ?anchor= instead of from/to. The former /watchlist and /venues pages are
+// folded in as filters (?watchlist=true / ?venue_watchlist=true) with their
+// management panels rendered inline while the filter is active — so
+// following works in every view instead of on list-only clones of this page.
 
 import { Suspense } from "react";
 
+import AddWatchlistForm from "./AddWatchlistForm";
 import CalendarNav from "./CalendarNav";
+import DayGrid from "./DayGrid";
 import FilterBar from "./FilterBar";
 import MonthView from "./MonthView";
+import PinVenueButton from "./PinVenueButton";
 import ShowList from "./ShowList";
 import ViewSwitcher from "./ViewSwitcher";
+import WatchlistChips from "./WatchlistChips";
 import WeekView from "./WeekView";
 import {
   getJSON,
@@ -93,9 +101,11 @@ export default async function Home({
   const origin = first(sp.origin);
   const type = first(sp.type);
   const longTail = first(sp.long_tail) === "true";
+  const watchlistOn = first(sp.watchlist) === "true";
   const myVenues = first(sp.venue_watchlist) === "true";
 
   const query = new URLSearchParams({ from, to });
+  if (watchlistOn) query.set("watchlist", "true");
   if (venues) query.set("venues", venues);
   if (timeOfDay === "early" || timeOfDay === "late") {
     query.set("time_of_day", timeOfDay);
@@ -118,8 +128,9 @@ export default async function Home({
   const watchedVenueSlugs = new Set(
     (watchedVenues ?? []).map((e) => e.venue_slug),
   );
+  const watchlistEntries = watchlist ?? [];
   const watchlistCanon = new Set(
-    (watchlist ?? []).map((entry) => entry.canonical_name),
+    watchlistEntries.map((entry) => entry.canonical_name),
   );
 
   // Hrefs for the calendar navigation — plain links that preserve every
@@ -139,7 +150,9 @@ export default async function Home({
   }
   const dayHref = (date: string) => hrefWith({ view: "day", anchor: date });
 
-  const wide = view === "week" || view === "month";
+  // Only the date-grouped list reads well narrow; all three calendar-shaped
+  // views (day grid included) want the room.
+  const wide = view !== "list";
 
   return (
     <main
@@ -168,6 +181,7 @@ export default async function Home({
             <FilterBar
               venues={allVenues ?? []}
               watchedVenueSlugs={watchedVenueSlugs}
+              watchlistCount={watchlistEntries.length}
               showMyVenuesChip={watchedVenueSlugs.size > 0}
               showDateControls={view === "list"}
               showOriginFilter={
@@ -180,6 +194,34 @@ export default async function Home({
               }
             />
           </Suspense>
+
+          {/* Management panels for the two "following" filters — the working
+              parts of the former /watchlist and /venues pages, shown only
+              while their filter is active so the default calendar stays
+              clean. */}
+          {watchlistOn && (
+            <div className="mb-2">
+              <AddWatchlistForm />
+              {watchlistEntries.length === 0 ? (
+                <p className="mb-6 text-zinc-500 dark:text-zinc-400">
+                  Your watchlist is empty — follow a performer by name above,
+                  or hit the + next to any performer in the listings.
+                </p>
+              ) : (
+                <WatchlistChips entries={watchlistEntries} />
+              )}
+            </div>
+          )}
+          {myVenues && (watchedVenues ?? []).length > 0 && (
+            <div className="mb-6 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-700 dark:text-zinc-300">
+              {(watchedVenues ?? []).map((e) => (
+                <span key={e.venue_slug}>
+                  {e.name}
+                  <PinVenueButton venueSlug={e.venue_slug} initiallyOn />
+                </span>
+              ))}
+            </div>
+          )}
 
           {view === "day" && (
             <CalendarNav
@@ -223,12 +265,13 @@ export default async function Home({
                   ? "No shows on this day match the filters."
                   : "No shows match these filters. Try widening the date range or clearing filters."}
             </p>
+          ) : view === "day" ? (
+            <DayGrid shows={shows} />
           ) : (
             <ShowList
               shows={shows}
               watchlistCanon={watchlistCanon}
               watchedVenueSlugs={watchedVenueSlugs}
-              showDateHeaders={view !== "day"}
             />
           )}
         </>

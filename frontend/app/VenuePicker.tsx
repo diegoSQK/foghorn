@@ -1,13 +1,10 @@
 "use client";
 
-// First-class venue selection (replaces the raw 37-checkbox grid).
-//
-// Two modes sharing the search + region-grouped list:
-// - "filter": rows toggle membership in the ?venues= URL param. Selected
-//   venues render as removable chips, so the state reads honestly — no
-//   chips means no constraint (the old all-boxes-checked default implied a
-//   selection that wasn't there).
-// - "follow": rows are inert labels; only the ★ acts (the /venues page).
+// First-class venue selection (replaces the raw 37-checkbox grid): a search
+// box over a region-grouped list whose rows toggle membership in the
+// ?venues= URL param. Selected venues render as removable chips, so the
+// state reads honestly — no chips means no constraint (the old
+// all-boxes-checked default implied a selection that wasn't there).
 // Followed venues sort first within each region and always carry their ★.
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -22,11 +19,9 @@ const REGION_ORDER = ["SF", "East Bay", "Peninsula", "South Bay"];
 export default function VenuePicker({
   venues,
   watchedVenueSlugs,
-  mode,
 }: {
   venues: VenueOption[];
   watchedVenueSlugs: Set<string>;
-  mode: "filter" | "follow";
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -88,7 +83,7 @@ export default function VenuePicker({
 
   return (
     <div className="flex flex-col gap-2">
-      {mode === "filter" && selected.size > 0 && (
+      {selected.size > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
           {[...selected].sort().map((slug) => (
             <button
@@ -130,25 +125,19 @@ export default function VenuePicker({
                 key={v.slug}
                 className="flex min-w-0 items-center text-sm text-zinc-700 dark:text-zinc-300"
               >
-                {mode === "filter" ? (
-                  <button
-                    type="button"
-                    onClick={() => toggle(v.slug)}
-                    aria-pressed={selected.has(v.slug)}
-                    className={`min-w-0 truncate text-left transition-colors hover:text-teal-700 dark:hover:text-teal-300 ${
-                      selected.has(v.slug)
-                        ? "font-medium text-teal-700 dark:text-teal-400"
-                        : ""
-                    }`}
-                    title={v.name}
-                  >
-                    {v.name}
-                  </button>
-                ) : (
-                  <span className="min-w-0 truncate" title={v.name}>
-                    {v.name}
-                  </span>
-                )}
+                <button
+                  type="button"
+                  onClick={() => toggle(v.slug)}
+                  aria-pressed={selected.has(v.slug)}
+                  className={`min-w-0 truncate text-left transition-colors hover:text-teal-700 dark:hover:text-teal-300 ${
+                    selected.has(v.slug)
+                      ? "font-medium text-teal-700 dark:text-teal-400"
+                      : ""
+                  }`}
+                  title={v.name}
+                >
+                  {v.name}
+                </button>
                 <span className="shrink-0">
                   <PinVenueButton
                     venueSlug={v.slug}
