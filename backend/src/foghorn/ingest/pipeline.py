@@ -195,9 +195,13 @@ def _to_show(
         start_utc=start_local.astimezone(UTC).isoformat(),
         start_local_date=scraped.start_local.strftime("%Y-%m-%d"),
         start_local_time=scraped.start_local.strftime("%H:%M"),
+        # A stated end equal to the start is calendar-tool noise (Tribe
+        # stamps end_date == start_date on some rows), not a zero-length
+        # show — store it as "no end stated".
         end_local_time=(
             scraped.end_local.strftime("%H:%M")
             if scraped.end_local is not None
+            and scraped.end_local != scraped.start_local
             else None
         ),
         doors_local_time=(
