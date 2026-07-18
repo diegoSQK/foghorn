@@ -43,7 +43,8 @@ REQUEST_TIMEOUT = 30.0
 
 _EVENT_LINK_RE = re.compile(r'href="(https://www\.meyhousejazz\.com/event-details/[^"?#]+)"')
 _SCHEDULING_RE = re.compile(
-    r'"scheduling":\{"config":\{[^{}]*"startDate":"([^"]+)"[^{}]*'
+    r'"scheduling":\{"config":\{[^{}]*"startDate":"([^"]+)"'
+    r'(?:[^{}]*?"endDate":"([^"]+)")?[^{}]*'
     r'"timeZoneId":"([^"]+)"'
 )
 _OG_TITLE_RE = re.compile(r'property="og:title" content="([^"]+)"')
@@ -83,13 +84,27 @@ def parse_event_page(page_html: str, url: str) -> ScrapedShow | None:
     scheduling = _SCHEDULING_RE.search(page_html)
     if scheduling is None:
         return None
-    start_raw, tz_raw = scheduling.group(1), scheduling.group(2)
+    start_raw, end_raw, tz_raw = (
+        scheduling.group(1),
+        scheduling.group(2),
+        scheduling.group(3),
+    )
     try:
         instant = dt.datetime.fromisoformat(start_raw.replace("Z", "+00:00"))
         tz = ZoneInfo(tz_raw.replace("\\/", "/"))
     except (ValueError, KeyError):
         return None
     start_local = instant.astimezone(tz).replace(tzinfo=None, microsecond=0)
+    end_local = None
+    if end_raw:
+        try:
+            end_local = (
+                dt.datetime.fromisoformat(end_raw.replace("Z", "+00:00"))
+                .astimezone(tz)
+                .replace(tzinfo=None, microsecond=0)
+            )
+        except ValueError:
+            end_local = None
 
     title_match = _OG_TITLE_RE.search(page_html)
     if title_match is None:
@@ -105,6 +120,7 @@ def parse_event_page(page_html: str, url: str) -> ScrapedShow | None:
         headliner_raw=title,
         support_raw=[],
         start_local=start_local,
+        end_local=end_local,
         doors_local=None,
         # Wix native ticketing lives on the event page itself.
         ticket_url=url,

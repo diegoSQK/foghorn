@@ -153,12 +153,24 @@ def parse_courses(
             local = instant.astimezone(VENUE_TZ).replace(tzinfo=None)
             if not (today <= local.date() <= window_end):
                 continue
+            ends_at = event.get("ends_at")
+            end_local = None
+            if ends_at:
+                try:
+                    end_local = (
+                        dt.datetime.fromisoformat(str(ends_at).replace("Z", "+00:00"))
+                        .astimezone(VENUE_TZ)
+                        .replace(tzinfo=None)
+                    )
+                except ValueError:
+                    end_local = None
             shows.append(
                 ScrapedShow(
                     venue_slug=VENUE_SLUG,
                     headliner_raw=name,
                     support_raw=[],
                     start_local=local,
+                    end_local=end_local,
                     doors_local=None,
                     ticket_url=event.get("book_url") or course.get("url"),
                     price_text=price_text,

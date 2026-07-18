@@ -10,8 +10,9 @@ import type { ShowView } from "./lib/api";
 import { genreAccentClass } from "./lib/ui";
 
 const HOUR_PX = 64;
-// No end times in the data, so blocks get a nominal set length — clamped so
-// back-to-back sets at one venue never overlap.
+// Blocks use the source's stated end time when one exists (many venues
+// publish "7-11pm" ranges); otherwise this nominal set length. Either way
+// the height clamps so back-to-back sets at one venue never overlap.
 const DEFAULT_SET_MINUTES = 90;
 const MIN_BLOCK_PX = 34;
 
@@ -59,9 +60,18 @@ export default function DayGrid({ shows }: { shows: ShowView[] }) {
       a.venue.name.localeCompare(b.venue.name),
   );
 
+  // A stated end earlier than its start crosses midnight ("9:30pm-2am").
+  const endMinutesOf = (s: ShowView): number | null => {
+    if (!s.end_local_time) return null;
+    const end = minutesOf(s.end_local_time);
+    return end <= minutesOf(s.start_local_time) ? end + 24 * 60 : end;
+  };
   const starts = shows.map((s) => minutesOf(s.start_local_time));
+  const blockEnds = shows.map(
+    (s) => endMinutesOf(s) ?? minutesOf(s.start_local_time) + DEFAULT_SET_MINUTES,
+  );
   const startHour = Math.floor(Math.min(...starts) / 60);
-  const endHour = Math.ceil((Math.max(...starts) + DEFAULT_SET_MINUTES) / 60);
+  const endHour = Math.ceil(Math.max(...blockEnds) / 60);
   const rangeStartMin = startHour * 60;
   const bodyHeight = (endHour - startHour) * HOUR_PX;
   const hours = Array.from(
@@ -134,13 +144,19 @@ export default function DayGrid({ shows }: { shows: ShowView[] }) {
             ))}
             {column.shows.map((show, i) => {
               const top = topOf(show);
-              // Height clamps against the next *later* set at this venue (a
-              // same-start sibling shares the row instead — see below).
+              // Stated end when the source published one, else the nominal
+              // length; either way the height clamps against the next
+              // *later* set at this venue (a same-start sibling shares the
+              // row instead — see below).
+              const stated = endMinutesOf(show);
+              const naturalPx = stated
+                ? ((stated - minutesOf(show.start_local_time)) / 60) * HOUR_PX
+                : (DEFAULT_SET_MINUTES / 60) * HOUR_PX;
               const nextLater = column.shows.find((s) => topOf(s) > top);
               const room = nextLater ? topOf(nextLater) - top - 4 : Infinity;
               const height = Math.max(
                 MIN_BLOCK_PX,
-                Math.min((DEFAULT_SET_MINUTES / 60) * HOUR_PX, room),
+                Math.min(naturalPx, room),
               );
               // Same-start shows split the column width — venues do post two
               // simultaneous listings, and a straight overlay renders one

@@ -26,7 +26,7 @@ _EVENT_TYPE_RESOLVED = (
 
 _SHOW_COLUMNS = (
     "id, venue_id, start_utc, start_local_date, start_local_time, "
-    "doors_local_time, headliner_canonical, ticket_url, price_text, "
+    "end_local_time, doors_local_time, headliner_canonical, ticket_url, price_text, "
     "source_url, scraped_at, source, "
     + _EVENT_TYPE_RESOLVED.format(alias="shows")
     + " AS event_type, genre_override"
@@ -40,6 +40,7 @@ def _row_to_show(row: sqlite3.Row) -> Show:
         start_utc=row["start_utc"],
         start_local_date=row["start_local_date"],
         start_local_time=row["start_local_time"],
+        end_local_time=row["end_local_time"],
         doors_local_time=row["doors_local_time"],
         headliner_canonical=row["headliner_canonical"],
         ticket_url=row["ticket_url"],
@@ -119,13 +120,14 @@ def upsert(
     conn.execute(
         """
         INSERT INTO shows (venue_id, start_utc, start_local_date, start_local_time,
-                           doors_local_time, headliner_canonical, ticket_url,
-                           price_text, source_url, scraped_at, source, event_type,
-                           genre_override)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           end_local_time, doors_local_time, headliner_canonical,
+                           ticket_url, price_text, source_url, scraped_at, source,
+                           event_type, genre_override)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(venue_id, start_local_date, start_local_time, headliner_canonical)
         DO UPDATE SET
             start_utc        = excluded.start_utc,
+            end_local_time   = excluded.end_local_time,
             doors_local_time = excluded.doors_local_time,
             ticket_url       = excluded.ticket_url,
             price_text       = excluded.price_text,
@@ -140,6 +142,7 @@ def upsert(
             show.start_utc,
             show.start_local_date,
             show.start_local_time,
+            show.end_local_time,
             show.doors_local_time,
             show.headliner_canonical,
             show.ticket_url,
@@ -304,7 +307,8 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
     resolved = _EVENT_TYPE_RESOLVED.format(alias="s")
     sql = (
         "SELECT s.id, s.venue_id, s.start_utc, s.start_local_date, "
-        "s.start_local_time, s.doors_local_time, s.headliner_canonical, "
+        "s.start_local_time, s.end_local_time, s.doors_local_time, "
+        "s.headliner_canonical, "
         "s.ticket_url, s.price_text, s.source_url, s.scraped_at, s.source, "
         f"{resolved} AS event_type, s.genre_override "
         "FROM shows s JOIN venues v ON v.id = s.venue_id"

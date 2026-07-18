@@ -49,6 +49,9 @@ export type ShowView = {
   };
   start_local_date: string;
   start_local_time: string;
+  // Stated end ("HH:MM"), when the source publishes one; earlier than
+  // start = past midnight. Null = not stated (UI estimates).
+  end_local_time: string | null;
   doors_local_time: string | null;
   headliner: PerformerView;
   support: PerformerView[];

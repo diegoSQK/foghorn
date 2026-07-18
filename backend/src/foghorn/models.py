@@ -98,6 +98,9 @@ class Show(BaseModel):
     start_utc: str  # ISO 8601, always normalized to +00:00
     start_local_date: str  # YYYY-MM-DD in the venue's tz
     start_local_time: str  # HH:MM in the venue's tz
+    # Stated end (HH:MM), when the source publishes one; earlier than start
+    # = past midnight.
+    end_local_time: str | None = None
     doors_local_time: str | None = None  # HH:MM in the venue's tz
     headliner_canonical: str
     ticket_url: str | None = None
@@ -129,6 +132,11 @@ class ScrapedShow(BaseModel):
     headliner_raw: str
     support_raw: list[str] = Field(default_factory=list)
     start_local: datetime
+    # Stated end, when the source publishes one (Tribe end_date, Viewcy
+    # ends_at, flyer "7-11pm" ranges…). None = not stated; the day-grid UI
+    # falls back to a nominal set length. An end clock-time earlier than the
+    # start means past-midnight ("9:30pm - 2:00am").
+    end_local: datetime | None = None
     doors_local: datetime | None = None
     ticket_url: str | None = None
     price_text: str | None = None

@@ -148,6 +148,12 @@ def parse_events(
         if not isinstance(start_raw, str) or not title or _is_non_music(title):
             continue
         start_local = dt.datetime.strptime(start_raw, _TRIBE_DT)
+        end_raw = event.get("end_date")
+        end_local = (
+            dt.datetime.strptime(end_raw, _TRIBE_DT)
+            if isinstance(end_raw, str)
+            else None
+        )
         if not (today <= start_local.date() <= window_end):
             continue
         headliner = _SERIES_PREFIX_RE.sub("", title) or title
@@ -160,6 +166,7 @@ def parse_events(
                 headliner_raw=headliner,
                 support_raw=[],
                 start_local=start_local,
+                end_local=end_local,
                 doors_local=None,
                 ticket_url=ticket_url,
                 price_text=price_text,

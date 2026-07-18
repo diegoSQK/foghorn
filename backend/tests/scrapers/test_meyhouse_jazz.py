@@ -20,6 +20,8 @@ def test_event_page_parses_scheduling_and_cleans_title() -> None:
     # and "| Meyhouse Jazz" both come off the billing.
     assert show.headliner_raw == "Michael Wolff Remembers Cal Tjader"
     assert show.start_local == dt.datetime(2026, 7, 25, 17, 0)
+    # "endDate":"2026-07-26T02:50Z" → 7:50pm PDT stated end.
+    assert show.end_local == dt.datetime(2026, 7, 25, 19, 50)
     assert show.ticket_url == "https://www.meyhousejazz.com/e"
 
 

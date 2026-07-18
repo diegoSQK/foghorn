@@ -108,6 +108,15 @@ def parse_events(
             start_local = dt.datetime.fromisoformat(start_raw)
         except ValueError:
             continue
+        end_raw = event.get("endDateTime")
+        try:
+            end_local = (
+                dt.datetime.fromisoformat(end_raw)
+                if isinstance(end_raw, str)
+                else None
+            )
+        except ValueError:
+            end_local = None
         if not (today <= start_local.date() <= window_end):
             continue
         title = _SERIES_SUFFIX_RE.sub("", _clean_text(title_raw)).strip()
@@ -125,6 +134,7 @@ def parse_events(
                 headliner_raw=title,
                 support_raw=[],
                 start_local=start_local,
+                end_local=end_local,
                 doors_local=None,
                 ticket_url=ticket_match.group(1) if ticket_match else None,
                 price_text=(

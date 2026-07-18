@@ -138,6 +138,15 @@ def parse_ics(
             local = start_value.astimezone(VENUE_TZ).replace(tzinfo=None)
         else:
             local = start_value
+        end = event.get("DTEND")
+        end_local = None
+        if end is not None and isinstance(end.dt, dt.datetime):
+            end_value = end.dt
+            end_local = (
+                end_value.astimezone(VENUE_TZ).replace(tzinfo=None)
+                if end_value.tzinfo is not None
+                else end_value
+            )
         headliner, support = _split_acts(summary)
         url = str(event.get("URL", "")) or CALENDAR_URL
         description = str(event.get("DESCRIPTION", ""))
@@ -151,6 +160,7 @@ def parse_ics(
                 headliner_raw=headliner,
                 support_raw=support,
                 start_local=local,
+                end_local=end_local,
                 doors_local=None,
                 ticket_url=ticket_url,
                 price_text=_price_text(description),

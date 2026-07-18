@@ -29,6 +29,8 @@ def test_two_events_per_night_with_correct_starts() -> None:
     assert jazz.doors_local is not None and jazz.doors_local.time() == dt.time(18, 0)
     assert jazz.price_text == "Free"
     assert techno.start_local.time() == dt.time(21, 30)
+    # "9:30pm - 2:00am": stated end crosses midnight (02:00 < start).
+    assert techno.end_local is not None and techno.end_local.time() == dt.time(2, 0)
 
 
 def test_set_list_players_become_support() -> None:

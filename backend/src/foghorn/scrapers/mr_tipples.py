@@ -112,6 +112,12 @@ def parse_events(events: list[dict[str, object]]) -> list[ScrapedShow]:
         if not isinstance(start_raw, str) or not title or _is_non_show(title):
             continue
         start_local = dt.datetime.strptime(start_raw, _TRIBE_DT)
+        end_raw = event.get("end_date")
+        end_local = (
+            dt.datetime.strptime(end_raw, _TRIBE_DT)
+            if isinstance(end_raw, str)
+            else None
+        )
         ticket_url = _text(event.get("website")) or None
         price_text = _text(event.get("cost")) or None
         source_url = _text(event.get("url")) or CALENDAR_URL
@@ -121,6 +127,7 @@ def parse_events(events: list[dict[str, object]]) -> list[ScrapedShow]:
                 headliner_raw=title,
                 support_raw=[],
                 start_local=start_local,
+                end_local=end_local,
                 doors_local=None,
                 ticket_url=ticket_url,
                 price_text=price_text,

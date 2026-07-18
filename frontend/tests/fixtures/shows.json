@@ -18,7 +18,8 @@
     "price_text": null,
     "source_url": "https://example.com/show/1",
     "id": 1,
-    "event_type": "show"
+    "event_type": "show",
+    "end_local_time": null
   },
   {
     "venue": {
@@ -44,7 +45,8 @@
     "price_text": null,
     "source_url": "https://example.com/show/2",
     "id": 2,
-    "event_type": "show"
+    "event_type": "show",
+    "end_local_time": "23:30"
   },
   {
     "venue": {
@@ -65,6 +67,7 @@
     "price_text": null,
     "source_url": "https://example.com/show/3",
     "id": 3,
-    "event_type": "jam"
+    "event_type": "jam",
+    "end_local_time": null
   }
 ]
