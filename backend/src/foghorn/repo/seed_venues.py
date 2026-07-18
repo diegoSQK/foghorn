@@ -597,6 +597,68 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://theregencyballroom.com/events/",
         genre="rock",
     ),
+    # --- Long-tail audit batch (July 2026): four aggregator-quarantined
+    # venues with well-maintained structured calendars, promoted to
+    # first-class. Slugs match the Bay Improviser-created rows, so seeding
+    # flips their `source` from 'aggregator' to 'seed' (the Wyldflowr
+    # precedent). ---
+    Venue(
+        slug="dresher_ensemble_studio",
+        name="Dresher Ensemble Studio",
+        neighborhood="West Oakland",
+        region="East Bay",
+        address="2201 Poplar St, Oakland, CA",
+        tz="America/Los_Angeles",
+        website_url="https://dresherensemble.org",
+        # WordPress Tribe Events REST API — see scrapers/dresher_ensemble_studio.
+        # Also hosts the weekly West Oakland Sound Series (aliased to this
+        # venue in aggregators/ingest).
+        calendar_url="https://dresherensemble.org/events/",
+        # New-music / experimental programming.
+        genre="eclectic",
+    ),
+    Venue(
+        slug="the_lab",
+        name="The Lab",
+        neighborhood="Mission",
+        region="SF",
+        address="2948 16th St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.thelab.org",
+        # Squarespace ?format=json collection with a pre-split `upcoming`
+        # array — see scrapers/the_lab.
+        calendar_url="https://www.thelab.org/projects",
+        genre="eclectic",
+    ),
+    Venue(
+        slug="gray_area_art_and_technology",
+        name="Gray Area",
+        neighborhood="Mission",
+        region="SF",
+        address="2665 Mission St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://grayarea.org",
+        # Server-rendered listing + per-event JSON-LD pages — see
+        # scrapers/gray_area. The Cybersentics Book Club series is aliased to
+        # this venue in aggregators/ingest.
+        calendar_url="https://grayarea.org/events/",
+        genre="electronic",
+    ),
+    Venue(
+        slug="mills_college_littlefield_concert_hall",
+        name="Mills College Littlefield Concert Hall",
+        neighborhood="Mills College",
+        region="East Bay",
+        address="5000 MacArthur Blvd, Oakland, CA",
+        tz="America/Los_Angeles",
+        website_url="https://performingarts.oakland.northeastern.edu",
+        # Public Trumba/25Live JSON feed behind Mills Performing Arts,
+        # filtered to music events at Littlefield — see
+        # scrapers/mills_littlefield. Seasonal (Sep–Jun); empty summers are
+        # normal.
+        calendar_url="https://performingarts.oakland.northeastern.edu/events/",
+        genre="eclectic",
+    ),
     Venue(
         slug="wyldflowr_arts",
         name="Wyldflowr Arts",

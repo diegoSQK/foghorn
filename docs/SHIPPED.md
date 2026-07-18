@@ -8,6 +8,91 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Long-tail audit + four scraper promotions: Dresher, The Lab, Gray Area, Mills Littlefield (July 2026)
+
+A user-directed audit of all 25 Bay Improviser quarantine venues ("which of
+these have a well-maintained, scrapable web presence the aggregator is
+undercounting?"), then scrapers for the four Bay Area greens. BI was carrying
+~1 upcoming show per venue where the venues' own calendars carried 7–12.
+
+**Shipped scrapers** (each seeds a venue row whose slug matches the
+BI-created row, flipping `source` aggregator→seed — the Wyldflowr promotion
+mechanism):
+
+- **Dresher Ensemble Studio** (West Oakland, eclectic) — WordPress Tribe
+  Events REST, the Mr. Tipple's/Madrone pattern. Bills arrive as one title
+  with literal `<br>` separators (first segment headliner, rest support);
+  multi-night runs are one Tribe row per date. Also the home of the weekly
+  **West Oakland Sound Series** (sfSound + New Performance Traditions), so
+  a `VENUE_ALIASES` entry routes that BI series name here and the
+  aggregator's duplicate guard defers to this scraper.
+- **The Lab** (Mission, eclectic) — Squarespace `?format=json` collection
+  (`/projects`), the Piedmont Piano pattern but trap-free: the payload
+  pre-splits `upcoming` from `past`. Music carries a `Concert` category;
+  Dice (`link.dice.fm`) anchors in the body give `ticket_url`.
+- **Gray Area** (Mission, electronic) — no Tribe REST and no event post
+  type; server-rendered `/events/` listing (redirects to `/visit/events/`)
+  walked into per-event pages whose Yoast `@graph` JSON-LD holds a
+  schema.org Event (ISO startDate with offset). The CJC
+  listing-plus-detail-pages pattern. Slug prefilter drops the education
+  program (courses/workshops/book club/talks) before fetching; Yoast's
+  " - Gray Area" suffix and multi-night "Friday, July 17" date suffixes come
+  off the name. **Cybersentics Book Club** is a Gray Area program — aliased
+  to this venue.
+- **Mills College Littlefield Concert Hall** (Oakland, eclectic) — the hall
+  publishes nothing, but Mills Performing Arts feeds its site from a public
+  Trumba/25Live JSON (`25livepub.collegenet.com`; .ics/.rss siblings exist).
+  Rows carry an explicit `template: "Oakland - Music Event"` discriminator +
+  a `location` naming Littlefield + a `canceled` flag, so filtering is
+  data-driven, not heuristic. Descriptions yield Eventbrite `ticket_url` +
+  "Tickets: $…" `price_text`. Seasonal Sep–Jun programming; near-empty
+  summer feeds are normal.
+
+**Audit verdicts worth keeping** (evidence-backed, 2026-07-17; the
+remaining 21 venues):
+
+- *Scrapable with real effort (yellow):* **Make-Out Room** — genuine Weebly
+  RSS (`/2/feed`) but the site's TLS handshake is broken (plain-HTTP fetch
+  only), titles are just dates with lineups in post bodies, ~4-day posting
+  horizon. **Meyhouse Jazz** (Palo Alto) — the jazz program of Meyhouse
+  restaurant (SFJazz-designed listening room); maintained server-rendered
+  Wix pages, 5pm/8pm seating duplicates, multi-location (Sunnyvale, San
+  Ramon) disambiguation needed. **Artists' Television Access** — live
+  month-grid HTML + RSS but events post only days ahead (needs frequent
+  polls, never a long horizon; WP REST auth-blocked). **The Monkey House**
+  (Berkeley listening room) — actively programmed but the calendar is
+  flyer images; homepage text blurbs allow partial extraction only.
+  **Peacock Lounge** — current but hand-edited WordPress page, low volume.
+  **Shapeshifters Cinema** — maintained static HTML, ~3 events, zero
+  structure.
+- *Santa Cruz (region-taxonomy decision needed before any build):*
+  **Kuumbwa Jazz Center** — clean Tribe REST, **77 upcoming events**, the
+  biggest single prize found; **Indexical** — easy server-rendered HTML with
+  GCal-template links; **Santa Cruz Civic Auditorium** — active but both
+  first-party hosts 403 plain fetches (headless territory).
+- *Easy but low-value pending a product call:* **Arc Gallery** — public
+  Google Calendar ICS (~38 future events) but music is a subset of gallery
+  programming; needs a filter story.
+- *Nothing to scrape (aggregator coverage is the right coverage):*
+  **Little Hill Lounge** (re-verified: flyer JPEG, Tribe still uninstalled
+  per the wp-json namespace list), **Berkeley Finnish Hall** + **Oakland
+  Scottish Rite** (rental halls; promoters publish, the halls don't),
+  **Spruce Street Concerts** (private Berkeley-hills house series, email
+  RSVP), **Sculpture Studio @ Project Artaud** (private studio),
+  **espace_étale** (an *online* weekly stream, arguably wants an ONLINE
+  region tag), **Flip Flop Farms** (Pescadero farm; one-off festival
+  rental), **Guitar Wars** (San Jose guitar shop, Instagram-only; the
+  adjacent "Pete Be Center" may become the scrapable room later),
+  **Temescal Arts Center** — site stale since Jan 2025, Instagram-only,
+  and Yelp marks it CLOSED (June 2026) while BI still lists shows there:
+  needs a human check.
+
+**Post-merge data cleanup:** the two series' obsolete aggregator venue rows
+(`west_oakland_sound_series`, `cybersentics_book_club_at_gray_area`) and
+their shows were deleted from the canonical DB (backup taken) — their events
+now live under the promoted venues via the aliases, deduped against the
+scrapers by the aggregator ingest's duplicate guard.
+
 ## UI consolidation: one browsing surface + day time×venue grid + sticky date headers (July 2026)
 
 A user-directed UX tightening pass (dogfooding, no ticket) with one structural

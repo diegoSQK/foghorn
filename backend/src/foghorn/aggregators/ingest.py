@@ -33,6 +33,11 @@ VENUE_ALIASES: dict[str, str] = {
     "bird beckett": "bird_and_beckett",
     "back room": "the_back_room",
     "makeout room": "make_out_room",
+    # Series → the venue that hosts them (long-tail audit, July 2026). Routes
+    # future aggregator events to the promoted venue, where the duplicate
+    # guard defers to its scraper.
+    "west oakland sound series": "dresher_ensemble_studio",
+    "cybersentics book club at gray area": "gray_area_art_and_technology",
 }
 
 
