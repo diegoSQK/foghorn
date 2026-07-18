@@ -64,6 +64,7 @@ def test_continuation_line_joins_bill() -> None:
     assert fri.headliner_raw == "Rainbow City Park"
     assert fri.support_raw == ["blossomfoam", "Furnace Woods", "Normal Bird"]
     assert fri.start_local == dt.datetime(2026, 7, 17, 20, 0)
+    assert fri.end_local is None  # bare "8pm" states no end
 
 
 def test_desc_line_ocr_ordered_before_its_date_pairs_correctly() -> None:
@@ -82,6 +83,7 @@ def test_time_range_takes_start_with_borrowed_meridiem() -> None:
     shows = _parse(dt.date(2026, 7, 1))
     by_day = {s.start_local.date().day: s for s in shows}
     assert by_day[1].start_local.time() == dt.time(19, 0)  # "7-11pm"
+    assert by_day[1].end_local is not None and by_day[1].end_local.time() == dt.time(23, 0)
     assert by_day[5].start_local.time() == dt.time(18, 0)  # "6-11pm"
     assert by_day[31].start_local.time() == dt.time(19, 0)  # "7pm - 12am"
 

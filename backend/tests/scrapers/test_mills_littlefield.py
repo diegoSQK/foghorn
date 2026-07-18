@@ -42,6 +42,7 @@ def test_only_littlefield_music_survives() -> None:
 def test_ticket_url_price_and_provenance() -> None:
     show = mills_littlefield.parse_events(_events(), TODAY)[0]
     assert show.start_local == dt.datetime(2026, 7, 20, 19, 30)
+    assert show.end_local is not None  # Trumba states endDateTime
     assert show.ticket_url is not None and show.ticket_url.startswith(
         "https://www.eventbrite.com/e/"
     )

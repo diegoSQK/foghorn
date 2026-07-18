@@ -58,6 +58,7 @@ class ShowView(BaseModel):
     venue: VenueView
     start_local_date: str
     start_local_time: str
+    end_local_time: str | None
     doors_local_time: str | None
     headliner: PerformerView
     support: list[PerformerView]
@@ -108,6 +109,7 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
         ),
         start_local_date=show.start_local_date,
         start_local_time=show.start_local_time,
+        end_local_time=show.end_local_time,
         doors_local_time=show.doors_local_time,
         headliner=headliner,
         support=support,

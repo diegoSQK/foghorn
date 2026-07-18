@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS shows (
     start_utc            TEXT NOT NULL,
     start_local_date     TEXT NOT NULL,
     start_local_time     TEXT NOT NULL,
+    end_local_time       TEXT,  -- stated end 'HH:MM'; < start = past midnight
     doors_local_time     TEXT,
     headliner_canonical  TEXT NOT NULL,
     ticket_url           TEXT,
@@ -162,6 +163,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
     _add_column_if_missing(conn, "venues", "source", "TEXT NOT NULL DEFAULT 'seed'")
     _add_column_if_missing(conn, "shows", "source", "TEXT NOT NULL DEFAULT 'scrape'")
     _add_column_if_missing(conn, "shows", "event_type", "TEXT NOT NULL DEFAULT 'show'")
+    _add_column_if_missing(conn, "shows", "end_local_time", "TEXT")
     _add_column_if_missing(conn, "shows", "genre_override", "TEXT")
     _add_column_if_missing(conn, "performers", "genre", "TEXT")
     _add_column_if_missing(conn, "performers", "genre_source", "TEXT")

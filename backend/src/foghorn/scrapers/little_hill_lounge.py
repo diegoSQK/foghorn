@@ -129,21 +129,28 @@ def fetch_flyer(
             client.close()
 
 
-def _start_time(text: str) -> tuple[str, dt.time] | None:
-    """Extract the trailing time; returns ``(text_without_time, start)`` or
-    None when the row states no time (those rows are skipped)."""
-    match = _TIME_RE.search(text)
-    if match is None:
-        return None
-    hour_raw, minute_raw, meridiem = match.group(1), match.group(2), match.group(3)
-    if meridiem is None:
-        meridiem = match.group(6)  # "7-11pm": the range end's pm applies
-    if meridiem is None:
-        return None
+def _to_time(hour_raw: str, minute_raw: str | None, meridiem: str) -> dt.time:
     hour = int(hour_raw) % 12
     if meridiem.lower() == "pm":
         hour += 12
-    return text[: match.start()].strip(" ,"), dt.time(hour, int(minute_raw or 0))
+    return dt.time(hour, int(minute_raw or 0))
+
+
+def _start_time(text: str) -> tuple[str, dt.time, dt.time | None] | None:
+    """Extract the trailing time; returns ``(text_without_time, start,
+    end)`` — end None for single times — or None when the row states no
+    time (those rows are skipped)."""
+    match = _TIME_RE.search(text)
+    if match is None:
+        return None
+    start_meridiem = match.group(3) or match.group(6)  # "7-11pm" borrows pm
+    if start_meridiem is None:
+        return None
+    start = _to_time(match.group(1), match.group(2), start_meridiem)
+    end = None
+    if match.group(4) and match.group(6):
+        end = _to_time(match.group(4), match.group(5), match.group(6))
+    return text[: match.start()].strip(" ,"), start, end
 
 
 def _clean_act(raw: str) -> str:
@@ -224,7 +231,7 @@ def parse_flyer(
         timed = _start_time(text)
         if timed is None:
             continue
-        bill_text, start = timed
+        bill_text, start, end = timed
         headliner, support = _split_bill(bill_text)
         if not headliner:
             continue
@@ -234,6 +241,7 @@ def parse_flyer(
                 headliner_raw=headliner,
                 support_raw=support,
                 start_local=dt.datetime.combine(date, start),
+                end_local=dt.datetime.combine(date, end) if end else None,
                 doors_local=None,
                 # "ALL SHOWS $10" is a blanket flyer line, not per-event
                 # pricing — not propagated.

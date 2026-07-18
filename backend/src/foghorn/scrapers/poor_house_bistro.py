@@ -58,7 +58,7 @@ _CAL_IMG_RE = re.compile(
 
 _DAY_NUMBER_RE = re.compile(r"^\s*(\d{1,2})\s*$")
 _TIME_RANGE_RE = re.compile(
-    r"(\d{1,2})(?::(\d{2}))?\s*([AP])M\s*[-–]\s*\d{1,2}(?::\d{2})?\s*[AP]M",
+    r"(\d{1,2})(?::(\d{2}))?\s*([AP])M\s*[-–]\s*(\d{1,2})(?::(\d{2}))?\s*([AP])M",
     re.IGNORECASE,
 )
 _WEEKDAY_HEADERS = (
@@ -231,6 +231,10 @@ def parse_flyer(
             hour = int(match.group(1)) % 12
             if match.group(3).upper() == "P":
                 hour += 12
+            end_hour = int(match.group(4)) % 12
+            if match.group(6).upper() == "P":
+                end_hour += 12
+            end = dt.time(end_hour, int(match.group(5) or 0))
             upper_act = act.upper()
             shows.append(
                 ScrapedShow(
@@ -240,6 +244,7 @@ def parse_flyer(
                     start_local=dt.datetime.combine(
                         date, dt.time(hour, int(match.group(2) or 0))
                     ),
+                    end_local=dt.datetime.combine(date, end),
                     doors_local=None,
                     ticket_url=None,
                     price_text=None,

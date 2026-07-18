@@ -44,6 +44,11 @@ def test_sunday_cells_split_into_two_slots() -> None:
         (dt.time(12, 0), "ROMA JAZZ PROJECT"),
         (dt.time(16, 0), "BLUES ROCKERS"),
     ]
+    # "12PM-3PM" / "4PM-7PM" ranges carry stated ends.
+    assert [s.end_local.time() for s in july5 if s.end_local] == [
+        dt.time(15, 0),
+        dt.time(19, 0),
+    ]
 
 
 def test_anchor_sanity_check_refuses_shifted_grid() -> None:

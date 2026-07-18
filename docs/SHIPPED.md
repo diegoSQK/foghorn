@@ -8,6 +8,31 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Stated end times: day-grid blocks stop guessing (July 2026)
+
+Diego caught the day grid drawing every block at the nominal 90 minutes
+even when the source states an end — Wyld Jam is explicitly 1:00–4:00.
+The data model simply had no end column; now it does.
+
+- **`ScrapedShow.end_local` → `shows.end_local_time` (nullable) → API.**
+  Stored as the venue-local "HH:MM"; an end clock-time earlier than the
+  start means past midnight ("9:30pm - 2:00am"). Additive column with the
+  usual migration guard; upsert refreshes it nightly.
+- **Eleven scrapers now emit stated ends** where the source publishes
+  them: the Tribe family (Mr. Tipple's, Madrone, Natural Grocery Annex,
+  Dresher, Kuumbwa — `end_date`), Wyldflowr (Viewcy `ends_at`), Mills
+  (Trumba `endDateTime`), Meyhouse (Wix `endDate`), the two .ics feeds
+  (Bird & Beckett, DNA Lounge — `DTEND`), and the three range parsers
+  (Little Hill, Poor House Bistro, Make-Out Room), whose regexes were
+  already matching "7-11pm" ends and discarding them.
+- **DayGrid** uses the stated duration when present (falling back to the
+  90-minute estimate), extends the grid's hour range to cover late stated
+  ends past midnight, and keeps the no-overlap clamp against the venue's
+  next set either way.
+
+Sources with no published end (SeeTickets/TicketWeb cards, most HTML
+listings) keep the estimate — absence stays honest, nothing is fabricated.
+
 ## Venue batch 4: Indexical, Meyhouse Jazz, Make-Out Room, Poor House Bistro (July 2026)
 
 Four scrapers from the audit docket (two "easy", two "best effort" per

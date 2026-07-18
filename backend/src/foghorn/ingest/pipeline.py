@@ -195,6 +195,11 @@ def _to_show(
         start_utc=start_local.astimezone(UTC).isoformat(),
         start_local_date=scraped.start_local.strftime("%Y-%m-%d"),
         start_local_time=scraped.start_local.strftime("%H:%M"),
+        end_local_time=(
+            scraped.end_local.strftime("%H:%M")
+            if scraped.end_local is not None
+            else None
+        ),
         doors_local_time=(
             scraped.doors_local.strftime("%H:%M")
             if scraped.doors_local is not None

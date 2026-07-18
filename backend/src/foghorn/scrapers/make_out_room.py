@@ -48,7 +48,7 @@ REQUEST_TIMEOUT = 30.0
 
 _DATE_RE = re.compile(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b")
 _TIME_RANGE_RE = re.compile(
-    r"(\d{1,2})(?::(\d{2}))?\s*([ap])m\s*[-–]\s*\d{1,2}(?::\d{2})?\s*[ap]m",
+    r"(\d{1,2})(?::(\d{2}))?\s*([ap])m\s*[-–]\s*(\d{1,2})(?::(\d{2}))?\s*([ap])m",
     re.IGNORECASE,
 )
 _SHOW_TIME_RE = re.compile(r"(\d{1,2})(?::(\d{2}))?\s*([ap])m\s+show", re.IGNORECASE)
@@ -210,11 +210,13 @@ def _block_to_show(
         else None
     )
 
+    end = _time(range_match.group(4), range_match.group(5), range_match.group(6))
     return ScrapedShow(
         venue_slug=VENUE_SLUG,
         headliner_raw=headliner,
         support_raw=[],
         start_local=dt.datetime.combine(date, start),
+        end_local=dt.datetime.combine(date, end),
         doors_local=dt.datetime.combine(date, doors) if doors else None,
         ticket_url=None,
         price_text="Free" if _FREE_RE.search(joined) else None,
