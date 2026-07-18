@@ -8,6 +8,47 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Little Hill Lounge via on-device OCR — the flyer-venue pattern (July 2026)
+
+Little Hill (El Cerrito) publishes its calendar **only as a monthly flyer
+JPEG** — the blocker on record since the venue-expansion sweep. Diego asked
+whether a lightweight off-the-shelf OCR model could crack it; the answer
+turned out to be sitting in the OS.
+
+- **Apple Vision, not a model dependency.** The nightly scrape runs on a
+  Mac, and macOS ships `VNRecognizeTextRequest` — no service, no API key,
+  no weights to manage. On the real July flyer it read **all 30 calendar
+  rows verbatim** (the only misreads: the stylized logo, which we ignore,
+  and letter-O runs as zeros — "OOO" → "00O" — a glyph confusion that
+  language correction can't fix and that we accept). The flyer helped: it's
+  cleanly typeset, not hand-lettered — worth checking per venue before
+  assuming "flyer" means "unreadable."
+- **Layout parsing from bounding boxes.** Vision returns normalized boxes;
+  `DAY M/D` lines anchor rows, description-column lines pair by nearest
+  center-y (OCR emission order is NOT top-to-bottom reading order — a
+  description can precede its date line), leftovers attach upward as
+  continuation lines (multi-line bills). Comma bills split
+  headliner/support; "w/" prefixes and unbalanced-parenthetical flyer
+  typos are trimmed.
+- **Guardrails.** The flyer year/month come from the image's WordPress
+  upload path (`/uploads/YYYY/MM/`) rather than the clock, and rows whose
+  month disagrees are dropped as misreads; rows without an explicit time
+  are skipped, not fabricated (B&B convention); the blanket "ALL SHOWS
+  $10" line is not propagated as per-event pricing; non-music rows
+  (karaoke/bingo/movie/"OPEN FOR") drop on title signal. First live run:
+  11 shows for the rest of July.
+- **Platform coupling, contained.** `ocr_image` lazy-imports the pyobjc
+  Vision/Quartz bridges (pyproject marks them `sys_platform == 'darwin'`);
+  off-macOS the scraper raises a clear error that surfaces in
+  `/api/health/scrape`, while the parser stays pure and is tested from the
+  checked-in real OCR fixture on any platform (CI included). Slug matches
+  the BI row → promoted out of quarantine (18 → 17).
+
+The pattern generalizes: The Monkey House (Berkeley) — the audit's other
+flyer-image venue — is now a candidate for the same treatment, with the
+caveat that its flyers are designed art, not a typeset list; verify OCR
+quality on real flyers first.
+
 ## Kuumbwa Jazz Center + the Santa Cruz region (July 2026)
 
 Follow-through on the long-tail audit's biggest unclaimed prize, per Diego's

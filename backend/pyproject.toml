@@ -21,6 +21,11 @@ dependencies = [
     "pydantic==2.13.4",
     "icalendar==7.1.2",
     "recurring-ical-events==3.8.2",
+    # Apple Vision OCR for flyer-only venues (see scrapers/little_hill_lounge).
+    # Darwin-only: the nightly scrape runs on a Mac; CI (ubuntu) skips these
+    # and exercises the pure parser from a checked-in OCR fixture.
+    "pyobjc-framework-Vision==12.2.1; sys_platform == 'darwin'",
+    "pyobjc-framework-Quartz==12.2.1; sys_platform == 'darwin'",
 ]
 
 [project.optional-dependencies]
