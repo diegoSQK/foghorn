@@ -73,6 +73,19 @@ CREATE INDEX IF NOT EXISTS idx_show_performers_performer ON show_performers(perf
 -- One row per scrape run (scheduled nightly or manual `make scrape`), with a
 -- per-venue breakdown child table. Trimmed to the most recent N runs on insert
 -- (Phase 2.3). The scrape-health endpoint reads the latest run.
+-- Manual event-type corrections (July 2026): "this billing at this venue
+-- is a jam (or a show)". Keyed on venue + billing rather than show id so a
+-- correction survives re-ingest AND applies to future instances of
+-- recurring events (sessions/hangs recur under the same billing string).
+-- Reads resolve COALESCE(override, shows.event_type).
+CREATE TABLE IF NOT EXISTS event_type_overrides (
+    venue_id             INTEGER NOT NULL REFERENCES venues(id),
+    headliner_canonical  TEXT NOT NULL,
+    event_type           TEXT NOT NULL,  -- 'show' | 'jam'
+    created_at           TEXT NOT NULL,
+    PRIMARY KEY (venue_id, headliner_canonical)
+);
+
 CREATE TABLE IF NOT EXISTS scrape_runs (
     id           INTEGER PRIMARY KEY,
     started_at   TEXT NOT NULL,

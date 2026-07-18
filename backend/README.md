@@ -83,6 +83,12 @@ the Python models live in `foghorn/models.py`.
   to `+00:00`), `start_local_date` (`YYYY-MM-DD` in venue tz),
   `start_local_time` (`HH:MM` in venue tz), `doors_local_time` (nullable),
   `headliner_canonical`, `ticket_url`, `price_text`, `source_url`, `scraped_at`.
+- **`event_type_overrides`** — manual event-type corrections: `venue_id` →
+  `venues`, `headliner_canonical`, `event_type` (`show` / `jam`),
+  `created_at`; PK `(venue_id, headliner_canonical)`. Keyed on venue +
+  billing (not show id) so a correction survives re-ingest and recurring
+  instances of the same billing inherit it. Reads resolve
+  `COALESCE(override, shows.event_type)`.
 - **`show_performers`** — join table: `show_id` → `shows`, `performer_id` →
   `performers`, `role` (`headliner` / `support`), `position` (display order on
   the bill; headliner is 0). PK `(show_id, performer_id)`.
@@ -175,6 +181,18 @@ Reuses the `?watchlist=true` filter over `[today, today+days]`, ordered by
 `/api/shows` row plus `watchlist_matches` — the watched `display_name`(s) that
 hit it (a show can match more than one). Empty watchlist → `{generated_at,
 matches: []}` (200).
+
+### `PUT` / `DELETE /api/shows/{show_id}/event_type`
+
+Manual event-type correction ("this is a jam session") — foghorn infers
+jams from title patterns, which "Standards Hang"-style names defeat, so the
+user is the source of truth. `PUT` body `{"event_type": "jam"}` (or
+`"show"`); the correction is stored as a **venue+billing override rule**
+(see the data model), so it survives the nightly re-ingest and applies to
+every instance of a recurring session. `DELETE` removes the rule (the
+inferred type applies again). 404 for unknown show ids. Same single-tenant
+no-auth posture as the performer origin/genre corrections; the frontend
+exposes it as the clickable jam badge / faint "jam?" chip on show rows.
 
 ### `GET /api/venues`
 

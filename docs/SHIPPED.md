@@ -8,6 +8,37 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Manual event-type correction — clickable jam badges (July 2026)
+
+Mark Clifford's Standards Hang at Little Hill is a jam session, but nothing
+in the billing says so — title inference can't know what only the user
+knows. Diego asked for a way to tell foghorn directly.
+
+- **Stored as a venue+billing rule, not a row edit.** The nightly upsert
+  rewrites ``shows.event_type`` (``excluded.event_type``), so flipping the
+  row would be clobbered within a day. Instead ``PUT
+  /api/shows/{id}/event_type`` records the correction in
+  ``event_type_overrides`` keyed ``(venue_id, headliner_canonical)`` —
+  derived from the show the user clicked, but owned by the billing. That
+  buys two properties for free: re-ingest can't undo it, and **recurring
+  sessions stay corrected** — when Bay Improviser mints August's Standards
+  Hang row, the same billing at the same venue resolves to jam with no
+  further action. ``DELETE`` reverts to the inferred type.
+- **Resolution at read time.** All show reads resolve
+  ``COALESCE(override, shows.event_type)`` (one source of truth, no
+  write-through duplication), and the ``?type=`` facet filters on the
+  resolved value — corrections move shows between the Shows/Jam chips.
+- **UI: the badge is the control.** The amber jam badge is now a button
+  (click to unmark), and every non-jam row carries a faint dashed "jam?"
+  chip (click to mark). Optimistic flip, revert on failure, soft refresh.
+  Same single-tenant posture as the origin/genre correction endpoints —
+  but this one earned a UI because it's a while-browsing gesture, not a
+  data-cleanup task.
+
+Adjacent to Phase 7.3 (user-defined tags): this is the second user-owned
+per-show metadata surface after the watchlist, and the venue+billing rule
+shape may be the right pattern for 7.3's recurring-event cases too.
+
 ## Pluggable OCR engines (July 2026)
 
 Follow-up to the Little Hill OCR scraper, per Diego: future hosting or
