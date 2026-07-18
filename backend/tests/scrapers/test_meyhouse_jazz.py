@@ -25,13 +25,14 @@ def test_event_page_parses_scheduling_and_cleans_title() -> None:
     assert show.ticket_url == "https://www.meyhousejazz.com/e"
 
 
-def test_weekdayless_seating_suffix_strips() -> None:
-    page = (FIXTURES / "meyhouse_event.html").read_text().replace(
-        "（Sat 7/25 - 5pm)", "(7/25-5pm)"
-    )
-    show = meyhouse_jazz.parse_event_page(page, "u")
-    assert show is not None
-    assert show.headliner_raw == "Michael Wolff Remembers Cal Tjader"
+def test_weekdayless_and_stacked_suffixes_strip() -> None:
+    for suffix in ("(7/25-5pm)", "(7/25 Sat-8pm) (1)", "(Sat 7/25 - 5pm) (2)"):
+        page = (FIXTURES / "meyhouse_event.html").read_text().replace(
+            "（Sat 7/25 - 5pm)", suffix
+        )
+        show = meyhouse_jazz.parse_event_page(page, "u")
+        assert show is not None, suffix
+        assert show.headliner_raw == "Michael Wolff Remembers Cal Tjader", suffix
 
 
 def test_non_palo_alto_stage_is_dropped() -> None:
