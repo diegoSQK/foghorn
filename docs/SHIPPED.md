@@ -8,6 +8,22 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Followed-first display precedence (July 2026)
+
+Shows at watched venues or with watchlist-matched performers now lead
+every view: the top of each date group in the list, the leading slots in
+week/month day cells (so the month grid's two visible headliners prefer
+followed acts), and the far-left columns of the day grid (a column holding
+any followed show sorts ahead of the earliest-set ordering).
+
+Mechanics: the page computes a ``followedShowIds`` set server-side and the
+views apply a stable followed-first sort — time order preserved within
+each bucket. Matching mirrors the backend's **token-bag** semantics
+(``lib/precedence.ts``), not exact string equality, so a "lisa mezzacappa"
+follow floats any billing she appears inside — the same reason the
+watchlist filter works on messy billings. No new visual chrome: the rows'
+existing ✓ and ★ affordances are the explanation for the float.
+
 ## Stated end times: day-grid blocks stop guessing (July 2026)
 
 Diego caught the day grid drawing every block at the nominal 90 minutes

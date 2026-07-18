@@ -41,7 +41,15 @@ type VenueColumn = {
   shows: ShowView[]; // sorted by start time
 };
 
-export default function DayGrid({ shows }: { shows: ShowView[] }) {
+export default function DayGrid({
+  shows,
+  followedIds,
+}: {
+  shows: ShowView[];
+  // Columns holding any followed show (watched venue / watchlist match)
+  // sort to the far left, ahead of the earliest-set ordering.
+  followedIds?: Set<number>;
+}) {
   const bySlug = new Map<string, VenueColumn>();
   for (const show of shows) {
     const column = bySlug.get(show.venue.slug) ?? { venue: show.venue, shows: [] };
@@ -54,8 +62,13 @@ export default function DayGrid({ shows }: { shows: ShowView[] }) {
       a.start_local_time.localeCompare(b.start_local_time),
     );
   }
+  const columnFollowed = (column: VenueColumn): number =>
+    followedIds && column.shows.some((show) => followedIds.has(show.id))
+      ? 0
+      : 1;
   columns.sort(
     (a, b) =>
+      columnFollowed(a) - columnFollowed(b) ||
       a.shows[0].start_local_time.localeCompare(b.shows[0].start_local_time) ||
       a.venue.name.localeCompare(b.venue.name),
   );
