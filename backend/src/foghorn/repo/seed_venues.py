@@ -660,6 +660,21 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="kuumbwa_jazz_center",
+        name="Kuumbwa Jazz Center",
+        neighborhood="Downtown Santa Cruz",
+        region="Santa Cruz",
+        address="320-2 Cedar St, Santa Cruz, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.kuumbwajazz.org",
+        # Tribe Events REST API behind a UA-sensitive LiteSpeed cache — see
+        # scrapers/kuumbwa_jazz_center. First Santa Cruz-region venue; slug
+        # matches the Bay Improviser row, so seeding promotes it out of the
+        # aggregator quarantine.
+        calendar_url="https://www.kuumbwajazz.org/calendar/",
+        genre="jazz",
+    ),
+    Venue(
         slug="wyldflowr_arts",
         name="Wyldflowr Arts",
         neighborhood="North Oakland",

@@ -14,7 +14,7 @@ import PinVenueButton from "./PinVenueButton";
 import type { VenueOption } from "./lib/api";
 import { inputClass } from "./lib/ui";
 
-const REGION_ORDER = ["SF", "East Bay", "Peninsula", "South Bay"];
+const REGION_ORDER = ["SF", "East Bay", "Peninsula", "South Bay", "Santa Cruz"];
 
 export default function VenuePicker({
   venues,

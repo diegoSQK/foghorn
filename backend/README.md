@@ -74,7 +74,7 @@ Four tables (defined in `repo/schema.py`). All datetimes are stored as text;
 the Python models live in `foghorn/models.py`.
 
 - **`venues`** — `id`, `slug` (unique), `name`, `neighborhood`, `region`
-  (`SF` / `East Bay` / `Peninsula` / `South Bay`), `address`, `tz` (IANA,
+  (`SF` / `East Bay` / `Peninsula` / `South Bay` / `Santa Cruz`), `address`, `tz` (IANA,
   e.g. `America/Los_Angeles`), `website_url`, `calendar_url`.
 - **`performers`** — `id`, `display_name` (the venue's verbatim string, never
   overwritten), `canonical_name` (unique; lowercased, accent-stripped,
@@ -131,7 +131,7 @@ Upcoming shows, ordered by `start_utc`. Query params (all optional):
 - `venue` — legacy single slug; prefer `venues=`.
 - `time_of_day` — `early` (`start_local_time` < 21:00) or `late` (>= 21:00); exact complements, no gap. Anything else ignored.
 - `performer_query` — free-text performer name; canonicalized server-side, then **token-bag matched** (Phase 4.1, via `repo/performer_match.py`) against any performer (headliner or support): every query token must be a whole token of the performer's canonical name, so "redman joshua" matches "joshua redman quartet". Empty after canonicalization = no filter.
-- `region` — `SF` / `East Bay` / `Peninsula` / `South Bay`; matches the venue's `region`. Unknown values ignored (not a 400). All current venues are SF.
+- `region` — `SF` / `East Bay` / `North Bay` / `Peninsula` / `South Bay` / `Santa Cruz`; matches the venue's `region`. Unknown values ignored (not a 400).
 - `neighborhood` — matches the venue's `neighborhood`, case-insensitive exact (e.g. `North Beach`).
 - `watchlist` — `true` filters to shows where any performer token-matches any watchlist entry. Empty watchlist → `[]` (not all shows).
 
