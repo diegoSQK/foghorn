@@ -1,0 +1,56 @@
+{
+ "collection": {
+  "title": "What's Current"
+ },
+ "upcoming": [
+  {
+   "id": "6a517f6d0848606947e75ec8",
+   "title": "Merope w/ Shahzad Ismaily + David Wesley Golightly",
+   "startDate": 1787972400004,
+   "fullUrl": "/projects/2026/8/28/merope-w-shahzad-ismaily-david-wesley-golightly",
+   "categories": [
+    "Concert"
+   ],
+   "body": "<a href=\"https://link.dice.fm/S370aec44c51\">RSVP</a>"
+  },
+  {
+   "id": "6a5910a97e387f268a4dd6b3",
+   "title": "San Francisco Electronic Music Festival Night 1: Rrose, Idhaz and Emily Bouton, Blevin Blectum",
+   "startDate": 1790305200481,
+   "fullUrl": "/projects/2026/9/24/san-francisco-electronic-music-festival-night-1-rrose-idhaz-and-emily-bouton-blevin-blectum",
+   "categories": [
+    "Concert"
+   ],
+   "body": "<a href=\"https://link.dice.fm/b599a420a2f8\">RSVP</a>"
+  },
+  {
+   "id": "6a59115333d5512c4b570f9a",
+   "title": "San Francisco Electronic Music Festival Night 2: The Gleaners, Paul DeMarinis, Albert Yeh, Stefano Pilia",
+   "startDate": 1790391600867,
+   "fullUrl": "/projects/2026/9/24/san-francisco-electronic-music-festival-night-1-rrose-idhaz-and-emily-bouton-blevin-blectum-dadfl",
+   "categories": [
+    "Concert"
+   ],
+   "body": "<a href=\"https://link.dice.fm/g7bc59e269fd\">RSVP</a>"
+  },
+  {
+   "id": "6a517f6d0848606947e75ec8",
+   "title": "Merope w/ Shahzad Ismaily + David Wesley Golightly",
+   "startDate": 1787972400004,
+   "fullUrl": "/projects/2026/8/28/merope-w-shahzad-ismaily-david-wesley-golightly",
+   "categories": [
+    "Concert"
+   ],
+   "body": "<a href=\"https://link.dice.fm/S370aec44c51\">RSVP</a>"
+  },
+  {
+   "id": "zzz-film",
+   "title": "Artist Film Screening",
+   "startDate": 1787972400004,
+   "fullUrl": "/projects/2026/8/28/artist-film-screening",
+   "categories": [],
+   "body": ""
+  }
+ ],
+ "past": []
+}

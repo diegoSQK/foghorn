@@ -1,0 +1,76 @@
+{
+ "events": [
+  {
+   "id": 4429,
+   "title": "Morning Ragas with Ustad Kamal Sabri",
+   "start_date": "2026-07-19 11:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": "https://dresherensemble.org/event/ustad-kamal-sabri/"
+  },
+  {
+   "id": 4404,
+   "title": "Maple Quartet",
+   "start_date": "2026-07-19 15:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "https://maple-quartet.com/",
+   "url": "https://dresherensemble.org/event/maple-quartet/"
+  },
+  {
+   "id": 4437,
+   "title": "The Sky Is A Suitcase<br>Jacob Pek + Raffi Garabedian",
+   "start_date": "2026-07-19 19:15:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": "https://dresherensemble.org/event/the-sky-is-a-suitcaseinsect-life/"
+  },
+  {
+   "id": 10000130,
+   "title": "Where We Meet The Silver Moon",
+   "start_date": "2026-07-23 19:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "https://www.dnaga.org/calendar/silver-moon-thursday",
+   "url": "https://dresherensemble.org/event/where-we-meet-the-silver-moon/2026-07-23/"
+  },
+  {
+   "id": 10000131,
+   "title": "Where We Meet The Silver Moon",
+   "start_date": "2026-07-24 19:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "https://www.dnaga.org/calendar/silver-moon-thursday",
+   "url": "https://dresherensemble.org/event/where-we-meet-the-silver-moon/2026-07-24/"
+  },
+  {
+   "id": 999001,
+   "title": "Studio Open House",
+   "start_date": "2026-07-25 00:00:00",
+   "all_day": true,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": ""
+  },
+  {
+   "id": 999002,
+   "title": "Composition Workshop with X",
+   "start_date": "2026-07-26 14:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": ""
+  }
+ ],
+ "total": 7,
+ "next_rest_url": null
+}
