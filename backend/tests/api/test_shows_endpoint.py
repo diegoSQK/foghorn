@@ -58,6 +58,9 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClie
             _show("bird_and_beckett", "Late Trio", dt.datetime(2026, 6, 5, 21, 30), ["An Opener"]),
             _show("bird_and_beckett", "Night Owls", dt.datetime(2026, 6, 5, 22, 30)),
             _show("bird_and_beckett", "Later Act", dt.datetime(2026, 6, 20, 20, 0)),
+            # Far beyond any June window AND >30 days past 2026-06-01 — only
+            # reachable when 'to=all' lifts the cap (see test_to_all_*).
+            _show("bird_and_beckett", "Autumn Act", dt.datetime(2026, 9, 15, 20, 0)),
         ],
     )
     ingest_scraped_shows(
@@ -165,3 +168,25 @@ def test_default_window_returns_200(client: TestClient) -> None:
     resp = client.get("/api/shows")
     assert resp.status_code == 200
     assert isinstance(resp.json(), list)
+
+
+def test_to_all_lifts_upper_bound(client: TestClient) -> None:
+    # 'to=all' returns everything from `from` onward: Autumn Act (09-15) is
+    # both outside every June window and >30 days past `from`, so it only
+    # appears when the cap is genuinely lifted (not just widened).
+    rows = client.get(
+        "/api/shows", params={"from": "2026-06-01", "to": "all"}
+    ).json()
+    assert _names(rows) == [
+        "David Parker Sextet",
+        "Late Trio",
+        "Night Owls",
+        "Keys Quartet",
+        "Later Act",
+        "Autumn Act",
+    ]
+    # Still bounded below: a later `from` drops the June cluster.
+    later = client.get(
+        "/api/shows", params={"from": "2026-06-08", "to": "all"}
+    ).json()
+    assert _names(later) == ["Later Act", "Autumn Act"]

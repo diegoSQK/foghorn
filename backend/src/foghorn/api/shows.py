@@ -136,7 +136,7 @@ def build_show_views(
     *,
     venue_slugs: list[str] | None,
     from_date: str,
-    to_date: str,
+    to_date: str | None,
     time_of_day: Literal["early", "late"] | None = None,
     performer_query_canonical: str | None = None,
     region: Region | None = None,
@@ -193,7 +193,8 @@ def list_shows(
         default=None, alias="from", description="ISO date (default: today)"
     ),
     to: str | None = Query(
-        default=None, description="ISO date (default: today + 30 days)"
+        default=None,
+        description="ISO date (default: today + 30 days), or 'all' for no upper bound",
     ),
     time_of_day: str | None = Query(
         default=None, description="early | late (filters by start time)"
@@ -229,7 +230,13 @@ def list_shows(
 ) -> list[ShowView]:
     today = dt.date.today()
     from_date = from_ or today.isoformat()
-    to_date = to or (today + dt.timedelta(days=DEFAULT_WINDOW_DAYS)).isoformat()
+    # 'all' lifts the upper bound (the repo layer skips the <= clause when
+    # to_date is None) — the "everything ingested from here on" mode.
+    to_date: str | None
+    if to == "all":
+        to_date = None
+    else:
+        to_date = to or (today + dt.timedelta(days=DEFAULT_WINDOW_DAYS)).isoformat()
 
     # Narrow to the Literal; unknown values are ignored rather than 400.
     tod: Literal["early", "late"] | None = None
