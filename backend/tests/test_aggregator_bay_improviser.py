@@ -23,12 +23,13 @@ from foghorn.repo import watched_venues as watched_repo
 from foghorn.repo.seed_venues import seed
 
 
-def _gcal_anchor(text: str, dates: str, location: str) -> str:
+def _gcal_anchor(text: str, dates: str, location: str, details: str | None = None) -> str:
     from urllib.parse import quote
 
+    details_param = f"&details={quote(details)}" if details is not None else ""
     return (
         f'<a href="https://calendar.google.com/calendar/render?action=TEMPLATE'
-        f"&text={quote(text)}&dates={dates}&location={quote(location)}"
+        f"&text={quote(text)}&dates={dates}&location={quote(location)}{details_param}"
         f'">gCal</a>'
     )
 
@@ -65,15 +66,78 @@ def test_parse_events_utc_to_pacific_dedup_and_allday_skip() -> None:
         ("Peacock Lounge", "2026-07-11T20:30:00"),
     ]
     assert events[0].venue_address_raw == "1984 Bonita Ave, Berkeley, CA"
+    assert all(not e.headliner_is_description for e in events)
+
+
+# The site's no-billing fallback: gCal text = description truncated to 350
+# chars (details carries the full text). Seen live on Gray Area's Cybersentics
+# Book Club entry, July 2026.
+_PROSE = (
+    "Is everyone suddenly a creative technologist? Bring your confusion with "
+    "this vogue mega-identity, and let's look together at the landscape we had "
+    "at the turn of the 21st century — before the breed of people who combine "
+    "art and technology in their research became defined. In this endeavor, we "
+    "will rely on an encyclopedia of modern media art assembled here."
+)
+
+
+def _description_fixture() -> str:
+    assert len(_PROSE) >= 300
+    return "<html><body>" + "".join(
+        [
+            # truncated-description fallback -> no real title exists -> skipped
+            _gcal_anchor(
+                _PROSE,
+                "20260711T030000Z/20260711T050000Z",
+                "Cybersentics Book Club at Gray Area, 2665 Mission St. SF",
+                details=_PROSE + " Reading list follows in the full description.",
+            ),
+            # short description doubling as title -> kept, flagged
+            _gcal_anchor(
+                "3D/AV Live is Max Cooper's immersive audio-visual performance system.",
+                "20260712T033000Z/20260712T053000Z",
+                "Gray Area Art And Technology, 2665 Mission St. SF",
+                details="3D/AV Live is Max Cooper's immersive audio-visual performance system.",
+            ),
+            # billing that legitimately doubles as the description -> kept, unflagged
+            _gcal_anchor(
+                "AVOTCJA & MODUPUE",
+                "20260713T030000Z/20260713T050000Z",
+                "Bird & Beckett, 653 Chenery St, San Francisco",
+                details="AVOTCJA & MODUPUE",
+            ),
+            # billing whose description merely starts with it -> kept, unflagged
+            _gcal_anchor(
+                "Motoko Honda Quartet",
+                "20260714T030000Z/20260714T050000Z",
+                "The Back Room, 1984 Bonita Ave, Berkeley, CA",
+                details="Motoko Honda Quartet returns with an evening of new work.",
+            ),
+        ]
+    ) + "</body></html>"
+
+
+def test_parse_events_description_as_title() -> None:
+    events = parse_events(_description_fixture())
+    assert [(e.headliner_raw[:20], e.headliner_is_description) for e in events] == [
+        ("3D/AV Live is Max Co", True),
+        ("AVOTCJA & MODUPUE", False),
+        ("Motoko Honda Quartet", False),
+    ]
 
 
 def _event(
-    venue: str, headliner: str, start: dt.datetime, address: str | None = None
+    venue: str,
+    headliner: str,
+    start: dt.datetime,
+    address: str | None = None,
+    is_description: bool = False,
 ) -> AggregatedEvent:
     return AggregatedEvent(
         venue_name_raw=venue,
         venue_address_raw=address,
         headliner_raw=headliner,
+        headliner_is_description=is_description,
         start_local=start,
         source_url="https://www.bayimproviser.com/calendar.aspx",
     )
@@ -143,6 +207,34 @@ def test_duplicate_guard_defers_to_scraped_rows(conn: sqlite3.Connection) -> Non
         ("lisa mezzacappa six", "scrape"),
         ("totally different act", "aggregator"),
     ]
+
+
+def test_description_headliner_dropped_at_tracked_venue(conn: sqlite3.Connection) -> None:
+    seed(conn)
+    result = ingest_aggregated_events(
+        conn,
+        [
+            # tracked venue + description-flagged headliner -> dropped
+            _event(
+                "The Back Room",
+                "An evening of improvised music awaits you.",
+                dt.datetime(2026, 7, 10, 20, 0),
+                is_description=True,
+            ),
+            # quarantined venue -> kept even when flagged (only record we have)
+            _event(
+                "Peacock Lounge",
+                "An evening of improvised music awaits you.",
+                dt.datetime(2026, 7, 10, 21, 0),
+                is_description=True,
+            ),
+        ],
+        "bay_improviser",
+    )
+    assert result.errors == []
+    assert result.created == 1
+    rows = conn.execute("SELECT venue_id FROM shows").fetchall()
+    assert len(rows) == 1
 
 
 @pytest.fixture

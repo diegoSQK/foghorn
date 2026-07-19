@@ -16,5 +16,10 @@ class AggregatedEvent(BaseModel):
     venue_name_raw: str
     venue_address_raw: str | None = None
     headliner_raw: str
+    # True when the aggregator could tell headliner_raw is really the event's
+    # *description* (the source had no billing and fell back to it). Ingest
+    # drops such events at tracked venues, where the venue scraper is
+    # authoritative and a description blob is pure noise.
+    headliner_is_description: bool = False
     start_local: datetime  # naive, America/Los_Angeles
     source_url: str
