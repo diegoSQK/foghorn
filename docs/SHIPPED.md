@@ -8,6 +8,60 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Venue batch 5, tranche A: six from the internet-search sweep (July 2026)
+
+A four-agent web sweep (SF / East Bay / Peninsula+South+North Bay / Santa
+Cruz + creative long tail) surfaced ~20 verified-open, scrapably-green
+venues foghorn lacked, plus a mortality list. The build fan-out hit the
+session usage limit mid-flight, so tranche A shipped inline — the six
+highest-value, cheapest-pattern venues:
+
+- **The Dawn Club** (FiDi, jazz) — the revived trad/swing club; nightly
+  jazz. First user of the new shared ``_squarespace_events`` core (the
+  Piedmont/Lab collection-JSON pattern extracted into a helper; stated
+  endDates flow through). 13 shows live.
+- **Pier 23 Cafe** (Embarcadero, jazz) — shared core; Sunday BLUES JAM
+  typed jam; mahjong/trivia filtered. 7 shows.
+- **The Sound Room** (Uptown Oakland, jazz) — the sweep's biggest catch,
+  "Home of Bay Area Jazz & Arts"; shared core + Eventbrite tickets;
+  comedy/story-slam/illusion nights filtered. 24 shows.
+- **Uptown Theatre Napa** (North Bay, rock) — Tribe REST (Dresher clone);
+  comedy admixture dropped on title signal (unlabeled comedians pass —
+  accepted). 16 shows.
+- **Jazz Chez Hanny** (Portola, jazz) — the legendary Sunday house-concert
+  salon; hand-maintained static homepage parsed as name/date/4PM/$25
+  tuples. 4 shows.
+- **Tom's Place** (South Berkeley, eclectic) — free-improv house series;
+  hand-rolled static HTML over plain HTTP; **offsite presentations
+  (SFPL/Gray Area/The Lab lines with street addresses) are skipped** —
+  those venues are scraped directly; the page-stated 7:30 PM default is a
+  stated time, not a fabrication. 3 shows (incl. a Lorin Benedict date).
+
+**Tranche B queue** (all verified green 2026-07-18, endpoints known, not
+yet built): Moe's Alley + The Crepe Place (TicketWeb "tw-" — check the
+shared helper), The Catalyst (Etix), Rio Theatre + Sebastiani (Squarespace
+core), Felton Music Hall (Tixr), Rancho Nicasio (Tribe — **agent salvage
+note: its Tribe payload lacks start times**, needs detail-page times),
+Smiley's Saloon (server-rendered /music/, NOT /upcoming-events/), Old
+First Concerts (WP), Little Lou's BBQ (WP, "/calender/" misspelled), The
+Lost Church SF (WP + comedy filtering), Fox Theatre RWC (**salvage note:
+ShoWare renders via JS — needs its API**), Paramount (carbonhouse),
+Cal Performances (WP presenter, music filter).
+
+**Yellow/red sweep verdicts worth keeping:** The Big Easy Petaluma (WAF
+429s; ~25-30 jazz/blues shows/mo — jackpot if the Kuumbwa browser-UA
+approach works), The Saloon (monthly **PDF** calendar — the OCR layer may
+apply), Sausalito Seahorse (EventON ajax probe), Ashkenaz + Jupiter
+(JS-walled Squarespace), Ceremony + Mountain Winery (ticketing APIs),
+Angelica's (thin first-party calendar), Bazaar Cafe (GCal iframe
+suspected), Royal Cuckoo (nightly B3 jazz, NO website — Instagram only).
+**Confirmed closed/dead, do not re-sweep:** Thee Parkside (July 5 2026!),
+Blue Note Napa downtown (12/2025; Meritage Summer Sessions survive),
+Michael's on Main (fire), Fenix, Mama Kin, Silo's, Golden Squirrel,
+Birdland Jazzista, Amado's, Luggage Store new-music series (retired
+12/2024), Active Music Series (2019), Terrapin Crossroads. All three
+HopMonks share the same Eventim block.
+
 ## Followed-first display precedence (July 2026)
 
 Shows at watched venues or with watchlist-matched performers now lead
