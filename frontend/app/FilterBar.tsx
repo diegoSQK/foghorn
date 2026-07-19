@@ -51,6 +51,10 @@ export default function FilterBar({
   const today = todayISO();
   const from = params.get("from") ?? today;
   const to = params.get("to") ?? addDaysISO(today, 14);
+  // ?to=all lifts the upper bound (every ingested show from `from` onward).
+  // The native date input can't hold "all", so it renders empty in that mode.
+  const allUpcoming = to === "all";
+  const toInput = allUpcoming ? "" : to;
   const time = params.get("time_of_day");
   const watchlistOn = params.get("watchlist") === "true";
   const myVenues = params.get("venue_watchlist") === "true";
@@ -85,12 +89,12 @@ export default function FilterBar({
   // via render-time reconciliation (the React "adjusting state during
   // render" pattern — no effect, no cascading-render lint).
   const [draftFrom, setDraftFrom] = useState(from);
-  const [draftTo, setDraftTo] = useState(to);
-  const [prevRange, setPrevRange] = useState({ from, to });
-  if (prevRange.from !== from || prevRange.to !== to) {
-    setPrevRange({ from, to });
+  const [draftTo, setDraftTo] = useState(toInput);
+  const [prevRange, setPrevRange] = useState({ from, to: toInput });
+  if (prevRange.from !== from || prevRange.to !== toInput) {
+    setPrevRange({ from, to: toInput });
     setDraftFrom(from);
-    setDraftTo(to);
+    setDraftTo(toInput);
   }
 
   // Complete, plausible date. Typing a year digit-by-digit passes through
@@ -107,14 +111,19 @@ export default function FilterBar({
       setDraftFrom(from);
       return;
     }
-    navigate({ from: draftFrom, to: draftFrom > to ? draftFrom : to });
+    // In all-upcoming mode the upper bound stays lifted; only `from` moves.
+    navigate({
+      from: draftFrom,
+      to: allUpcoming ? "all" : draftFrom > to ? draftFrom : to,
+    });
   }
 
   function commitTo(): void {
     if (!isSaneDate(draftTo)) {
-      setDraftTo(to);
+      setDraftTo(toInput);
       return;
     }
+    // Committing a concrete end date exits all-upcoming mode naturally.
     navigate({ from: draftTo < from ? draftTo : from, to: draftTo });
   }
 
@@ -165,6 +174,18 @@ export default function FilterBar({
               }
             >
               Next 7 days
+            </button>
+            <button
+              type="button"
+              className={chipClass(allUpcoming)}
+              title="Every ingested show from today onward — no end date"
+              onClick={() =>
+                navigate(
+                  allUpcoming ? { to: null } : { from: null, to: "all" },
+                )
+              }
+            >
+              All upcoming
             </button>
             <span
               className="mx-1 hidden h-4 w-px bg-zinc-300 sm:inline-block dark:bg-zinc-700"
