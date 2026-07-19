@@ -743,6 +743,83 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://poorhousebistro.com/",
         genre="eclectic",
     ),
+    # --- Venue batch 5, tranche A (July 2026 internet-search sweep) ---
+    Venue(
+        slug="the_dawn_club",
+        name="The Dawn Club",
+        neighborhood="Financial District",
+        region="SF",
+        address="10 Annie St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.dawnclub.com",
+        # Squarespace events collection JSON (shared _squarespace_events
+        # core) — see scrapers/the_dawn_club.
+        calendar_url="https://www.dawnclub.com/music",
+        genre="jazz",
+    ),
+    Venue(
+        slug="pier_23_cafe",
+        name="Pier 23 Cafe",
+        neighborhood="Embarcadero",
+        region="SF",
+        address="Pier 23, The Embarcadero, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.pier23cafe.com",
+        # Squarespace events collection JSON (shared core) — see
+        # scrapers/pier_23_cafe.
+        calendar_url="https://www.pier23cafe.com/events",
+        genre="jazz",
+    ),
+    Venue(
+        slug="the_sound_room",
+        name="The Sound Room",
+        neighborhood="Uptown",
+        region="East Bay",
+        address="3022 Broadway, Oakland, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.soundroom.org",
+        # Squarespace events collection JSON (shared core) — see
+        # scrapers/the_sound_room.
+        calendar_url="https://www.soundroom.org/events",
+        genre="jazz",
+    ),
+    Venue(
+        slug="uptown_theatre_napa",
+        name="Uptown Theatre Napa",
+        neighborhood="Napa",
+        region="North Bay",
+        address="1350 Third St, Napa, CA",
+        tz="America/Los_Angeles",
+        website_url="https://uptowntheatrenapa.com",
+        # WordPress Tribe Events REST — see scrapers/uptown_theatre_napa.
+        calendar_url="https://uptowntheatrenapa.com/events/",
+        genre="rock",
+    ),
+    Venue(
+        slug="chez_hanny",
+        name="Jazz Chez Hanny",
+        neighborhood="Portola",
+        region="SF",
+        address="1300 Silver Ave, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.chezhanny.com",
+        # Hand-maintained static homepage schedule — see scrapers/chez_hanny.
+        calendar_url="https://www.chezhanny.com/",
+        genre="jazz",
+    ),
+    Venue(
+        slug="toms_place",
+        name="Tom's Place",
+        neighborhood="South Berkeley",
+        region="East Bay",
+        address="3111 Deakin St, Berkeley, CA",
+        tz="America/Los_Angeles",
+        # Hand-rolled static HTML over plain HTTP (no TLS on the host) —
+        # see scrapers/toms_place. Offsite presentations are skipped.
+        website_url="http://4-33.com/toms-place/index.html",
+        calendar_url="http://4-33.com/toms-place/index.html",
+        genre="eclectic",
+    ),
     Venue(
         slug="wyldflowr_arts",
         name="Wyldflowr Arts",

@@ -1,0 +1,61 @@
+{
+ "events": [
+  {
+   "id": 25554,
+   "title": "Jimmy Failla",
+   "start_date": "2026-07-18 20:00:00",
+   "end_date": "2026-07-18 20:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": "https://www.uptowntheatrenapa.com/event/jimmy-failla/"
+  },
+  {
+   "id": 25604,
+   "title": "Micky Dolenz &#8211; 60 YEARS OF THE MONKEES",
+   "start_date": "2026-07-19 20:00:00",
+   "end_date": "2026-07-19 20:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": "https://www.uptowntheatrenapa.com/event/jam-cellars-presents-micky-dolenz-60-years-of-the-monkees/"
+  },
+  {
+   "id": 25803,
+   "title": "The Robert Cray Band",
+   "start_date": "2026-07-31 20:00:00",
+   "end_date": "2026-07-31 20:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": "https://www.uptowntheatrenapa.com/event/the-robert-cray-band/"
+  },
+  {
+   "id": 25711,
+   "title": "Rocky Mountain High Experience",
+   "start_date": "2026-08-01 20:00:00",
+   "end_date": "2026-08-01 20:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": "https://www.uptowntheatrenapa.com/event/jam-cellars-presents-rocky-mountain-high-experience/"
+  },
+  {
+   "id": 9,
+   "title": "Live Comedy: Somebody Funny",
+   "start_date": "2026-08-09 20:00:00",
+   "end_date": "2026-08-09 20:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "cost": "",
+   "website": "",
+   "url": ""
+  }
+ ],
+ "total": 5,
+ "next_rest_url": null
+}
