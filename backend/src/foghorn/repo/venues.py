@@ -40,6 +40,14 @@ def list_all(conn: sqlite3.Connection) -> list[Venue]:
     return [_row_to_venue(row) for row in rows]
 
 
+def ids_with_shows(conn: sqlite3.Connection) -> set[int]:
+    """Venue ids that have at least one show row (any date). Distinguishes
+    seeded venues that are actually fed — e.g. halls populated by group
+    feeds — from seeded-but-dormant ones (SFJAZZ)."""
+    rows = conn.execute("SELECT DISTINCT venue_id FROM shows").fetchall()
+    return {row["venue_id"] for row in rows}
+
+
 def upsert(conn: sqlite3.Connection, venue: Venue) -> Venue:
     """Insert or update a venue keyed on ``slug``. Returns the stored row
     (with ``id`` populated). Idempotent — re-upserting the same slug refreshes

@@ -30,12 +30,15 @@ def list_venues() -> list[VenueView]:
     conn = db.connect()
     try:
         venues = venues_repo.list_all(conn)
+        fed = venues_repo.ids_with_shows(conn)
     finally:
         conn.close()
-    # Venues foghorn actively scrapes, user-created manual venues, and
+    # Venues foghorn actively scrapes, user-created manual venues,
     # aggregator-discovered venues (flagged via `source` so the frontend can
-    # quarantine them). SFJAZZ — seeded but deferred with no scraper — stays
-    # excluded.
+    # quarantine them), and seeded venues that carry shows without a venue
+    # scraper of their own — halls fed by group feeds (Davies, Herbst, the
+    # Wilsey Atrium). SFJAZZ — seeded but deferred, no scraper, no shows —
+    # stays excluded.
     return [
         VenueView(
             slug=v.slug,
@@ -46,5 +49,7 @@ def list_venues() -> list[VenueView]:
             source=v.source,
         )
         for v in venues
-        if v.slug in REGISTERED_SCRAPERS or v.source in ("manual", "aggregator")
+        if v.slug in REGISTERED_SCRAPERS
+        or v.source in ("manual", "aggregator")
+        or v.id in fed
     ]
