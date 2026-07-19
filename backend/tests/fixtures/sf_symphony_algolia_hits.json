@@ -1,0 +1,74 @@
+[
+ {
+  "title": "<em>Matilda</em>",
+  "venue": "Davies Symphony Hall",
+  "startDate": 1785033000,
+  "performanceDate": "2026-07-25T19:30:00",
+  "kenticoUrl": "/Buy-Tickets/2025-26/Matilda",
+  "Concert Type": [],
+  "excludeFromCalendar": false,
+  "hideTime": false,
+  "calendarDataType": "TessituraItem",
+  "tessituraId": 24188,
+  "objectID": "4506ab23-88c0-4cb8-b61e-ef3a5daaaf9e_639206046000000000_Tessitura"
+ },
+ {
+  "title": "Free Community Performance: Talking Books &amp; Braille Center, Main Branch",
+  "startDate": 1785268800,
+  "performanceDate": "2026-07-28T13:00:00",
+  "kenticoUrl": "/Buy-Tickets/2025-26/Free-Community-Jul-28",
+  "Concert Type": [],
+  "excludeFromCalendar": false,
+  "hideTime": false,
+  "calendarDataType": "KenticoItem",
+  "tessituraId": 18612,
+  "objectID": "280813c4-61a3-4c7a-b1b7-4b4b77b1cb14_639208404000000000_Kentico"
+ },
+ {
+  "title": "All San Francisco Concert",
+  "venue": "Davies Symphony Hall",
+  "startDate": 1790389800,
+  "performanceDate": "2026-09-25T19:30:00",
+  "kenticoUrl": "/Buy-Tickets/2026-27/All-SF-Concert",
+  "Concert Type": [],
+  "excludeFromCalendar": true,
+  "hideTime": false,
+  "calendarDataType": "TessituraItem",
+  "tessituraId": 23828,
+  "objectID": "0ac582c6-e147-446c-9d1f-ecc484cff800_639259614000000000_Tessitura"
+ },
+ {
+  "title": "St. Vincent with the San Francisco Symphony",
+  "venue": "Davies Symphony Hall",
+  "startDate": 1785465000,
+  "performanceDate": "2026-07-30T19:30:00",
+  "kenticoUrl": "/Buy-Tickets/2025-26/St-Vincent",
+  "Concert Type": [],
+  "excludeFromCalendar": false,
+  "hideTime": false,
+  "calendarDataType": "TessituraItem",
+  "tessituraId": 24149,
+  "objectID": "3168fbf0-f42b-45ea-a4a3-f9ba7693caab_639210366000000000_Tessitura"
+ },
+ {
+  "title": "Malformed Date Concert",
+  "performanceDate": "not-a-date",
+  "calendarDataType": "TessituraItem",
+  "kenticoUrl": "/x",
+  "excludeFromCalendar": false
+ },
+ {
+  "title": "",
+  "performanceDate": "2026-08-01T19:30:00",
+  "calendarDataType": "TessituraItem",
+  "kenticoUrl": "/x",
+  "excludeFromCalendar": false
+ },
+ {
+  "title": "Beyond The Window Gala",
+  "performanceDate": "2031-01-01T19:30:00",
+  "calendarDataType": "TessituraItem",
+  "kenticoUrl": "/far",
+  "excludeFromCalendar": false
+ }
+]

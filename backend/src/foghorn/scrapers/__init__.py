@@ -66,6 +66,8 @@ from foghorn.scrapers import (
     poor_house_bistro,
     regency_ballroom,
     rickshaw_stop,
+    sf_philharmonic,
+    sf_symphony,
     sjz_break_room,
     smileys_saloon,
     stanford_jazz_workshop,
@@ -164,4 +166,6 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     the_lost_church.VENUE_SLUG: the_lost_church.scrape,
     stanford_jazz_workshop.VENUE_SLUG: stanford_jazz_workshop.scrape,
     noontime_concerts.VENUE_SLUG: noontime_concerts.scrape,
+    sf_symphony.VENUE_SLUG: sf_symphony.scrape,
+    sf_philharmonic.VENUE_SLUG: sf_philharmonic.scrape,
 }
