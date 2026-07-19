@@ -77,6 +77,23 @@ _GENRE_KEYWORDS: list[tuple[str, str]] = [
     ("soul", "funk"),
     ("r&b", "funk"),
     ("disco", "funk"),
+    # Classical cluster (July 2026, driven by Cal Performances' badge
+    # vocabulary: "Recital", "Orchestra & Chamber Music", "Early Music",
+    # "New Music"). Sits below jazz so "Jazz Orchestra" stays jazz.
+    # Deliberately absent: "vocal" ("Vocal Celebration" spans gospel to
+    # lieder), "family", "holiday" — those fall to the venue default.
+    ("classical", "classical"),
+    ("symphony", "classical"),
+    ("philharmonic", "classical"),
+    ("orchestra", "classical"),
+    ("chamber", "classical"),
+    ("recital", "classical"),
+    ("opera", "classical"),
+    ("baroque", "classical"),
+    ("early music", "classical"),
+    ("new music", "classical"),
+    ("choral", "classical"),
+    ("choir", "classical"),
     ("hip-hop", "hip-hop"),
     ("hip hop", "hip-hop"),
     ("rap", "hip-hop"),
@@ -148,6 +165,12 @@ _TITLE_GENRE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
         ("bluegrass", "folk"),
         ("punk", "rock"),
         ("metal", "rock"),
+        # Classical title words that are safe whole-word claims. Deliberately
+        # absent: "orchestra"/"quartet" (jazz orchestras and quartets
+        # everywhere) and "opera" ("A Night at the Opera" tribute bills).
+        ("symphony", "classical"),
+        ("philharmonic", "classical"),
+        ("concerto", "classical"),
     ]
 ]
 

@@ -230,6 +230,18 @@ def test_genre_normalization() -> None:
     assert normalize_genre("Other Content") is None
     assert normalize_genre("") is None
     assert normalize_genre(None) is None
+    # Classical cluster — the real Cal Performances badge vocabulary.
+    assert normalize_genre("Recital") == "classical"
+    assert normalize_genre("Orchestra & Chamber Music") == "classical"
+    assert normalize_genre("Early Music") == "classical"
+    assert normalize_genre("New Music") == "classical"
+    assert normalize_genre("Opera") == "classical"
+    # Jazz outranks the classical words ("Jazz Orchestra" is a big band).
+    assert normalize_genre("Jazz Orchestra") == "jazz"
+    # Ambiguous badges stay unmapped -> venue default applies.
+    assert normalize_genre("Vocal Celebration") is None
+    assert normalize_genre("Family") is None
+    assert normalize_genre("Seasonal Holidays") is None
     # "indie pop" hits the more specific pop before rock? Order check: pop
     # precedes indie in the table, so "Indie Pop" buckets as pop.
     assert normalize_genre("Indie Pop") == "pop"
@@ -297,6 +309,15 @@ def test_title_genre_fills_gap_only_at_leanless_venues() -> None:
     # Same bucket twice is still unambiguous.
     assert infer_genre_from_title("Soul & Funk Revue") == "funk"
     assert infer_genre_from_title("Regular Band Name") is None
+    # Classical title words fire only on the safe ones.
+    assert (
+        infer_genre_from_title("Tchaikovsky Symphony No. 4 & Rachmaninov Piano Concerto No. 2")
+        == "classical"
+    )
+    assert infer_genre_from_title("The Philharmonic at the Park") == "classical"
+    # "opera"/"orchestra"/"quartet" deliberately don't claim from titles.
+    assert infer_genre_from_title("A Night at the Opera — Queen Tribute") is None
+    assert infer_genre_from_title("Mingus Big Band Orchestra") is None
 
 
 def test_title_genre_respects_venue_lean(conn: sqlite3.Connection, venue: Venue) -> None:
