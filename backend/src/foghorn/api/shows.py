@@ -147,6 +147,7 @@ def build_show_views(
     watchlist: bool = False,
     venue_watchlist: bool = False,
     long_tail: bool = False,
+    limit: int | None = None,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
     it's unit-testable against a connection without going through HTTP."""
@@ -175,6 +176,7 @@ def build_show_views(
         genre=genre,
         origin=origin,
         event_type=event_type,
+        limit=limit,
     )
     shows = shows_repo.list(conn, filters)
     venues_by_id = {v.id: v for v in venues_repo.list_all(conn)}
@@ -226,6 +228,11 @@ def list_shows(
     long_tail: str | None = Query(
         default=None,
         description="'true' to include shows at aggregator-discovered venues",
+    ),
+    limit: int | None = Query(
+        default=None,
+        ge=1,
+        description="cap the result count (chronological prefix); default: no cap",
     ),
 ) -> list[ShowView]:
     today = dt.date.today()
@@ -283,6 +290,7 @@ def list_shows(
             watchlist=watchlist == "true",
             venue_watchlist=venue_watchlist == "true",
             long_tail=long_tail == "true",
+            limit=limit,
         )
     finally:
         conn.close()

@@ -316,6 +316,9 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
     if clauses:
         sql += " WHERE " + " AND ".join(clauses)
     sql += " ORDER BY s.start_utc"
+    if filters.limit is not None:
+        sql += " LIMIT ?"
+        params.append(filters.limit)
 
     rows = conn.execute(sql, params).fetchall()
     shows = [_row_to_show(row) for row in rows]
