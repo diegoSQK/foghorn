@@ -12,6 +12,14 @@ titles are free-text blobs (not clean headliners) and locations are venue
 names foghorn has to resolve. The site publishes only ~5 weeks out, so the
 scheduler polls it nightly like everything else.
 
+One caveat *is* handled here: when a submission carries no billing at all,
+the site builds the gCal ``text`` param from the event *description* instead
+(truncated to ~350 chars; the full description rides in ``details``). A
+truncated-description title is unusable anywhere, so those entries are
+dropped; a short description doubling as the title (``text == details`` and
+prose-shaped) is kept but flagged ``headliner_is_description`` so the ingest
+layer can drop it at venues whose own scraper is authoritative.
+
 Runnable standalone: ``python -m foghorn.aggregators.bay_improviser``.
 """
 
@@ -68,6 +76,34 @@ def _parse_gcal_start(raw: str) -> dt.datetime | None:
     return instant.astimezone(_PACIFIC).replace(tzinfo=None)
 
 
+# The site's no-billing fallback truncates the description to 350 chars for
+# the gCal title; anything at/near that length that prefixes ``details`` is
+# that fallback, not a real title. Real titles stay well under this.
+_TRUNCATED_DESCRIPTION_MIN_LEN = 300
+
+
+def _looks_like_prose(title: str) -> bool:
+    """Sentence-shaped rather than billing-shaped. Only consulted when the
+    title verbatim-matches the description (billings like "AVOTCJA & MODUPUE"
+    legitimately double as both and must survive this test)."""
+    return len(title) >= 140 or title.endswith((".", "!", "?"))
+
+
+def _classify_title(title: str, details: str) -> tuple[bool, bool]:
+    """(skip, is_description) for a gCal title given the ``details`` param.
+
+    - ``details`` strictly extends a ~350-char title → the site's truncation
+      fallback; no real title exists anywhere, so skip the entry.
+    - ``title == details`` and prose-shaped → the description doubling as the
+      title; keep (it may be the only record of the show) but flag it.
+    """
+    if not details or not details.startswith(title):
+        return False, False
+    if len(details) > len(title):
+        return len(title) >= _TRUNCATED_DESCRIPTION_MIN_LEN, False
+    return False, _looks_like_prose(title)
+
+
 def _split_location(raw: str) -> tuple[str, str | None]:
     """``"Venue Name, 123 St, City, CA"`` → (name, address-remainder)."""
     parts = [p.strip() for p in raw.split(",") if p.strip()]
@@ -94,6 +130,11 @@ def parse_events(html: str) -> list[AggregatedEvent]:
         start = _parse_gcal_start((qs.get("dates") or [""])[0])
         if not title or not location_raw or start is None:
             continue
+        skip, is_description = _classify_title(
+            title, (qs.get("details") or [""])[0].strip()
+        )
+        if skip:
+            continue
         venue_name, address = _split_location(location_raw)
         if not venue_name:
             continue
@@ -106,6 +147,7 @@ def parse_events(html: str) -> list[AggregatedEvent]:
                 venue_name_raw=venue_name,
                 venue_address_raw=address,
                 headliner_raw=title,
+                headliner_is_description=is_description,
                 start_local=start,
                 source_url=CALENDAR_URL,
             )

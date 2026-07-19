@@ -11,7 +11,10 @@ at the Back Room 8pm"), so the exact natural key can't collapse them against
 venue-scraped rows. Before ingesting an event at a *tracked* venue, any
 existing same-venue-same-date show whose headliner token-matches the blob
 marks it a duplicate and it's skipped — the venue's own scraper is
-authoritative.
+authoritative. Events the aggregator flagged ``headliner_is_description``
+(title is really the event's description) are likewise dropped at tracked
+venues: the blob can't token-match anything, so it would always land beside
+the scraper's rows as a garbage title.
 """
 
 from __future__ import annotations
@@ -120,6 +123,12 @@ def ingest_aggregated_events(
     for event in events:
         try:
             venue = resolve_venue(conn, event)
+            if venue.source != "aggregator" and event.headliner_is_description:
+                # A description-copy headliner can't token-match the venue
+                # scraper's rows, so the duplicate guard never fires on it;
+                # at a tracked venue the scraper is authoritative and the
+                # blob would land beside its rows as a garbage title.
+                continue
             if venue.source != "aggregator" and _is_duplicate(conn, venue, event):
                 continue
             scraped = ScrapedShow(
