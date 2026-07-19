@@ -1,0 +1,47 @@
+
+		
+		<li onclick="clickTimeSlot(15907)" class="button-time-15907" data-performanceid="15907" data-performancetimeframe="" data-singleareavenueareaid="9932"  data-acmatch="0"
+			
+			
+			
+		>
+			
+			<span class="timeslot-time">7:30PM</span>
+			<span class="timeslot-pricestatus">
+				
+					<span class='pricetag' style="display: none;">$30</span>
+				
+			</span>
+			
+		</li>
+		
+
+<script type="text/javascript">
+
+	function clickTimeSlot(perfid) {
+		// Check if the clicked <li> does not have the 'disabled' class
+		if (!$('.button-time-'+perfid).hasClass('disabled')) {
+			// Add selected class, remove selected class from any others
+			$('ul#timeslot-options > li').removeClass("selected-timeslot");
+			$('.button-time-'+perfid).addClass("selected-timeslot");
+			// Slide down the #StreamlineCalendar-Tickets div
+
+			getPerformancePricing(perfid,'', 0, 0, 0, fromTimeSlot=true);
+			getAddOns(perfid,'10/3/2026');
+
+			$('#StreamlineCalendar-Tickets').slideDown('slow',);
+
+			// Keeping this here in case they (Gaylord) need to have the auto-scroll functionality
+			//$('#StreamlineCalendar-Tickets').slideDown('slow', function() {
+				//var scrollPosition = $('#StreamlineCalendar-Tickets').offset().top - 200;
+				// After sliding down, scroll to the div and set focus
+				//$('html, body').animate({ scrollTop: scrollPosition}, 'slow');
+			//});
+		}
+	}
+
+	
+	filterLiElements("");
+	
+	
+</script>

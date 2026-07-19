@@ -8,6 +8,41 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Classical coverage tranche 2: SF Symphony + SF Philharmonic (July 2026)
+
+The two flagship asks from Diego, both previously written off as headless
+territory in the tranche-1 audit — both turned out to have plain-HTTP paths
+once actually investigated in a browser.
+
+- **San Francisco Symphony** (`sf_symphony`, presenter row at Davies, SF /
+  Civic Center / classical) — sfsymphony.org is Kentico with the calendar
+  grid rendered client-side, and on on-sale days the whole site sits behind
+  a **Queue-it waiting room** (plain fetches get a 2KB interstitial — this
+  is what the tranche-1 audit mistook for a JS-only calendar). The real
+  feed is a **public Algolia index** (`prod_sfs_calendar`; app id + search
+  key ship inline on the calendar page): one REST POST returns the season
+  as JSON, one hit per performance, with `performanceDate` already naive
+  Pacific-local — and Algolia's host is not behind the queue. 79 shows on
+  first live run (Jul 23 → Jan 15) under a 180-day season-scale window
+  (club-calendar 90 is too short for classical planning). Kept: Tessitura
+  + Kentico hits (the latter are free community performances); dropped:
+  `excludeFromCalendar`. Off-site dates (Stern Grove, Frost) ride under
+  the presenter row, the Cal Performances model. If the embedded key
+  rotates, the scraper 403s loudly; re-extract from the calendar page's
+  inline `var settings` block.
+- **San Francisco Philharmonic** (`sf_philharmonic`, itinerant presenter —
+  Herbst, Wilsey Center Atrium; SF / classical) — Squarespace site whose
+  whole 3-concert season lives in homepage nav "Buy Tickets - <date>"
+  links into **City Box Office**. Date from the nav text, program title
+  from the CBO page `<title>` (presenter prefix stripped), start time from
+  CBO's server-rendered `GetTimeSlots.asp` fragment. No horizon window —
+  a 3-concert org's furthest date is the point. A concert without a listed
+  time slot is skipped until CBO lists it.
+
+Both live-verified at build time; fixtures are trimmed real captures.
+Remaining classical deferrals: SF Performances (403 bot-block) and SFCM
+(Drupal, partial JSON-LD — second look before Playwright).
+
 ## Classical coverage tranche 1: Old First Concerts, Noontime Concerts (July 2026)
 
 Planned as three classical presenters; shipped as one new scraper plus a

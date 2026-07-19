@@ -962,6 +962,32 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://noontimeconcerts.org/upcoming-concerts/",
         genre="classical",
     ),
+    Venue(
+        slug="sf_symphony", name="San Francisco Symphony",
+        neighborhood="Civic Center", region="SF",
+        address="201 Van Ness Ave, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.sfsymphony.org",
+        # Presenter row (the Cal Performances model): home is Davies Symphony
+        # Hall, with SoundBox / Legion of Honor / occasional off-site dates
+        # riding under the same row. Calendar data comes from the site's
+        # public Algolia index, NOT this page (Queue-it fronts the site on
+        # on-sale days) — see scrapers/sf_symphony.
+        calendar_url="https://www.sfsymphony.org/Calendar",
+        genre="classical",
+    ),
+    Venue(
+        slug="sf_philharmonic", name="San Francisco Philharmonic",
+        neighborhood=None, region="SF",
+        address=None,
+        tz="America/Los_Angeles",
+        website_url="https://sfphil.org",
+        # Itinerant presenter (Herbst Theatre, Wilsey Center Atrium, …);
+        # 3–4 concerts a season, listed as homepage nav "Buy Tickets" links
+        # into City Box Office — see scrapers/sf_philharmonic.
+        calendar_url="https://sfphil.org/",
+        genre="classical",
+    ),
 ]
 
 
