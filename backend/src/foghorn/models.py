@@ -184,6 +184,9 @@ class ShowFilters(BaseModel):
     include_long_tail: bool = False
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
     time_of_day: Literal["early", "late"] | None = None
+    # Cap the result count (chronological prefix). None = no cap. Used by the
+    # frontend list view's load-more pagination; other filters are unaffected.
+    limit: int | None = None
 
 
 class IngestResult(BaseModel):

@@ -170,6 +170,20 @@ def test_default_window_returns_200(client: TestClient) -> None:
     assert isinstance(resp.json(), list)
 
 
+def test_limit_returns_chronological_prefix(client: TestClient) -> None:
+    rows = client.get(
+        "/api/shows", params={"from": "2026-06-01", "to": "all", "limit": "3"}
+    ).json()
+    assert _names(rows) == ["David Parker Sextet", "Late Trio", "Night Owls"]
+    # limit larger than the result set is a no-op, and limit=0 is rejected.
+    assert len(client.get(
+        "/api/shows", params={"from": "2026-06-01", "to": "all", "limit": "99"}
+    ).json()) == 6
+    assert client.get(
+        "/api/shows", params={"from": "2026-06-01", "limit": "0"}
+    ).status_code == 422
+
+
 def test_to_all_lifts_upper_bound(client: TestClient) -> None:
     # 'to=all' returns everything from `from` onward: Autumn Act (09-15) is
     # both outside every June window and >30 days past `from`, so it only

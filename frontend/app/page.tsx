@@ -8,6 +8,7 @@
 // management panels rendered inline while the filter is active — so
 // following works in every view instead of on list-only clones of this page.
 
+import Link from "next/link";
 import { Suspense } from "react";
 
 import AddWatchlistForm from "./AddWatchlistForm";
@@ -37,6 +38,10 @@ import {
 import { followedShowIds } from "./lib/precedence";
 
 const DEFAULT_WINDOW_DAYS = 14;
+// List view renders at most this many shows per "page"; a Load More link
+// (URL-driven ?limit=) grows the cap. Wide windows — especially ?to=all —
+// can match thousands of rows, and day/week/month cap themselves by window.
+const LIST_PAGE_SIZE = 250;
 
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -105,7 +110,14 @@ export default async function Home({
   const watchlistOn = first(sp.watchlist) === "true";
   const myVenues = first(sp.venue_watchlist) === "true";
 
+  // List-view pagination: fetch one row beyond the cap so "more exists" is
+  // exact, then slice. The other views' windows are inherently bounded.
+  const rawLimit = Number.parseInt(first(sp.limit) ?? "", 10);
+  const listLimit =
+    Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : LIST_PAGE_SIZE;
+
   const query = new URLSearchParams({ from, to });
+  if (view === "list") query.set("limit", String(listLimit + 1));
   if (watchlistOn) query.set("watchlist", "true");
   if (venues) query.set("venues", venues);
   if (timeOfDay === "early" || timeOfDay === "late") {
@@ -120,12 +132,16 @@ export default async function Home({
   if (longTail) query.set("long_tail", "true");
   if (myVenues) query.set("venue_watchlist", "true");
 
-  const [shows, allVenues, watchlist, watchedVenues] = await Promise.all([
+  const [fetchedShows, allVenues, watchlist, watchedVenues] = await Promise.all([
     getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
     getJSON<VenueOption[]>(`/api/venues`),
     getJSON<WatchlistEntry[]>(`/api/watchlist`),
     getJSON<WatchedVenueEntry[]>(`/api/venues/watchlist`),
   ]);
+  const hasMore =
+    view === "list" && fetchedShows !== null && fetchedShows.length > listLimit;
+  const shows =
+    hasMore && fetchedShows !== null ? fetchedShows.slice(0, listLimit) : fetchedShows;
   const watchedVenueSlugs = new Set(
     (watchedVenues ?? []).map((e) => e.venue_slug),
   );
@@ -282,12 +298,29 @@ export default async function Home({
           ) : view === "day" ? (
             <DayGrid shows={shows} followedIds={followedIds} />
           ) : (
-            <ShowList
-              shows={shows}
-              watchlistCanon={watchlistCanon}
-              watchedVenueSlugs={watchedVenueSlugs}
-              followedIds={followedIds}
-            />
+            <>
+              <ShowList
+                shows={shows}
+                watchlistCanon={watchlistCanon}
+                watchedVenueSlugs={watchedVenueSlugs}
+                followedIds={followedIds}
+              />
+              {hasMore && (
+                <div className="mt-8 text-center">
+                  <Link
+                    href={hrefWith({ limit: String(listLimit + LIST_PAGE_SIZE) })}
+                    scroll={false}
+                    className="inline-block rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:border-teal-600 hover:text-teal-700 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-teal-400 dark:hover:text-teal-400"
+                  >
+                    Load more shows
+                    <span className="text-zinc-400 dark:text-zinc-500">
+                      {" "}
+                      · showing first {listLimit}
+                    </span>
+                  </Link>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
