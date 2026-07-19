@@ -1,16 +1,17 @@
-"""Tests for the SF Philharmonic scraper's pure parse layer, driven by real
-captures (2026-07-19) of the sfphil.org nav, a City Box Office event page
-head, and a ``GetTimeSlots`` fragment."""
+"""Tests for the SF Philharmonic group feed's pure parse layer, driven by
+real captures (2026-07-19) of the sfphil.org nav, a City Box Office event
+page head, its related-events block, and a ``GetTimeSlots`` fragment."""
 
 from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
 
-from foghorn.scrapers.sf_philharmonic import (
+from foghorn.aggregators.sf_philharmonic import (
     parse_buy_links,
     parse_first_time,
     parse_program_title,
+    parse_related_venues,
 )
 
 _FIXTURES = Path(__file__).parent.parent / "fixtures"
@@ -30,6 +31,21 @@ def test_parse_buy_links_real_nav() -> None:
 def test_parse_buy_links_dedupes_repeated_nav() -> None:
     html = (_FIXTURES / "sf_philharmonic_home_nav.html").read_text()
     assert len(parse_buy_links(html + html)) == 3  # mobile nav repeats
+
+
+def test_parse_related_venues_real_block() -> None:
+    # The evt=3318 page's related-events block names its two siblings'
+    # halls — this is where each concert's venue comes from (union across
+    # all fetched pages).
+    html = (_FIXTURES / "sf_philharmonic_cbo_related.html").read_text()
+    assert parse_related_venues(html) == {
+        "3328": "Atrium Theater, The Wilsey Center",
+        "3329": "Herbst Theatre",
+    }
+
+
+def test_parse_related_venues_absent() -> None:
+    assert parse_related_venues("<html><body>no related events</body></html>") == {}
 
 
 def test_parse_program_title_strips_presenter_prefix() -> None:

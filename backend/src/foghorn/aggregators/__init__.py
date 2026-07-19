@@ -23,6 +23,22 @@ def _bay_improviser() -> list[AggregatedEvent]:
     return bay_improviser.scrape()
 
 
+def _sf_symphony() -> list[AggregatedEvent]:
+    from foghorn.aggregators import sf_symphony
+
+    return sf_symphony.scrape()
+
+
+def _sf_philharmonic() -> list[AggregatedEvent]:
+    from foghorn.aggregators import sf_philharmonic
+
+    return sf_philharmonic.scrape()
+
+
 AGGREGATOR_SOURCES: dict[str, Callable[[], list[AggregatedEvent]]] = {
     "bay_improviser": _bay_improviser,
+    # Group feeds: performing ensembles whose events name the hall they play
+    # (groups are performers, not venues — see aggregators/sf_symphony).
+    "sf_symphony": _sf_symphony,
+    "sf_philharmonic": _sf_philharmonic,
 }

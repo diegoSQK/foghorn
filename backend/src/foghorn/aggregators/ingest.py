@@ -134,7 +134,10 @@ def ingest_aggregated_events(
             scraped = ScrapedShow(
                 venue_slug=venue.slug,
                 headliner_raw=event.headliner_raw,
+                support_raw=event.support_raw,
                 start_local=event.start_local,
+                ticket_url=event.ticket_url,
+                price_text=event.price_text,
                 source_url=event.source_url,
             )
             sub = ingest_scraped_shows(conn, venue, [scraped], source="aggregator")
