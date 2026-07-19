@@ -820,6 +820,101 @@ SEED_VENUES: list[Venue] = [
         calendar_url="http://4-33.com/toms-place/index.html",
         genre="eclectic",
     ),
+    # --- Venue batch 5, tranche B (July 2026) ---
+    Venue(
+        slug="old_first_concerts", name="Old First Concerts",
+        neighborhood="Polk Gulch", region="SF",
+        address="1751 Sacramento St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.oldfirstconcerts.org",
+        # WordPress+WooCommerce; concerts parsed from homepage month-submenu
+        # links — see scrapers/old_first_concerts.
+        calendar_url="https://www.oldfirstconcerts.org/", genre="eclectic",
+    ),
+    Venue(
+        slug="smileys_saloon", name="Smiley's Saloon",
+        neighborhood="Bolinas", region="North Bay",
+        address="41 Wharf Rd, Bolinas, CA",
+        tz="America/Los_Angeles", website_url="https://smileyssaloon.com",
+        # Server-rendered event cards on /music/ (Eventbrite ticketing);
+        # /upcoming-events/ is a 404 decoy — see scrapers/smileys_saloon.
+        calendar_url="https://smileyssaloon.com/music/", genre="eclectic",
+    ),
+    Venue(
+        slug="little_lous_bbq", name="Little Lou's BBQ",
+        neighborhood="Campbell", region="South Bay",
+        address="2455 S Winchester Blvd, Campbell, CA",
+        tz="America/Los_Angeles", website_url="https://littlelousbbq.com",
+        # Server-rendered Simple Calendar widget with ISO datetimes; the
+        # /calender/ path misspelling is the venue's — see
+        # scrapers/little_lous_bbq. Shows ~current period only; nightly
+        # polling rolls coverage.
+        calendar_url="https://littlelousbbq.com/calender/", genre="eclectic",
+    ),
+    Venue(
+        slug="the_lost_church", name="The Lost Church",
+        neighborhood="North Beach", region="SF",
+        address="988 Columbus Ave, San Francisco, CA",
+        tz="America/Los_Angeles", website_url="https://thelostchurch.org",
+        # PatronTicket box-office remoting API (the WP page has no times);
+        # feed filtered to the SF room + Music tags — see
+        # scrapers/the_lost_church.
+        calendar_url="https://thelostchurch.org/san-francisco/", genre="eclectic",
+    ),
+    Venue(
+        slug="paramount_theatre_oakland", name="Paramount Theatre",
+        neighborhood="Uptown", region="East Bay",
+        address="2025 Broadway, Oakland, CA",
+        tz="America/Los_Angeles", website_url="https://www.paramountoakland.org",
+        # carbonhouse eventItem blocks + events_ajax lazy feed (Warfield
+        # family) — see scrapers/paramount_theatre_oakland.
+        calendar_url="https://www.paramountoakland.org/events/", genre="eclectic",
+    ),
+    Venue(
+        slug="cal_performances", name="Cal Performances (UC Berkeley)",
+        neighborhood="UC Berkeley", region="East Bay",
+        address="101 Zellerbach Hall, Berkeley, CA",
+        tz="America/Los_Angeles", website_url="https://calperformances.org",
+        # Season page (via /calendar/ redirect): per-performance Event
+        # JSON-LD with genre badges — see scrapers/cal_performances.
+        calendar_url="https://calperformances.org/calendar/", genre="eclectic",
+    ),
+    Venue(
+        slug="moes_alley", name="Moe's Alley",
+        neighborhood="Live Oak", region="Santa Cruz",
+        address="1535 Commercial Way, Santa Cruz, CA",
+        tz="America/Los_Angeles", website_url="https://moesalley.com",
+        # TicketWeb "tw-" calendar-popup variant (no list rows; hidden
+        # event dialogs) — see scrapers/moes_alley.
+        calendar_url="https://moesalley.com/calendar/", genre="eclectic",
+    ),
+    Venue(
+        slug="the_crepe_place", name="The Crepe Place",
+        neighborhood="Midtown", region="Santa Cruz",
+        address="1134 Soquel Ave, Santa Cruz, CA",
+        tz="America/Los_Angeles", website_url="https://thecrepeplace.com",
+        # Squarespace events collection /shows-list?format=json via the
+        # shared _squarespace_events core — see scrapers/the_crepe_place.
+        calendar_url="https://thecrepeplace.com/shows", genre="rock",
+    ),
+    Venue(
+        slug="the_catalyst", name="The Catalyst",
+        neighborhood="Downtown Santa Cruz", region="Santa Cruz",
+        address="1011 Pacific Ave, Santa Cruz, CA",
+        tz="America/Los_Angeles", website_url="https://catalystclub.com",
+        # Rockhouse/Etix WordPress events list, server-rendered cards —
+        # see scrapers/the_catalyst.
+        calendar_url="https://catalystclub.com/events/", genre="rock",
+    ),
+    Venue(
+        slug="felton_music_hall", name="Felton Music Hall",
+        neighborhood="Felton", region="Santa Cruz",
+        address="6275 Highway 9, Felton, CA",
+        tz="America/Los_Angeles", website_url="https://feltonmusichall.com",
+        # Server-rendered Webflow show cards on the homepage (Guild theme,
+        # no JSON-LD), Tixr tickets — see scrapers/felton_music_hall.
+        calendar_url="https://feltonmusichall.com/", genre="rock",
+    ),
     Venue(
         slug="wyldflowr_arts",
         name="Wyldflowr Arts",
