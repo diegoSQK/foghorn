@@ -828,8 +828,10 @@ SEED_VENUES: list[Venue] = [
         tz="America/Los_Angeles",
         website_url="https://www.oldfirstconcerts.org",
         # WordPress+WooCommerce; concerts parsed from homepage month-submenu
-        # links — see scrapers/old_first_concerts.
-        calendar_url="https://www.oldfirstconcerts.org/", genre="eclectic",
+        # links — see scrapers/old_first_concerts. Genre: predominantly
+        # classical/chamber (some jazz and folk mixed in) — the venue-default
+        # lean is classical.
+        calendar_url="https://www.oldfirstconcerts.org/", genre="classical",
     ),
     Venue(
         slug="smileys_saloon", name="Smiley's Saloon",
@@ -946,6 +948,19 @@ SEED_VENUES: list[Venue] = [
         # Frost) is a separate org, not covered here.
         calendar_url="https://stanfordjazz.org/events/",
         genre="jazz",
+    ),
+    Venue(
+        slug="noontime_concerts", name="Noontime Concerts",
+        neighborhood="Chinatown", region="SF",
+        address="660 California St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://noontimeconcerts.org",
+        # The weekly free Tuesday 12:30pm chamber series at Old St. Mary's
+        # Cathedral. The concerts REST CPT carries no performance dates, so
+        # the scraper walks the server-rendered Concert Calendar cards — see
+        # scrapers/noontime_concerts.
+        calendar_url="https://noontimeconcerts.org/upcoming-concerts/",
+        genre="classical",
     ),
 ]
 
