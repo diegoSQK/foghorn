@@ -930,6 +930,23 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://wyldflowrarts.com/events",
         genre="jazz",
     ),
+    Venue(
+        slug="stanford_jazz_workshop",
+        name="Stanford Jazz Workshop",
+        neighborhood="Stanford",
+        region="Peninsula",
+        address="471 Lagunita Dr, Stanford, CA",
+        tz="America/Los_Angeles",
+        website_url="https://stanfordjazz.org",
+        # Presenter-as-venue (Cal Performances precedent): festival concerts
+        # at Dinkelspiel Auditorium + Campbell Recital Hall, year-round CoHo
+        # Jams at the campus coffee house. Tribe REST API — see
+        # scrapers/stanford_jazz_workshop. Seasonal (festival Jun–Aug);
+        # near-empty off-season feeds are normal. Stanford Live (Bing /
+        # Frost) is a separate org, not covered here.
+        calendar_url="https://stanfordjazz.org/events/",
+        genre="jazz",
+    ),
 ]
 
 

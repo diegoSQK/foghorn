@@ -1,0 +1,166 @@
+{
+ "events": [
+  {
+   "id": 10000094,
+   "title": "CoHo Jams",
+   "start_date": "2026-07-06 20:00:00",
+   "end_date": "2026-07-06 22:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "url": "https://stanfordjazz.org/event/coho-jams-2/2026-07-06/",
+   "website": "",
+   "cost": "",
+   "categories": [
+    {
+     "name": "Year-Round Programs",
+     "slug": "year-round-programs"
+    }
+   ],
+   "venue": {
+    "venue": "CoHo"
+   }
+  },
+  {
+   "id": 26271,
+   "title": "The Music of Duke Ellington with Nick Rossi&#8217;s Jazzopaters",
+   "start_date": "2026-07-10 19:30:00",
+   "end_date": "2026-07-10 19:30:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "url": "https://stanfordjazz.org/event/the-music-of-duke-ellington-with-nick-rossis-jazzopaters/",
+   "website": "",
+   "cost": "",
+   "categories": [
+    {
+     "name": "Stanford Jazz Festival",
+     "slug": "stanford-jazz-festival"
+    }
+   ],
+   "venue": {
+    "venue": "Campbell Recital Hall"
+   }
+  },
+  {
+   "id": 26465,
+   "title": "Ruth Davies&#8217; Blues Night featuring Sean &#8220;Mack&#8221; McDonald",
+   "start_date": "2026-07-22 19:30:00",
+   "end_date": "2026-07-22 19:30:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "url": "https://stanfordjazz.org/event/ruth-davies-blues-night/",
+   "website": "",
+   "cost": "",
+   "categories": [
+    {
+     "name": "Stanford Jazz Festival",
+     "slug": "stanford-jazz-festival"
+    }
+   ],
+   "venue": {
+    "venue": "Dinkelspiel Auditorium"
+   }
+  },
+  {
+   "id": 26471,
+   "title": "Stefon Harris &#038; Blackout",
+   "start_date": "2026-07-23 19:30:00",
+   "end_date": "2026-07-23 19:30:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "url": "https://stanfordjazz.org/event/stefon-harris-blackout/",
+   "website": "",
+   "cost": "",
+   "categories": [
+    {
+     "name": "Stanford Jazz Festival",
+     "slug": "stanford-jazz-festival"
+    }
+   ],
+   "venue": {
+    "venue": "Dinkelspiel Auditorium"
+   }
+  },
+  {
+   "id": 26284,
+   "title": "SJW All-Star Jam",
+   "start_date": "2026-07-31 20:00:00",
+   "end_date": "2026-07-31 20:00:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "url": "https://stanfordjazz.org/event/sjw-all-star/",
+   "website": "",
+   "cost": "",
+   "categories": [
+    {
+     "name": "Stanford Jazz Festival",
+     "slug": "stanford-jazz-festival"
+    }
+   ],
+   "venue": {
+    "venue": "Dinkelspiel Auditorium"
+   }
+  },
+  {
+   "id": 99001,
+   "title": "Festival Open House",
+   "start_date": "2026-07-12 00:00:00",
+   "end_date": "2026-07-12 23:59:59",
+   "all_day": true,
+   "hide_from_listings": false,
+   "url": "https://stanfordjazz.org/event/festival-open-house/",
+   "website": "",
+   "cost": "",
+   "categories": [
+    {
+     "name": "Stanford Jazz Festival",
+     "slug": "stanford-jazz-festival"
+    }
+   ],
+   "venue": {
+    "venue": "Dinkelspiel Auditorium"
+   }
+  },
+  {
+   "id": 99002,
+   "title": "Hidden Test Event",
+   "start_date": "2026-07-15 19:30:00",
+   "end_date": "2026-07-15 19:30:00",
+   "all_day": false,
+   "hide_from_listings": true,
+   "url": "https://stanfordjazz.org/event/hidden-test-event/",
+   "website": "",
+   "cost": "",
+   "categories": [
+    {
+     "name": "Stanford Jazz Festival",
+     "slug": "stanford-jazz-festival"
+    }
+   ],
+   "venue": {
+    "venue": "Campbell Recital Hall"
+   }
+  },
+  {
+   "id": 99003,
+   "title": "Winter Season Preview Concert",
+   "start_date": "2026-11-15 19:30:00",
+   "end_date": "2026-11-15 19:30:00",
+   "all_day": false,
+   "hide_from_listings": false,
+   "url": "https://stanfordjazz.org/event/winter-season-preview/",
+   "website": "",
+   "cost": "",
+   "categories": [
+    {
+     "name": "Year-Round Programs",
+     "slug": "year-round-programs"
+    }
+   ],
+   "venue": {
+    "venue": "Campbell Recital Hall"
+   }
+  }
+ ],
+ "total": 8,
+ "next_rest_url": null
+}
