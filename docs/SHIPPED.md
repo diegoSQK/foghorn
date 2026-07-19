@@ -8,6 +8,40 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Venue batch 5, tranche B: ten more from the sweep (July 2026)
+
+The rest of the buildable greens, via a second (successful) three-agent
+fan-out plus inline probes. Diego's priority note mid-batch — **Santa Cruz
+is the lowest-priority region** — arrived with the SC agent already
+building; its four venues shipped lean and land as recorded, with Bay Area
+effort redirected to the remaining yellows (verdicts below).
+
+Shipped (live counts at build): **Smiley's Saloon** (31, Bolinas server-
+rendered cards), **The Lost Church** (17 — the WP page has no times, so
+the scraper replays the PatronTicket/Salesforce box-office remoting API,
+filtered to the SF room + Music tags), **Old First Concerts** (7, WooCommerce
+products via month-submenu links with a weekday guard on year rollover),
+**Little Lou's BBQ** (4, Simple Calendar widget with ISO datetimes + stated
+ends; Pro Blues Jam typed jam; short widget horizon → nightly polling),
+**Paramount Theatre** (7, carbonhouse + events_ajax lazy feed; movie
+nights dropped), **Cal Performances** (3 now, season-long JSON-LD with
+genre badges via the /calendar/ redirect; dance/theater dropped; possible
+Greek Theatre cross-listings noted), and the four SC rooms: **Moe's Alley**
+(35, TicketWeb popup-variant), **The Crepe Place** (97, Squarespace shared
+core with flyer-title cleanup), **The Catalyst** (10, Rockhouse/Etix
+cards), **Felton Music Hall** (34, Webflow cards + Tixr).
+
+**Closed with dated evidence this pass:** The Big Easy Petaluma 429s even
+at browser UA (IP-keyed, not UA-keyed — the Kuumbwa trick doesn't apply);
+The Saloon's PDF calendar is a hand-lettered scan Vision garbles
+(would ingest garbage names) and the old sfblues mirror is dead;
+Sausalito Seahorse's calendar is a CalendarWiz embed currently serving
+"Server busy" to everything including real browsers; Rio Theatre and
+Sebastiani expose no Squarespace events collection at any obvious path
+(deeper recon needed); Rancho Nicasio's Tribe rows are all-day with no
+times anywhere first-party (unblock: the OvationTix API); Fox Theatre RWC
+remains queued (ShoWare renders via JS — needs its API).
+
 ## Venue batch 5, tranche A: six from the internet-search sweep (July 2026)
 
 A four-agent web sweep (SF / East Bay / Peninsula+South+North Bay / Santa

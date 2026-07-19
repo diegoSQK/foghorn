@@ -1,0 +1,409 @@
+[
+ {
+  "statusCode": 200,
+  "type": "rpc",
+  "tid": 2,
+  "action": "PatronTicket.Controller_PublicTicketApp",
+  "method": "fetchEvents",
+  "result": [
+   {
+    "category": "Music;San Francisco;Female Led;Asian or Asian American",
+    "detail": "",
+    "id": "a0SUh00000Kmq0nMAB",
+    "instanceDisplay": "List",
+    "instances": [
+     {
+      "allocations": [
+       {
+        "name": "* Buy *",
+        "soldOut": false,
+        "levels": [
+         {
+          "name": "General Admission",
+          "price": 15.0
+         },
+         {
+          "name": "Day of Show Price",
+          "price": 20.0
+         }
+        ]
+       }
+      ],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0SUh00000Kmq0nMAB",
+      "eventName": "Teona Zak + JinTheQueen LIVE at The Lost Church - San Francisco",
+      "formattedDates": {
+       "ISO8601": 1784862900000,
+       "LONG_MONTH_DAY_YEAR": "July 23, 2026",
+       "TIME_STRING": "8:15 PM",
+       "YYYYMMDD": "20260723"
+      },
+      "id": "a0FUh000009rvcTMAQ",
+      "isPasscodeEligible": false,
+      "name": "Soul/R&B/Pop/Singer-Songwriter | Thursday, July 23rd, 2026 | Doors 7:30pm",
+      "nonTimed": false,
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FUh000009rvcTMAQ",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": false,
+      "venueId": "a0T6A000002eYckUAE"
+     }
+    ],
+    "name": "Teona Zak + JinTheQueen LIVE at The Lost Church - San Francisco",
+    "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/events/a0SUh00000Kmq0nMAB",
+    "sortOrder": 723,
+    "type": "Tickets"
+   },
+   {
+    "category": "Music;Santa Rosa;Elder: Primarily 55 or over years of age;Traditional Music",
+    "id": "a0SHu000017lKZnMAM",
+    "instanceDisplay": "List",
+    "instances": [
+     {
+      "allocations": [
+       {
+        "name": "*BUY*",
+        "soldOut": false,
+        "levels": [
+         {
+          "name": "General Admission",
+          "price": 25.0
+         },
+         {
+          "name": "Same price online and at the door",
+          "price": 20.0
+         }
+        ]
+       }
+      ],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0SHu000017lKZnMAM",
+      "eventName": "Jayne-Russell - Santa Rosa",
+      "formattedDates": {
+       "ISO8601": 1784946600000,
+       "LONG_MONTH_DAY_YEAR": "July 24, 2026",
+       "TIME_STRING": "7:30 PM",
+       "YYYYMMDD": "20260724"
+      },
+      "id": "a0FHu00000yivezMAA",
+      "isPasscodeEligible": false,
+      "name": "Folk - Friday, July 24th, 2026 - DOORS 7:30PM",
+      "nonTimed": false,
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FHu00000yivezMAA",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": false,
+      "venueId": "a0T6A000003nva2UAA"
+     }
+    ],
+    "name": "Jayne-Russell - Santa Rosa",
+    "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/events/a0SHu000017lKZnMAM",
+    "sortOrder": 724,
+    "type": "Tickets",
+    "detail": ""
+   },
+   {
+    "category": "Rental;San Francisco",
+    "detail": "",
+    "id": "a0STU000006zNkE2AU",
+    "instanceDisplay": "List",
+    "instances": [
+     {
+      "allocations": [],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0STU000006zNkE2AU",
+      "eventName": "Private Event (Closed to the Public) - SF",
+      "formattedDates": {
+       "ISO8601": 1784682000000,
+       "LONG_MONTH_DAY_YEAR": "July 21, 2026",
+       "TIME_STRING": "6:00 PM",
+       "YYYYMMDD": "20260721"
+      },
+      "id": "a0FUh000009BhCXMA0",
+      "isPasscodeEligible": false,
+      "name": "Private Event (Rental) - Tuesday, July 21st 2026",
+      "nonTimed": false,
+      "noSaleMessage": "<p>Private event closed to the public. Thank you.</p>",
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FUh000009BhCXMA0",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": true,
+      "venueId": "a0T6A000002eYckUAE"
+     },
+     {
+      "allocations": [],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0STU000006zNkE2AU",
+      "eventName": "Private Event (Closed to the Public) - SF",
+      "formattedDates": {
+       "ISO8601": 1786496400000,
+       "LONG_MONTH_DAY_YEAR": "August 11, 2026",
+       "TIME_STRING": "6:00 PM",
+       "YYYYMMDD": "20260811"
+      },
+      "id": "a0FUh000009BhPRMA0",
+      "isPasscodeEligible": false,
+      "name": "Private Event (Rental) - Tuesday, August 11th 2026",
+      "nonTimed": false,
+      "noSaleMessage": "<p>Private event closed to the public. Thank you.</p>",
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FUh000009BhPRMA0",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": true,
+      "venueId": "a0T6A000002eYckUAE"
+     }
+    ],
+    "name": "Private Event (Closed to the Public) - SF",
+    "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/events/a0STU000006zNkE2AU",
+    "sortOrder": 602,
+    "type": "Tickets"
+   },
+   {
+    "category": "Comedy;San Francisco;Female Led;Black or African American",
+    "detail": "",
+    "id": "a0SUh00000L5CVtMAN",
+    "instanceDisplay": "List",
+    "instances": [
+     {
+      "allocations": [
+       {
+        "name": "* Buy *",
+        "soldOut": false,
+        "levels": [
+         {
+          "name": "General Admission",
+          "price": 18.0
+         },
+         {
+          "name": "VIP",
+          "price": 50.0
+         }
+        ]
+       }
+      ],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0SUh00000L5CVtMAN",
+      "eventName": "Brittany Carney: A Midsummer Night's Cream - San Francisco",
+      "formattedDates": {
+       "ISO8601": 1786156200000,
+       "LONG_MONTH_DAY_YEAR": "August 7, 2026",
+       "TIME_STRING": "7:30 PM",
+       "YYYYMMDD": "20260807"
+      },
+      "id": "a0FUh00000AUEPZMA5",
+      "isPasscodeEligible": false,
+      "name": "Comedy: Stand-up | Friday, August 7th, 2026 | Doors 7:30pm",
+      "nonTimed": false,
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FUh00000AUEPZMA5",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": false,
+      "venueId": "a0T6A000002eYckUAE"
+     }
+    ],
+    "name": "Brittany Carney: A Midsummer Night's Cream - San Francisco",
+    "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/events/a0SUh00000L5CVtMAN",
+    "sortOrder": 807,
+    "type": "Tickets"
+   },
+   {
+    "category": "Dance;Music;San Francisco",
+    "detail": "",
+    "id": "a0SUh00000L0RddMAF",
+    "instanceDisplay": "List",
+    "instances": [
+     {
+      "allocations": [
+       {
+        "name": "* Buy *",
+        "soldOut": false,
+        "levels": [
+         {
+          "name": "General Admission",
+          "price": 25.0
+         },
+         {
+          "name": "Day of Show Price",
+          "price": 20.0
+         }
+        ]
+       }
+      ],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0SUh00000L0RddMAF",
+      "eventName": "Kaimera (feat. Bellydance by Chantal) Matinée - San Francisco",
+      "formattedDates": {
+       "ISO8601": 1786316400000,
+       "LONG_MONTH_DAY_YEAR": "August 9, 2026",
+       "TIME_STRING": "4:00 PM",
+       "YYYYMMDD": "20260809"
+      },
+      "id": "a0FUh00000AGBGHMA5",
+      "isPasscodeEligible": false,
+      "name": "Balkan/Worl/Bellydance | Sunday, August 9th, 2026 | Doors 4:00pm",
+      "nonTimed": false,
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FUh00000AGBGHMA5",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": false,
+      "venueId": "a0T6A000002eYckUAE"
+     }
+    ],
+    "name": "Kaimera (feat. Bellydance by Chantal) Matinée - San Francisco",
+    "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/events/a0SUh00000L0RddMAF",
+    "sortOrder": 809,
+    "type": "Tickets"
+   },
+   {
+    "category": "Comedy;San Francisco",
+    "detail": "",
+    "id": "a0SUh00000LACGjMAP",
+    "instanceDisplay": "List",
+    "instances": [
+     {
+      "allocations": [
+       {
+        "name": "* Buy *",
+        "soldOut": false,
+        "levels": [
+         {
+          "name": "General Admission",
+          "price": 25.0
+         },
+         {
+          "name": "Day of Show Price",
+          "price": 20.0
+         }
+        ]
+       }
+      ],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0SUh00000LACGjMAP",
+      "eventName": "Benny Feldman (2 shows) - San Francisco",
+      "formattedDates": {
+       "ISO8601": 1791595800000,
+       "LONG_MONTH_DAY_YEAR": "October 9, 2026",
+       "TIME_STRING": "6:30 PM",
+       "YYYYMMDD": "20261009"
+      },
+      "id": "a0FUh00000Ai9g9MAB",
+      "isPasscodeEligible": false,
+      "name": "Stand-up Comedy | Friday, October 9th, 2026 | Doors 6:30pm",
+      "nonTimed": false,
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FUh00000Ai9g9MAB",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": false,
+      "venueId": "a0T6A000002eYckUAE"
+     },
+     {
+      "allocations": [
+       {
+        "name": "* Buy *",
+        "soldOut": false,
+        "levels": [
+         {
+          "name": "General Admission",
+          "price": 25.0
+         },
+         {
+          "name": "Day of Show Price",
+          "price": 20.0
+         }
+        ]
+       }
+      ],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0SUh00000LACGjMAP",
+      "eventName": "Benny Feldman (2 shows) - San Francisco",
+      "formattedDates": {
+       "ISO8601": 1791604800000,
+       "LONG_MONTH_DAY_YEAR": "October 9, 2026",
+       "TIME_STRING": "9:00 PM",
+       "YYYYMMDD": "20261009"
+      },
+      "id": "a0FUh00000AiA7ZMAV",
+      "isPasscodeEligible": false,
+      "name": "Stand-up Comedy | Friday, October 9th, 2026 | Doors 9:00pm",
+      "nonTimed": false,
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FUh00000AiA7ZMAV",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": false,
+      "venueId": "a0T6A000002eYckUAE"
+     }
+    ],
+    "name": "Benny Feldman (2 shows) - San Francisco",
+    "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/events/a0SUh00000LACGjMAP",
+    "sortOrder": 1009,
+    "type": "Tickets"
+   },
+   {
+    "category": "Music;San Francisco",
+    "detail": "",
+    "id": "a0SUh00000KqJkbMAF",
+    "instanceDisplay": "List",
+    "instances": [
+     {
+      "allocations": [
+       {
+        "name": "* Buy *",
+        "soldOut": false,
+        "levels": [
+         {
+          "name": "General Admission",
+          "price": 15.0
+         },
+         {
+          "name": "Day of Show Price",
+          "price": 20.0
+         }
+        ]
+       }
+      ],
+      "contentFormat": "Standard",
+      "detail": "",
+      "earlyAccess": false,
+      "eventId": "a0SUh00000KqJkbMAF",
+      "eventName": "Theo Kandel with Remy Sher - San Francisco",
+      "formattedDates": {
+       "ISO8601": 1789787700000,
+       "LONG_MONTH_DAY_YEAR": "September 18, 2026",
+       "TIME_STRING": "8:15 PM",
+       "YYYYMMDD": "20260918"
+      },
+      "id": "a0FUh000009z0h3MAA",
+      "isPasscodeEligible": false,
+      "name": "Indie/Folk/Singer-Songwriter | Friday, September 18th, 2026 | Doors 7:30pm",
+      "nonTimed": false,
+      "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/instances/a0FUh000009z0h3MAA",
+      "saleStatus": "On Sale",
+      "seatingType": "General Admission",
+      "soldOut": false,
+      "venueId": "a0T6A000002eYckUAE"
+     }
+    ],
+    "name": "Theo Kandel with Remy Sher - San Francisco",
+    "purchaseUrl": "https://thelostchurch.my.salesforce-sites.com/ticket/#/events/a0SUh00000KqJkbMAF",
+    "sortOrder": 918,
+    "type": "Tickets"
+   }
+  ]
+ }
+]
