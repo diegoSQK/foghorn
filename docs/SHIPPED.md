@@ -8,6 +8,27 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Stanford Jazz Workshop: ad-hoc Peninsula coverage (July 2026)
+
+Single-venue ad-hoc addition. stanfordjazz.org is WordPress with The Events
+Calendar (Tribe) REST API exposed — same clean-JSON pattern as Mr. Tipple's /
+Madrone / Dresher, built from that template. 12 festival shows live at build
+(July–August window), entity-laden titles unescaped.
+
+Modeling calls: **presenter-as-venue** per the Cal Performances precedent —
+festival concerts land at Dinkelspiel Auditorium and Campbell Recital Hall,
+the year-round **CoHo Jams** at the campus coffee house, all one umbrella
+seed row (region Peninsula, genre jazz). CoHo Jams rows are tagged
+`event_type="jam"` in the scraper (category `year-round-programs` + a
+jam-word title) because ingest's conservative regex wouldn't catch the name;
+the festival's ticketed "SJW All-Star Jam" closer stays a show. Tribe's
+padded `end_date == start_date` is dropped rather than stored as a
+zero-length end. Programming is seasonal (festival June–August, roughly
+monthly jams otherwise) — near-empty off-season feeds are normal, per the
+Mills Littlefield precedent. **Stanford Live** (Bing Concert Hall / Frost
+Amphitheater, the Sep–Jun season) is a separate org and site, explicitly not
+covered.
+
 ## Venue batch 5, tranche B: ten more from the sweep (July 2026)
 
 The rest of the buildable greens, via a second (successful) three-agent
