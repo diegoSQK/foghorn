@@ -962,30 +962,43 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://noontimeconcerts.org/upcoming-concerts/",
         genre="classical",
     ),
+    # The classical halls. The SF Symphony and SF Philharmonic are performing
+    # GROUPS, not venues — their seasons arrive via aggregator group feeds
+    # (aggregators/sf_symphony, aggregators/sf_philharmonic) that route each
+    # event to the hall it actually plays, with the ensemble on the bill as a
+    # support performer so the watchlist follows the group across halls.
     Venue(
-        slug="sf_symphony", name="San Francisco Symphony",
+        slug="davies_symphony_hall", name="Davies Symphony Hall",
         neighborhood="Civic Center", region="SF",
         address="201 Van Ness Ave, San Francisco, CA",
         tz="America/Los_Angeles",
         website_url="https://www.sfsymphony.org",
-        # Presenter row (the Cal Performances model): home is Davies Symphony
-        # Hall, with SoundBox / Legion of Honor / occasional off-site dates
-        # riding under the same row. Calendar data comes from the site's
-        # public Algolia index, NOT this page (Queue-it fronts the site on
-        # on-sale days) — see scrapers/sf_symphony.
+        # Home of the SF Symphony (incl. SoundBox, the experimental room
+        # inside Davies — folded here until it earns its own row).
         calendar_url="https://www.sfsymphony.org/Calendar",
         genre="classical",
     ),
     Venue(
-        slug="sf_philharmonic", name="San Francisco Philharmonic",
-        neighborhood=None, region="SF",
-        address=None,
+        slug="herbst_theatre", name="Herbst Theatre",
+        neighborhood="Civic Center", region="SF",
+        address="401 Van Ness Ave, San Francisco, CA",
         tz="America/Los_Angeles",
-        website_url="https://sfphil.org",
-        # Itinerant presenter (Herbst Theatre, Wilsey Center Atrium, …);
-        # 3–4 concerts a season, listed as homepage nav "Buy Tickets" links
-        # into City Box Office — see scrapers/sf_philharmonic.
-        calendar_url="https://sfphil.org/",
+        website_url="https://www.sfwmpac.org/herbst-theatre",
+        # Veterans Building recital hall; hosts SF Philharmonic dates, SF
+        # Performances, and other classical-lean presenters. No first-party
+        # calendar feed — shows arrive via presenter group feeds.
+        calendar_url="https://www.sfwmpac.org/herbst-theatre",
+        genre="classical",
+    ),
+    Venue(
+        slug="wilsey_center_atrium", name="Atrium Theater at the Wilsey Center",
+        neighborhood="Civic Center", region="SF",
+        address="401 Van Ness Ave, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.sfopera.com/about-us/wilsey-center/",
+        # SF Opera's black-box room in the Veterans Building (4th floor);
+        # rented by chamber-scale presenters incl. the SF Philharmonic.
+        calendar_url="https://www.sfopera.com/about-us/wilsey-center/",
         genre="classical",
     ),
 ]

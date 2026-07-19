@@ -1,26 +1,35 @@
-"""San Francisco Philharmonic scraper.
+"""San Francisco Philharmonic group feed (aggregator source).
+
+The Philharmonic is a performing *group* with no hall of its own — it plays
+Herbst Theatre, the Wilsey Center Atrium, wherever the season takes it. It
+therefore ingests as an **aggregator source**: each concert names the hall
+it actually happens in, venue resolution routes it to a seeded row (or a
+quarantined auto-created one), and the ensemble rides every bill as a
+support performer so the performer watchlist follows the group across halls.
 
 Source: sfphil.org is a small Squarespace site whose entire season (3–4
 concerts) is server-rendered into the homepage navigation as
 ``Buy Tickets - <Month D, YYYY>`` links pointing at City Box Office event
-pages (``cityboxoffice.com/eventperformances.asp?evt=N``). The nav link text
-carries the concert *date*; the CBO page's ``<title>`` carries the program
-name; and CBO's ``GetTimeSlots.asp`` widget endpoint (a server-rendered HTML
-fragment) carries the start *time*. All three surfaces are plain HTTP — no
-JS execution needed even though both sites render their widgets client-side.
+pages (``cityboxoffice.com/eventperformances.asp?evt=N``). Per concert:
 
-The Philharmonic is an itinerant presenter (Herbst Theatre, the Wilsey
-Center Atrium, …), so like Cal Performances it gets one presenter venue row
-rather than per-hall rows. Program titles arrive as
-"San Francisco Philharmonic - <program>" / "… presents <program>"; the
-presenter prefix is stripped since the venue row already says who's playing.
-A concert whose time slot can't be found is skipped — a dated but timeless
-row can't satisfy the show contract (re-runs pick it up once CBO lists the
-performance time).
+- **date** — the nav link text;
+- **program title** — the CBO page ``<title>`` (presenter prefix stripped);
+- **start time** — CBO's server-rendered ``GetTimeSlots.asp`` fragment;
+- **hall** — CBO event pages cross-reference the presenter's *other* events
+  in a server-rendered "related events" block that includes each sibling's
+  venue line. Fetching every event page and unioning those blocks yields
+  each concert's hall from its siblings (with ≥2 concerts listed, coverage
+  is complete). A concert whose hall never appears lands in a quarantined
+  "San Francisco Philharmonic Offsite" bucket rather than being dropped.
 
-Runnable standalone: ``python -m foghorn.scrapers.sf_philharmonic`` prints
-the scraped shows as JSON and exits. No DB writes here — that's the ingest
-pipeline.
+All surfaces are plain HTTP — no JS execution needed even though both sites
+render their widgets client-side. A concert whose time slot can't be found
+is skipped — a dated but timeless row can't satisfy the show contract
+(re-runs pick it up once CBO lists the performance time).
+
+Runnable standalone: ``python -m foghorn.aggregators.sf_philharmonic``
+prints the events as JSON and exits. No DB writes here — that's the ingest
+layer.
 """
 
 from __future__ import annotations
@@ -32,14 +41,19 @@ import re
 
 import httpx
 
-from foghorn.models import ScrapedShow
+from foghorn.aggregators.models import AggregatedEvent
 
-VENUE_SLUG = "sf_philharmonic"
+SOURCE_ID = "sf_philharmonic"
+GROUP_NAME = "San Francisco Philharmonic"
 
 HOME_URL = "https://sfphil.org"
 TIMESLOTS_URL = "https://www.cityboxoffice.com/include/widgets/events/GetTimeSlots.asp"
 USER_AGENT = "foghorn-scraper/0.1 (contact via diegoSQK/foghorn issues)"
 REQUEST_TIMEOUT = 30.0
+
+# Quarantined bucket for concerts whose hall the related-events blocks never
+# named (single-event seasons, or CBO layout drift).
+OFFSITE_VENUE = "San Francisco Philharmonic Offsite"
 
 # The whole listed season is scraped regardless of horizon — a 3-concert
 # org's furthest date (often next spring) is exactly what a follower wants.
@@ -48,6 +62,14 @@ _BUY_LINK_RE = re.compile(
     r'<a[^>]+href="(https?://(?:www\.)?cityboxoffice\.com/eventperformances\.asp'
     r'\?evt=(\d+))"[^>]*>(?:(?!</a>).)*?Buy\s+Tickets\s*(?:-|–|—)\s*'
     r"([A-Z][a-z]+ \d{1,2}, \d{4})",
+    re.DOTALL,
+)
+# One sibling entry in a CBO "related events" block:
+# <h3>title</h3><div>Weekday, Month D, YYYY</div><div>VENUE</div>
+# <div><a href="eventperformances.asp?evt=ID">Learn More ...</a></div>
+_RELATED_VENUE_RE = re.compile(
+    r"<h3>(?:(?!</h3>).)*</h3>\s*<div>[^<]*\d{4}[^<]*</div>\s*<div>([^<]+)</div>"
+    r'\s*<div>\s*<a href="eventperformances\.asp\?evt=(\d+)"',
     re.DOTALL,
 )
 # First offered time slot on the GetTimeSlots fragment ("7:30PM").
@@ -74,6 +96,16 @@ def parse_buy_links(home_html: str) -> list[tuple[dt.date, str, str]]:
             continue
         concerts.append((date, evt_id, url))
     return concerts
+
+
+def parse_related_venues(event_html: str) -> dict[str, str]:
+    """One CBO event page → ``{evt_id: venue}`` for every sibling concert its
+    related-events block names."""
+    return {
+        evt_id: html.unescape(venue).strip()
+        for venue, evt_id in _RELATED_VENUE_RE.findall(event_html)
+        if venue.strip()
+    }
 
 
 def parse_program_title(event_html: str) -> str | None:
@@ -106,9 +138,9 @@ def parse_first_time(timeslots_html: str) -> dt.time | None:
     return dt.time(hour, minute)
 
 
-def scrape() -> list[ScrapedShow]:
+def scrape() -> list[AggregatedEvent]:
     """Walk the live homepage nav and each concert's CBO surfaces."""
-    shows: list[ScrapedShow] = []
+    events: list[AggregatedEvent] = []
     with httpx.Client(
         headers={"User-Agent": USER_AGENT},
         timeout=REQUEST_TIMEOUT,
@@ -116,11 +148,21 @@ def scrape() -> list[ScrapedShow]:
     ) as client:
         home = client.get(HOME_URL)
         home.raise_for_status()
-        for date, evt_id, ticket_url in parse_buy_links(home.text):
-            event_page = client.get(ticket_url)
-            if event_page.status_code != httpx.codes.OK:
+        concerts = parse_buy_links(home.text)
+        # First pass: fetch each event page once; collect titles and the
+        # union of sibling venue references.
+        titles: dict[str, str] = {}
+        venues: dict[str, str] = {}
+        for _date, evt_id, ticket_url in concerts:
+            page = client.get(ticket_url)
+            if page.status_code != httpx.codes.OK:
                 continue
-            title = parse_program_title(event_page.text)
+            title = parse_program_title(page.text)
+            if title is not None:
+                titles[evt_id] = title
+            venues.update(parse_related_venues(page.text))
+        for date, evt_id, ticket_url in concerts:
+            title = titles.get(evt_id)
             if title is None:
                 continue
             slots = client.get(
@@ -137,27 +179,25 @@ def scrape() -> list[ScrapedShow]:
             )
             if time is None:
                 continue
-            shows.append(
-                ScrapedShow(
-                    venue_slug=VENUE_SLUG,
+            events.append(
+                AggregatedEvent(
+                    venue_name_raw=venues.get(evt_id, OFFSITE_VENUE),
                     headliner_raw=title,
-                    support_raw=[],
+                    support_raw=[GROUP_NAME],
                     start_local=dt.datetime.combine(date, time),
-                    doors_local=None,
                     ticket_url=ticket_url,
-                    price_text=None,
                     source_url=HOME_URL,
                 )
             )
-    shows.sort(key=lambda show: show.start_local)
-    return shows
+    events.sort(key=lambda event: event.start_local)
+    return events
 
 
 def main() -> None:
-    shows = scrape()
+    events = scrape()
     print(
         json.dumps(
-            [show.model_dump(mode="json") for show in shows],
+            [event.model_dump(mode="json") for event in events],
             indent=2,
             ensure_ascii=False,
         )

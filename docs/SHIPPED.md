@@ -8,6 +8,46 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Group feeds: ensembles are performers, halls are venues (July 2026)
+
+Same-day model correction to classical tranche 2, from Diego's review: the
+SF Symphony and SF Philharmonic had shipped as presenter *venue* rows (the
+Cal Performances pattern), but they're performing **groups** — the two
+things a follower wants are "watchlist the group" and "see which hall
+they're actually playing." Both scrapers became **aggregator sources**
+("group feeds"), because the aggregator layer already owns exactly this
+shape: sources that name venues they don't own, venue resolution with
+quarantine for the long tail, and the performer-watchlist bypass.
+
+- **`AggregatedEvent` grew `support_raw` / `ticket_url` / `price_text`**
+  (defaults keep Bay Improviser untouched), and aggregator ingest passes
+  them through to the show row. Group feeds put the ensemble in
+  `support_raw` on every bill, so any-performer watchlist matching follows
+  the group across halls — including into quarantined venues, via the
+  existing watchlist bypass. Covered by an end-to-end test
+  (`tests/aggregators/test_group_feed_ingest.py`).
+- **Seeded halls replace the presenter rows**: `davies_symphony_hall`
+  (SoundBox and the venue-field quirk "Youth Orchestra" fold into Davies),
+  `herbst_theatre`, `wilsey_center_atrium` (both Veterans Building rooms,
+  Civic Center, classical). Rare SFS venue strings pass through to
+  quarantine creation (Gunn Theater at the Legion of Honor); placeholder /
+  missing venue fields land in a quarantined "San Francisco Symphony
+  Offsite" bucket rather than being dropped or mis-attributed.
+- **SF Philharmonic hall extraction**: each CBO event page cross-references
+  the presenter's *other* events with venue lines in a server-rendered
+  related-events block; the feed unions those blocks across all fetched
+  pages, so every concert's hall comes from its siblings (complete coverage
+  at ≥2 listed concerts; a never-named hall falls back to the offsite
+  bucket instead of dropping the show).
+- **Migration**: the two presenter venue rows and their 82 shows were
+  deleted from the canonical DB (backup taken) and re-ingested through the
+  group feeds; both group names were added to the performer watchlist.
+
+The Cal Performances presenter-row precedent still stands for
+*presenter-without-identity* cases, but ensembles that tour across halls
+want the group-feed pattern. Candidates to revisit under it later: Kronos,
+One Found Sound, SF Contemporary Music Players.
+
 ## Classical coverage tranche 2: SF Symphony + SF Philharmonic (July 2026)
 
 The two flagship asks from Diego, both previously written off as headless

@@ -1,0 +1,38 @@
+<html><body>is).val());
+            });
+            $("#plCalendar").show();
+        }
+    }
+    }
+</script>
+    <div class="related-events-wrap clear">
+	    
+	<center>
+		<div class="related-events-wrap">
+		<div class="related-event"><img src="uplImage/SFPhilBanner1600.jpg" style="max-height: 100%;max-width: 100%;padding-bottom:1%"/><h3>San Francisco Philharmonic & Anne Richardson</h3><div>Friday, December 18, 2026</div><div>Atrium Theater, The Wilsey Center</div><div><a href="eventperformances.asp?evt=3328">Learn More &raquo;</a></div></div><div class="related-event"><img src="uplImage/SFPhilBanner1600.jpg" style="max-height: 100%;max-width: 100%;padding-bottom:1%"/><h3>San Francisco Philharmonic presents Tchaikovsky Symphony No. 4 & Rachmaninov Piano Concerto No. 2</h3><div>Saturday, April 24, 2027</div><div>Herbst Theatre</div><div><a href="eventperformances.asp?evt=3329">Learn More &raquo;</a></div></div>
+		</div>
+	</center>
+
+    </div>
+    
+
+<script language="javascript">
+	
+
+    function updatePackageList(pEventId,pIsCorporate,pSearchDate){
+    	$.ajax("/include/widgets/events/ConsiderPackagesList.asp", {
+    		type: 'GET',
+    		data: {
+	            eventid: pEventId,
+	            iscorporatepartner: pIsCorporate,
+	            searchdate: pSearchDate
+            },
+ 			success: function(data) {           
+            	$("#considerPackage_content").html(data);           
+        	}, error: function(data) {
+				console.log("Error returning data from updatePackageList()")
+			}
+        });
+    }
+
+	function getTimeSlots(pEventId,pSearchDate,pCouponCode,bIsQualifierCode = false, bIsQua</body></html>
