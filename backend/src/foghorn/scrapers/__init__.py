@@ -57,6 +57,7 @@ from foghorn.scrapers import (
     mystic_theatre,
     natural_grocery_annex,
     neck_of_the_woods,
+    noontime_concerts,
     ocean_ale_house,
     old_first_concerts,
     paramount_theatre_oakland,
@@ -162,4 +163,5 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     the_crepe_place.VENUE_SLUG: the_crepe_place.scrape,
     the_lost_church.VENUE_SLUG: the_lost_church.scrape,
     stanford_jazz_workshop.VENUE_SLUG: stanford_jazz_workshop.scrape,
+    noontime_concerts.VENUE_SLUG: noontime_concerts.scrape,
 }

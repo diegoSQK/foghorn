@@ -8,6 +8,53 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Classical coverage tranche 1: Old First Concerts, Noontime Concerts (July 2026)
+
+Planned as three classical presenters; shipped as one new scraper plus a
+genre reclassification, because the pre-build audit ran into work that had
+already landed. Cal Performances was audited before noticing it already
+shipped in venue batch 5 tranche B; its venue-default genre is "eclectic"
+(mixed classical/jazz/dance programming), so classical-genre filtering of
+its shows is a per-show-override question, not a new-scraper question.
+**Old First Concerts** turned out to be in the same boat — tranche B
+shipped its scraper (WooCommerce products via homepage month-submenu
+links; 7 live at this build too) — so its delta here is the venue-default
+genre flip ``eclectic`` → ``classical``, which matches the room's actual
+lean (classical/chamber series since 1970, some jazz and folk mixed in).
+
+**"classical" is a new genre value**, and it needed zero frontend work:
+the genre facet chips render from the venue data (a new value appears
+automatically once seeded), and the badge/accent palettes deliberately
+fall back to neutral for genres outside the styled four — classical rides
+that fallback the same way blues and folk already do.
+
+**Noontime Concerts** (Old St. Mary's Cathedral, 660 California St —
+the weekly free Tuesday 12:30pm chamber series, 34+ years running) is the
+new scraper, and it carries the tranche's gotcha as designed: the site
+exposes a public ``concerts`` CPT at ``/wp-json/wp/v2/concerts``, but the
+REST payload has **no performance date at all** — ``acf`` and ``meta``
+come back empty, there's no content field, and the WP ``date`` is the
+post's publish date. The scraper instead walks the server-rendered
+``/upcoming-concerts/`` Concert Calendar: one ``div.concert-card`` per
+concert with the real date in ``data-date="MM/DD/YYYY"`` plus
+``data-title`` and a detail link (the concert-library archive reuses the
+same markup for ~660 past shows, so the upcoming page is the only
+forward-looking surface). Cards carry no clock time; the series-constant
+12:30 start is applied. Non-Tuesday cards are skipped — those are the
+monthly Sunday concerts at the SF Mint, a different room with no stated
+time (a separate venue row if they ever matter). 2 shows live at build
+(Aug 11, Aug 25) — the weekly cadence pauses over midsummer, so a sparse
+July page is normal, not a scraper failure.
+
+**Audited and deferred** for a future classical tranche: SF Symphony,
+SF Opera, and SF Performances (Tessitura and/or JS-rendered calendars,
+some bot-blocked — headless territory); SFCM (Drupal with partial
+JSON-LD — worth a second look before reaching for Playwright). Follow-up
+noted while here: ``normalize_genre`` has no classical vocabulary yet, so
+per-show classical overrides (e.g. Cal Performances' "Recital"/"Orchestra
+& Chamber Music" badges) fall through to venue defaults — that's the
+per-show-override question above.
+
 ## Stanford Jazz Workshop: ad-hoc Peninsula coverage (July 2026)
 
 Single-venue ad-hoc addition. stanfordjazz.org is WordPress with The Events
