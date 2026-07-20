@@ -5,10 +5,10 @@ import { ImageResponse } from "next/og";
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
-// foghorn identity: a foghorn's blast cutting through fog. Warm amber arcs
-// radiate from the bottom-left corner (the horn's mouth) across a deep
-// teal-slate ground — the app's teal brand hue, pushed dark and foggy.
-// Distinct from sibling cadence (sky-blue bars on slate).
+// foghorn identity: a foghorn's blast cutting through the dark. Teal arcs —
+// the app's brand hue — radiate from the bottom-left corner across a black
+// ground (#0a0a0a, the app's dark-mode background). Distinct from sibling
+// cadence (sky-blue bars on slate).
 export default function Icon() {
   const d = size.width;
   const arc = (dia: number, w: number, color: string, opacity: number) => (
@@ -34,14 +34,14 @@ export default function Icon() {
           position: "relative",
           display: "flex",
           overflow: "hidden",
-          background: "linear-gradient(135deg, #0d3138 0%, #0a262c 100%)",
+          background: "#0a0a0a",
         }}
       >
-        {arc(d * 1.5, d * 0.05, "#f59e0b", 0.34)}
-        {arc(d * 1.14, d * 0.052, "#f59e0b", 0.58)}
-        {arc(d * 0.82, d * 0.056, "#fbbf24", 0.82)}
-        {arc(d * 0.52, d * 0.06, "#fcd34d", 1)}
-        {/* horn mouth: bright core at the corner the arcs emanate from */}
+        {arc(d * 1.5, d * 0.05, "#0d9488", 0.34)}
+        {arc(d * 1.14, d * 0.052, "#14b8a6", 0.58)}
+        {arc(d * 0.82, d * 0.056, "#2dd4bf", 0.82)}
+        {arc(d * 0.52, d * 0.06, "#5eead4", 1)}
+        {/* bright teal source at the corner the arcs emanate from */}
         <div
           style={{
             position: "absolute",
@@ -50,7 +50,7 @@ export default function Icon() {
             width: d * 0.22,
             height: d * 0.22,
             borderRadius: d * 0.22,
-            background: "#fde68a",
+            background: "#99f6e4",
           }}
         />
       </div>
