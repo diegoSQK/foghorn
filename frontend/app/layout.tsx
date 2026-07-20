@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 
@@ -18,6 +18,25 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "foghorn",
   description: "A Bay Area local music & jazz show aggregator.",
+  // Standalone "Add to Home Screen" launch on iOS: own app-switcher card,
+  // chrome-less. The manifest + icon routes are auto-linked by Next.
+  appleWebApp: {
+    capable: true,
+    title: "foghorn",
+    statusBarStyle: "default",
+  },
+};
+
+// Split out from metadata per Next 16 (themeColor / viewportFit live here).
+// themeColor tracks the real page background per color scheme (globals.css:
+// #ffffff light, #0a0a0a dark); viewportFit 'cover' lets standalone launch
+// paint into the iPhone safe-area insets.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
