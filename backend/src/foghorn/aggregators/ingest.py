@@ -92,11 +92,40 @@ def resolve_venue(conn: sqlite3.Connection, event: AggregatedEvent) -> Venue:
     )
 
 
+# Billing words that don't identify *who* is playing. A venue bills the
+# ensemble ("The Kasey Knudsen / Harvey Wainapel Quartet") while an aggregator
+# lists the full personnel ("Kasey Knudsen, Harvey Wainapel, Jon Arkin, John
+# Wiitala") — the two differ in exactly these words, so a raw token-bag subset
+# test fails and the same show lands twice. Dropped from both sides before the
+# comparison below.
+_NON_IDENTIFYING = frozenset(
+    {
+        "the", "a", "an", "and", "with", "w", "featuring", "feat", "ft",
+        "presents", "present", "plus",
+        "duo", "trio", "quartet", "quintet", "sextet", "septet", "octet",
+        "band", "group", "ensemble", "collective", "project", "orchestra",
+    }
+)
+
+
+def _identifying(canonical: str) -> set[str]:
+    """The tokens that actually name performers, noise words removed."""
+    return {token for token in canonical.split() if token not in _NON_IDENTIFYING}
+
+
 def _is_duplicate(
     conn: sqlite3.Connection, venue: Venue, event: AggregatedEvent
 ) -> bool:
     """True when a venue-scraped/manual show that day already covers this
-    aggregator blob (any existing headliner's tokens all appear in it)."""
+    aggregator blob.
+
+    Two passes: the original whole-token subset test, then a comparison of
+    *identifying* tokens only, in either direction — which catches the common
+    billing-shape mismatch (venue's ensemble name vs the aggregator's personnel
+    list, and the reverse when the aggregator lists only the leader). Both
+    sides must retain at least one identifying token, so a content-free billing
+    ("The Quartet") can't collapse everything that night.
+    """
     assert venue.id is not None
     rows = conn.execute(
         "SELECT headliner_canonical, source FROM shows "
@@ -104,10 +133,17 @@ def _is_duplicate(
         (venue.id, event.start_local.strftime("%Y-%m-%d")),
     ).fetchall()
     blob = canonicalize(event.headliner_raw)
+    blob_names = _identifying(blob)
     for row in rows:
         if row["source"] == "aggregator":
             continue  # only defer to authoritative sources
-        if matches_token_bag(row["headliner_canonical"], blob):
+        existing = row["headliner_canonical"]
+        if matches_token_bag(existing, blob):
+            return True
+        existing_names = _identifying(existing)
+        if not existing_names or not blob_names:
+            continue
+        if existing_names <= blob_names or blob_names <= existing_names:
             return True
     return False
 
