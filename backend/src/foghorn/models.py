@@ -196,6 +196,10 @@ class IngestResult(BaseModel):
     venue_slug: str
     created: int = 0
     updated: int = 0
+    # Stale scraped rows deleted because the venue no longer lists them
+    # (retitled / rescheduled / cancelled). Only non-zero when the caller
+    # opts into pruning — see ``ingest_scraped_shows(prune=True)``.
+    reaped: int = 0
     errors: list[str] = Field(default_factory=list)
 
 

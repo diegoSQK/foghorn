@@ -297,6 +297,8 @@ def ingest_scraped_shows(
     venue: Venue,
     scraped: list[ScrapedShow],
     source: Literal["scrape", "manual", "aggregator"] = "scrape",
+    *,
+    prune: bool = False,
 ) -> IngestResult:
     """Normalize, dedupe, and persist a venue's scraped shows.
 
@@ -305,6 +307,15 @@ def ingest_scraped_shows(
     continues. ``source="manual"`` marks user-entered events (POST
     /api/events), which reuse this exact path — same normalization, same
     natural-key dedup — but stay deletable through the API.
+
+    ``prune=True`` (the nightly per-venue scrape) additionally reaps scraped
+    rows the venue no longer lists: because the natural key includes the
+    billing and start time, an *edited* listing inserts a new row rather than
+    updating the old one, so without this the edited-away row lingers as a
+    duplicate forever (and cancelled shows never disappear). Guarded — it only
+    prunes a clean, non-empty run, and only across the date span this run
+    returned. Callers ingesting a partial slice (the aggregator, which calls
+    per-event) must leave it False or they'd wipe the venue.
     """
     result = IngestResult(venue_slug=venue.slug)
     scraped_at = datetime.now(UTC).isoformat()
@@ -327,4 +338,18 @@ def ingest_scraped_shows(
         except Exception as exc:
             # Isolate one malformed show so the rest of the batch still lands.
             result.errors.append(f"{record.headliner_raw} @ {record.start_local}: {exc}")
+    # Prune only a run we can trust to be the venue's authoritative window: no
+    # per-show errors, and at least one show landed. A scraper that broke and
+    # returned [] (or half a page) must never be read as "the venue cancelled
+    # everything".
+    if prune and not result.errors and scraped:
+        assert venue.id is not None
+        dates = sorted(record.start_local.date().isoformat() for record in scraped)
+        result.reaped = shows_repo.reap_stale(
+            conn,
+            venue.id,
+            scraped_before=scraped_at,
+            from_date=dates[0],
+            to_date=dates[-1],
+        )
     return result
