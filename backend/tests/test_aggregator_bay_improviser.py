@@ -209,6 +209,83 @@ def test_duplicate_guard_defers_to_scraped_rows(conn: sqlite3.Connection) -> Non
     ]
 
 
+def test_duplicate_guard_matches_across_billing_shapes(
+    conn: sqlite3.Connection,
+) -> None:
+    """The real 2026-07-24 Bird & Beckett case: the venue bills the ensemble,
+    Bay Improviser lists the full personnel. Raw token bags don't overlap
+    ("the"/"quartet" are absent from the aggregator string), so the show landed
+    twice until the guard compared identifying tokens only."""
+    seed(conn)
+    venue = venues_repo.get_by_slug(conn, "bird_and_beckett")
+    assert venue is not None
+    ingest_scraped_shows(
+        conn,
+        venue,
+        [
+            ScrapedShow(
+                venue_slug="bird_and_beckett",
+                headliner_raw="The Kasey Knudsen / Harvey Wainapel Quartet",
+                start_local=dt.datetime(2026, 7, 24, 19, 30),
+                source_url="https://birdbeckett.com/events/",
+            )
+        ],
+    )
+    result = ingest_aggregated_events(
+        conn,
+        [
+            # Same show, personnel-list billing -> duplicate, skipped.
+            _event(
+                "Bird & Beckett",
+                "Kasey Knudsen/Harvey Wainapel/Jon Arkin/John Wiitala",
+                dt.datetime(2026, 7, 24, 19, 30),
+            ),
+            # Aggregator naming only the leader -> still the same show.
+            _event("Bird & Beckett", "Kasey Knudsen", dt.datetime(2026, 7, 24, 21, 0)),
+            # A genuinely different act that night -> kept.
+            _event("Bird & Beckett", "Totally Other Band", dt.datetime(2026, 7, 24, 22, 0)),
+        ],
+        "bay_improviser",
+    )
+    assert result.errors == []
+    assert result.created == 1
+    rows = conn.execute(
+        "SELECT headliner_canonical FROM shows ORDER BY start_utc"
+    ).fetchall()
+    assert [r["headliner_canonical"] for r in rows] == [
+        "the kasey knudsen harvey wainapel quartet",
+        "totally other band",
+    ]
+
+
+def test_duplicate_guard_ignores_content_free_billing(
+    conn: sqlite3.Connection,
+) -> None:
+    """A venue billing made entirely of noise words keeps no identifying
+    tokens, so it must not swallow every aggregator event that night."""
+    seed(conn)
+    venue = venues_repo.get_by_slug(conn, "bird_and_beckett")
+    assert venue is not None
+    ingest_scraped_shows(
+        conn,
+        venue,
+        [
+            ScrapedShow(
+                venue_slug="bird_and_beckett",
+                headliner_raw="The Quartet",
+                start_local=dt.datetime(2026, 7, 25, 19, 30),
+                source_url="https://birdbeckett.com/events/",
+            )
+        ],
+    )
+    result = ingest_aggregated_events(
+        conn,
+        [_event("Bird & Beckett", "Someone Else Entirely", dt.datetime(2026, 7, 25, 21, 0))],
+        "bay_improviser",
+    )
+    assert result.created == 1
+
+
 def test_description_headliner_dropped_at_tracked_venue(conn: sqlite3.Connection) -> None:
     seed(conn)
     result = ingest_aggregated_events(
