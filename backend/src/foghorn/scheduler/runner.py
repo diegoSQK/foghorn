@@ -68,15 +68,19 @@ def run_scrape(
     venue_results: list[ScrapeRunVenue] = []
     for slug, scrape in scrapers.items():
         venue_started = _now()
-        created = updated = 0
+        created = updated = reaped = 0
         errors: list[str] = []
         venue = venues_repo.get_by_slug(conn, slug)
         if venue is None:
             errors.append(f"no seeded venue for slug {slug!r}")
         else:
             try:
-                result = ingest_scraped_shows(conn, venue, scrape())
+                # prune=True: a venue scraper returns that venue's whole
+                # current window, so rows it no longer lists are stale
+                # (retitled / rescheduled / cancelled) and get reaped.
+                result = ingest_scraped_shows(conn, venue, scrape(), prune=True)
                 created, updated = result.created, result.updated
+                reaped = result.reaped
                 errors = list(result.errors)
             except Exception as exc:
                 # Isolate a venue-level failure (scraper raised, network, etc.).
@@ -88,6 +92,7 @@ def run_scrape(
                 "venue": slug,
                 "created": created,
                 "updated": updated,
+                "reaped": reaped,
                 "errors": len(errors),
             },
         )

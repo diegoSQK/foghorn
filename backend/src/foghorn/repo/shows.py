@@ -353,6 +353,55 @@ def delete_manual(conn: sqlite3.Connection, show_id: int) -> bool:
     return True
 
 
+def reap_stale(
+    conn: sqlite3.Connection,
+    venue_id: int,
+    *,
+    scraped_before: str,
+    from_date: str,
+    to_date: str,
+) -> int:
+    """Delete scraped rows this venue's latest run no longer lists.
+
+    The natural key includes ``headliner_canonical`` and the start time, so a
+    venue *editing* a listing (typo fix, support act added, "SOLD OUT"
+    appended, corrected showtime, a CMS "copy" artifact) changes the key and
+    ingest inserts a NEW row — the old one would otherwise linger forever as a
+    duplicate. Same mechanism strands cancelled shows. A scraper returns its
+    venue's authoritative current window, so anything in that window not
+    refreshed by the run is gone from the venue's calendar.
+
+    Deliberately narrow, because this deletes:
+
+    * ``source='scrape'`` only — never user-entered (``manual``) or
+      aggregator-discovered rows, which have their own provenance.
+    * only ``[from_date, to_date]``, which callers set from the span the run
+      actually returned — rows outside what the run covered are never touched.
+    * only rows stamped before this run (``scraped_at < scraped_before``).
+
+    Returns the number of rows deleted. Callers gate on a clean, non-empty run
+    (see ``ingest_scraped_shows(prune=True)``).
+    """
+    rows = conn.execute(
+        "SELECT id FROM shows "
+        "WHERE venue_id = ? AND source = 'scrape' AND scraped_at < ? "
+        "AND start_local_date BETWEEN ? AND ?",
+        (venue_id, scraped_before, from_date, to_date),
+    ).fetchall()
+    ids = [row["id"] for row in rows]
+    if not ids:
+        return 0
+    placeholders = ", ".join("?" for _ in ids)
+    # Bill rows go too; performers themselves stay — they carry hand-set
+    # genre/origin tags and are shared across shows.
+    conn.execute(
+        f"DELETE FROM show_performers WHERE show_id IN ({placeholders})", ids
+    )
+    conn.execute(f"DELETE FROM shows WHERE id IN ({placeholders})", ids)
+    conn.commit()
+    return len(ids)
+
+
 def set_event_type_override(
     conn: sqlite3.Connection,
     venue_id: int,
