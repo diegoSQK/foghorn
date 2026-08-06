@@ -8,6 +8,69 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Multi-user accounts + VPS deployment (August 2026)
+
+Friends asked for access — the exact unblock condition the plan had written
+for both "Hosting / deployment" and "Multi-user accounts." Both shipped
+together in one arc (single session, Diego directing; PM+coding roles
+merged for the sprint).
+
+**Auth model: invite-link-as-credential.** Chosen over magic-link email (no
+email-provider dependency) and passwords (wrong weight for a friends-tier
+app). An admin mints a user row + token; `/join/<token>` claims the account
+on first open and signs back in on any later open — the link *is* the
+durable credential ("keep this link"), so a lost session costs nothing.
+Sessions are opaque tokens (only SHA-256 stored) in an HttpOnly cookie with
+rolling ~13-month expiry; `FOGHORN_SECURE_COOKIES=1` opts into Secure where
+HTTPS terminates (the fleet deployment serves plain HTTP over Tailscale, so
+it stays off there). An optional email is collected at claim time purely so
+magic-link *recovery* can be added later without rework.
+
+**Endpoint posture.** Browse is public (shows, venues, health — it's
+aggregated public data); personal data (both watchlists, digest, the
+`?watchlist=`/`?venue_watchlist=` filters) requires a session and is scoped
+per-user; global mutations (inbox, manual events, origin/genre/event-type
+corrections, user management) are admin-only. One subtlety: the aggregator
+quarantine's pin-promotion is now per-user — one user pinning a long-tail
+venue no longer reveals it to everyone (`ShowFilters.user_id` scopes the
+exemption subquery).
+
+**Schema.** `users` + `sessions` tables; `watchlist` and `watched_venues`
+re-keyed to `(user_id, …)` via a row-preserving SQLite table rebuild (the
+first non-additive migration — rename → recreate from canonical DDL →
+copy → drop). Pre-existing rows land on a bootstrap admin the migration
+creates; `python -m foghorn.cli.auth bootstrap` (or `make auth-bootstrap`)
+prints that admin's login link. Frontend: `/join/<token>` claim page,
+signed-in nav with sign-out, admin-only Add event/Inbox plus a new
+`/people` management page (create invite, copy/regenerate link, disable
+with session revocation); anonymous visitors get the public calendar with
+all follow/correction affordances hidden and stale `?watchlist=true` URLs
+degrading to the plain calendar. Server components forward the session
+cookie to the backend (`lib/serverAuth.ts`); browser calls were already
+same-origin via the `/api` rewrite, so cookies ride with zero CORS work.
+The e2e suite runs "signed in" via a seeded cookie + a mock `/api/auth/me`.
+
+**Hosting: VPS + Docker Compose** (chosen over Vercel+Fly, which would have
+forced the Postgres migration, and over a Cloudflare tunnel, which ties
+uptime to the laptop). `deploy/`: backend image (slim + `[rapidocr]` so the
+flyer-venue OCR works off-macOS), frontend image (Next standalone), Caddy
+with automatic HTTPS routing `/api/*` to the backend at the edge. SQLite
+stays, scheduler stays in-process. `deploy.yml` SSH-deploys on merge to
+main once `DEPLOY_*` secrets exist (no-ops until then); `backup.sh` +
+host cron for nightly consistent `.backup`s. `docs/DEPLOY.md` is the
+runbook — including the datacenter-IP caveat (WAF-touchy venues may 429
+from a VPS; hybrid laptop-scrape fallback documented) and the pinned
+`FOGHORN_SFJAZZ_ENABLED=0` (JamBase eval terms don't cover public
+display). Both images smoke-tested: build, boot, public browse serves,
+personal endpoints 401, bootstrap link mints.
+
+**Still open after this arc:** actually provisioning the box + DNS +
+secrets (Diego's action, runbook ready); CORS default stays permissive
+(cookie auth is same-origin, so tightening is hygiene not blocker);
+magic-link email recovery if "ask Diego for a fresh link" ever grates;
+digest delivery (the endpoint is per-user now — a future cron consumer
+needs its own auth story).
+
 ## Group feeds: ensembles are performers, halls are venues (July 2026)
 
 Same-day model correction to classical tranche 2, from Diego's review: the

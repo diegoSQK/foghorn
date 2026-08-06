@@ -43,27 +43,29 @@ def _show(
 
 
 @pytest.fixture
-def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sign_in) -> Iterator[TestClient]:
     monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "digest.db"))
-    conn = db.connect()
-    seed(conn)
-    bb = venues_repo.get_by_slug(conn, "bird_and_beckett")
-    assert bb is not None
-    ingest_scraped_shows(
-        conn,
-        bb,
-        [
-            _show("Joshua Redman Quartet", 1),
-            _show("Kamasi Washington", 2),
-            _show("Some Other Band", 3),  # no watchlist match
-            _show("Joshua Redman", 4, support=["Kamasi Washington"]),  # matches two
-            _show("Far Future Act", 200),  # beyond the default 14-day window
-        ],
-    )
-    for name in ["Joshua Redman", "Kamasi Washington", "Far Future Act"]:
-        watchlist_repo.add(conn, name)
-    conn.close()
     with TestClient(app) as test_client:
+        user = sign_in(test_client)
+        assert user.id is not None
+        conn = db.connect()
+        seed(conn)
+        bb = venues_repo.get_by_slug(conn, "bird_and_beckett")
+        assert bb is not None
+        ingest_scraped_shows(
+            conn,
+            bb,
+            [
+                _show("Joshua Redman Quartet", 1),
+                _show("Kamasi Washington", 2),
+                _show("Some Other Band", 3),  # no watchlist match
+                _show("Joshua Redman", 4, support=["Kamasi Washington"]),  # matches two
+                _show("Far Future Act", 200),  # beyond the default 14-day window
+            ],
+        )
+        for name in ["Joshua Redman", "Kamasi Washington", "Far Future Act"]:
+            watchlist_repo.add(conn, user.id, name)
+        conn.close()
         yield test_client
 
 
@@ -107,30 +109,32 @@ def test_limit_caps_results(client: TestClient) -> None:
 
 
 @pytest.fixture
-def venue_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+def venue_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sign_in) -> Iterator[TestClient]:
     """Fixture for ``include_venues``: a performer watchlist *and* a watched
     venue (kilowatt), with a show that matches only a performer (+1), one only
     the venue (+2), and one both ways (+3, the dedup case)."""
     monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "venue_digest.db"))
-    conn = db.connect()
-    seed(conn)
-    bb = venues_repo.get_by_slug(conn, "bird_and_beckett")
-    kilowatt = venues_repo.get_by_slug(conn, "kilowatt")
-    assert bb is not None and kilowatt is not None
-    ingest_scraped_shows(conn, bb, [_show("Joshua Redman Quartet", 1)])
-    ingest_scraped_shows(
-        conn,
-        kilowatt,
-        [
-            _show("Venue Only Band", 2, venue_slug="kilowatt"),
-            _show("Kamasi Washington", 3, venue_slug="kilowatt"),
-        ],
-    )
-    watchlist_repo.add(conn, "Joshua Redman")
-    watchlist_repo.add(conn, "Kamasi Washington")
-    watched_venues_repo.add(conn, "kilowatt")
-    conn.close()
     with TestClient(app) as test_client:
+        user = sign_in(test_client)
+        assert user.id is not None
+        conn = db.connect()
+        seed(conn)
+        bb = venues_repo.get_by_slug(conn, "bird_and_beckett")
+        kilowatt = venues_repo.get_by_slug(conn, "kilowatt")
+        assert bb is not None and kilowatt is not None
+        ingest_scraped_shows(conn, bb, [_show("Joshua Redman Quartet", 1)])
+        ingest_scraped_shows(
+            conn,
+            kilowatt,
+            [
+                _show("Venue Only Band", 2, venue_slug="kilowatt"),
+                _show("Kamasi Washington", 3, venue_slug="kilowatt"),
+            ],
+        )
+        watchlist_repo.add(conn, user.id, "Joshua Redman")
+        watchlist_repo.add(conn, user.id, "Kamasi Washington")
+        watched_venues_repo.add(conn, user.id, "kilowatt")
+        conn.close()
         yield test_client
 
 
@@ -165,20 +169,22 @@ def test_include_venues_merges_flags_and_dedupes(venue_client: TestClient) -> No
 
 
 def test_include_venues_with_empty_performer_watchlist(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sign_in
 ) -> None:
     # Venue shows still surface when nothing is on the performer watchlist.
     monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "venues_only.db"))
-    conn = db.connect()
-    seed(conn)
-    kilowatt = venues_repo.get_by_slug(conn, "kilowatt")
-    assert kilowatt is not None
-    ingest_scraped_shows(
-        conn, kilowatt, [_show("Venue Only Band", 1, venue_slug="kilowatt")]
-    )
-    watched_venues_repo.add(conn, "kilowatt")
-    conn.close()
     with TestClient(app) as test_client:
+        user = sign_in(test_client)
+        assert user.id is not None
+        conn = db.connect()
+        seed(conn)
+        kilowatt = venues_repo.get_by_slug(conn, "kilowatt")
+        assert kilowatt is not None
+        ingest_scraped_shows(
+            conn, kilowatt, [_show("Venue Only Band", 1, venue_slug="kilowatt")]
+        )
+        watched_venues_repo.add(conn, user.id, "kilowatt")
+        conn.close()
         assert test_client.get("/api/watchlist/digest").json()["matches"] == []
         body = test_client.get(
             "/api/watchlist/digest", params={"include_venues": "true"}
@@ -189,22 +195,33 @@ def test_include_venues_with_empty_performer_watchlist(
 
 
 def test_empty_watchlist_returns_empty_matches(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sign_in
 ) -> None:
     monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "empty.db"))
     with TestClient(app) as test_client:
+        sign_in(test_client)
         body = test_client.get("/api/watchlist/digest").json()
     assert body["matches"] == []
     assert "generated_at" in body
 
 
-def test_no_upcoming_matches_returns_empty(
+def test_anonymous_digest_401s(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "nomatch.db"))
-    conn = db.connect()
-    seed(conn)
-    watchlist_repo.add(conn, "Nobody In The Calendar")
-    conn.close()
+    monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "anon.db"))
     with TestClient(app) as test_client:
+        assert test_client.get("/api/watchlist/digest").status_code == 401
+
+
+def test_no_upcoming_matches_returns_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sign_in
+) -> None:
+    monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "nomatch.db"))
+    with TestClient(app) as test_client:
+        user = sign_in(test_client)
+        assert user.id is not None
+        conn = db.connect()
+        seed(conn)
+        watchlist_repo.add(conn, user.id, "Nobody In The Calendar")
+        conn.close()
         assert test_client.get("/api/watchlist/digest").json()["matches"] == []

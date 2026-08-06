@@ -16,16 +16,19 @@ from __future__ import annotations
 import datetime as dt
 import sqlite3
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from foghorn.api.auth import require_admin
 from foghorn.ingest.pipeline import canonicalize, ingest_scraped_shows
 from foghorn.models import EventType, Region, ScrapedShow, Venue
 from foghorn.repo import db
 from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
 
-router = APIRouter()
+# Manual events create/delete *global* show rows every user sees, so the whole
+# surface is admin-only (August 2026 multi-user).
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 MANUAL_SOURCE_URL = "manual://user-entry"
 

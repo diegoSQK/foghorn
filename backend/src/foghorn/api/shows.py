@@ -10,13 +10,14 @@ from __future__ import annotations
 
 import datetime as dt
 import sqlite3
-from typing import Literal
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from foghorn.api.auth import optional_user, require_admin
 from foghorn.ingest.pipeline import canonicalize
-from foghorn.models import EventType, Origin, Region, Show, ShowFilters, Venue
+from foghorn.models import EventType, Origin, Region, Show, ShowFilters, User, Venue
 from foghorn.repo import db
 from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
@@ -148,24 +149,32 @@ def build_show_views(
     venue_watchlist: bool = False,
     long_tail: bool = False,
     limit: int | None = None,
+    user_id: int | None = None,
 ) -> list[ShowView]:
     """Query shows for the window and assemble the response views. Split out so
-    it's unit-testable against a connection without going through HTTP."""
+    it's unit-testable against a connection without going through HTTP. The
+    watchlist filters are per-user — callers must pass ``user_id`` with them."""
     # When the watchlist filter is on, turn each entry's canonical name into a
     # token bag. An empty watchlist yields [] → shows.list matches nothing
     # (surfacing the empty state rather than flooding with all shows).
     watchlist_bags: list[list[str]] | None = None
     if watchlist:
+        assert user_id is not None, "watchlist filter requires a user"
         watchlist_bags = [
-            entry.canonical_name.split() for entry in watchlist_repo.list_all(conn)
+            entry.canonical_name.split()
+            for entry in watchlist_repo.list_all(conn, user_id)
         ]
     watched_slugs: list[str] | None = None
     if venue_watchlist:
-        watched_slugs = [e.venue_slug for e in watched_venues_repo.list_all(conn)]
+        assert user_id is not None, "venue_watchlist filter requires a user"
+        watched_slugs = [
+            e.venue_slug for e in watched_venues_repo.list_all(conn, user_id)
+        ]
     filters = ShowFilters(
         venue_slugs=venue_slugs,
         watched_venue_slugs=watched_slugs,
         include_long_tail=long_tail,
+        user_id=user_id,
         from_date=from_date,
         to_date=to_date,
         time_of_day=time_of_day,
@@ -185,6 +194,7 @@ def build_show_views(
 
 @router.get("/api/shows", response_model=list[ShowView])
 def list_shows(
+    user: Annotated[User | None, Depends(optional_user)],
     venue: str | None = Query(
         default=None, description="single venue slug (legacy; prefer venues=)"
     ),
@@ -235,6 +245,9 @@ def list_shows(
         description="cap the result count (chronological prefix); default: no cap",
     ),
 ) -> list[ShowView]:
+    # Browse is public; only the personal filters need a signed-in user.
+    if (watchlist == "true" or venue_watchlist == "true") and user is None:
+        raise HTTPException(status_code=401, detail="sign-in required")
     today = dt.date.today()
     from_date = from_ or today.isoformat()
     # 'all' lifts the upper bound (the repo layer skips the <= clause when
@@ -291,6 +304,7 @@ def list_shows(
             venue_watchlist=venue_watchlist == "true",
             long_tail=long_tail == "true",
             limit=limit,
+            user_id=user.id if user is not None else None,
         )
     finally:
         conn.close()
@@ -310,11 +324,13 @@ class EventTypeView(BaseModel):
 
 
 @router.put("/api/shows/{show_id}/event_type", response_model=EventTypeView)
-def set_event_type(show_id: int, update: EventTypeUpdate) -> EventTypeView:
+def set_event_type(
+    show_id: int, update: EventTypeUpdate, _admin: Annotated[User, Depends(require_admin)]
+) -> EventTypeView:
     """Manual event-type correction ("this is a jam session"). Permanent —
     stored as a venue+billing override rule that re-ingest never touches and
-    that recurring instances of the same billing inherit. Same single-tenant
-    no-auth posture as the performer origin/genre corrections."""
+    that recurring instances of the same billing inherit. Admin-only: the
+    correction is global data, not a personal annotation."""
     conn = db.connect()
     try:
         show = shows_repo.get_by_id(conn, show_id)
@@ -333,7 +349,7 @@ def set_event_type(show_id: int, update: EventTypeUpdate) -> EventTypeView:
 
 
 @router.delete("/api/shows/{show_id}/event_type", status_code=204)
-def clear_event_type(show_id: int) -> None:
+def clear_event_type(show_id: int, _admin: Annotated[User, Depends(require_admin)]) -> None:
     """Remove the manual correction; ingest's inferred type applies again."""
     conn = db.connect()
     try:

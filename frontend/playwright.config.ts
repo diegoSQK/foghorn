@@ -30,6 +30,24 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${APP_PORT}`,
     trace: "on-first-retry",
+    // Specs run "signed in": the app only consults /api/auth/me when a
+    // session cookie is present (see app/lib/serverAuth.ts), so seed one.
+    // The mock backend answers /api/auth/me the same way for any token.
+    storageState: {
+      cookies: [
+        {
+          name: "foghorn_session",
+          value: "e2e-session",
+          domain: "localhost",
+          path: "/",
+          expires: -1,
+          httpOnly: true,
+          secure: false,
+          sameSite: "Lax" as const,
+        },
+      ],
+      origins: [],
+    },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [

@@ -29,31 +29,33 @@ def _show(venue_slug: str, headliner: str, start: dt.datetime) -> ScrapedShow:
 
 
 @pytest.fixture
-def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sign_in) -> Iterator[TestClient]:
     monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "wlf.db"))
-    conn = db.connect()
-    seed(conn)
-    bb = venues_repo.get_by_slug(conn, "bird_and_beckett")
-    keys = venues_repo.get_by_slug(conn, "keys_jazz_bistro")
-    assert bb is not None and keys is not None
-    ingest_scraped_shows(
-        conn,
-        bb,
-        [
-            _show("bird_and_beckett", "Joshua Redman Quartet", dt.datetime(2026, 6, 5, 20, 0)),
-            _show("bird_and_beckett", "Kamasi Washington", dt.datetime(2026, 6, 6, 20, 0)),
-            _show("bird_and_beckett", "Some Other Band", dt.datetime(2026, 6, 7, 20, 0)),
-        ],
-    )
-    ingest_scraped_shows(
-        conn,
-        keys,
-        [_show("keys_jazz_bistro", "Joshua Redman Trio", dt.datetime(2026, 6, 8, 20, 0))],
-    )
-    watchlist_repo.add(conn, "Joshua Redman")  # token bag {joshua, redman}
-    watchlist_repo.add(conn, "Kamasi Washington")
-    conn.close()
     with TestClient(app) as test_client:
+        user = sign_in(test_client)
+        assert user.id is not None
+        conn = db.connect()
+        seed(conn)
+        bb = venues_repo.get_by_slug(conn, "bird_and_beckett")
+        keys = venues_repo.get_by_slug(conn, "keys_jazz_bistro")
+        assert bb is not None and keys is not None
+        ingest_scraped_shows(
+            conn,
+            bb,
+            [
+                _show("bird_and_beckett", "Joshua Redman Quartet", dt.datetime(2026, 6, 5, 20, 0)),
+                _show("bird_and_beckett", "Kamasi Washington", dt.datetime(2026, 6, 6, 20, 0)),
+                _show("bird_and_beckett", "Some Other Band", dt.datetime(2026, 6, 7, 20, 0)),
+            ],
+        )
+        ingest_scraped_shows(
+            conn,
+            keys,
+            [_show("keys_jazz_bistro", "Joshua Redman Trio", dt.datetime(2026, 6, 8, 20, 0))],
+        )
+        watchlist_repo.add(conn, user.id, "Joshua Redman")  # token bag {joshua, redman}
+        watchlist_repo.add(conn, user.id, "Kamasi Washington")
+        conn.close()
         yield test_client
 
 

@@ -15,13 +15,25 @@ import { API_BASE } from "./lib/api";
 export default function EventTypeToggle({
   showId,
   initialType,
+  interactive = true,
 }: {
   showId: number;
   initialType: "show" | "jam";
+  // Corrections are admin-only since multi-user (August 2026); everyone else
+  // gets a static jam badge (and no "jam?" affordance on regular shows).
+  interactive?: boolean;
 }) {
   const router = useRouter();
   const [type, setType] = useState(initialType);
   const [busy, setBusy] = useState(false);
+
+  if (!interactive) {
+    return type === "jam" ? (
+      <span className="ml-1 rounded-full border border-amber-300 px-1.5 py-px align-middle text-[10px] font-medium uppercase tracking-wide text-amber-700 dark:border-amber-800 dark:text-amber-400">
+        jam
+      </span>
+    ) : null;
+  }
 
   async function toggle() {
     if (busy) return;

@@ -9,7 +9,9 @@ migrations tool then (deferred per the Phase 1.2 ticket).
 
 from __future__ import annotations
 
+import secrets
 import sqlite3
+from datetime import UTC, datetime
 
 # Natural key for a show: (venue_id, start_local_date, start_local_time,
 # headliner_canonical). The UNIQUE constraint enforces idempotent scraper
@@ -93,21 +95,53 @@ CREATE TABLE IF NOT EXISTS scrape_runs (
     finished_at  TEXT NOT NULL
 );
 
--- Single-tenant watchlist of followed performers (Phase 4.1). canonical_name
--- (canonicalized display_name) is the match key; no user_id (single-tenant).
-CREATE TABLE IF NOT EXISTS watchlist (
-    canonical_name  TEXT PRIMARY KEY,
-    display_name    TEXT NOT NULL,
-    added_at        TEXT NOT NULL,
-    notes           TEXT
+-- Accounts (multi-user, August 2026). A row is created at invite time; the
+-- invite token doubles as the durable login credential ("invite link = the
+-- account key"), so claimed_at only records first use. Regenerating the token
+-- invalidates old links but not open sessions.
+CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY,
+    display_name  TEXT NOT NULL,
+    email         TEXT,              -- optional; enables future magic-link recovery
+    invite_token  TEXT NOT NULL UNIQUE,
+    is_admin      INTEGER NOT NULL DEFAULT 0,
+    disabled      INTEGER NOT NULL DEFAULT 0,
+    created_at    TEXT NOT NULL,
+    claimed_at    TEXT               -- NULL until the invite link is first opened
 );
 
--- Single-tenant venue watchlist (Phase 9): "never miss what this room
--- books". Mirrors the performer watchlist's shape.
+-- Browser sessions. Only a SHA-256 hash of the opaque cookie token is stored,
+-- so a leaked DB never yields usable sessions. Rolling expiry: reads bump
+-- last_seen_at/expires_at (throttled — see repo/sessions.py).
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash    TEXT PRIMARY KEY,
+    user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at    TEXT NOT NULL,
+    last_seen_at  TEXT NOT NULL,
+    expires_at    TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
+-- Per-user watchlist of followed performers (Phase 4.1; re-keyed by user_id
+-- August 2026). canonical_name (canonicalized display_name) is the match key.
+CREATE TABLE IF NOT EXISTS watchlist (
+    user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    canonical_name  TEXT NOT NULL,
+    display_name    TEXT NOT NULL,
+    added_at        TEXT NOT NULL,
+    notes           TEXT,
+    PRIMARY KEY (user_id, canonical_name)
+);
+
+-- Per-user venue watchlist (Phase 9; re-keyed by user_id August 2026):
+-- "never miss what this room books". Mirrors the performer watchlist's shape.
 CREATE TABLE IF NOT EXISTS watched_venues (
-    venue_slug  TEXT PRIMARY KEY,
+    user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    venue_slug  TEXT NOT NULL,
     added_at    TEXT NOT NULL,
-    notes       TEXT
+    notes       TEXT,
+    PRIMARY KEY (user_id, venue_slug)
 );
 
 -- Mailing-list ingest (Phase 8 stage 1). mail_senders maps a newsletter's
@@ -157,6 +191,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
     tables, so columns added after a DB was first created need an explicit
     ALTER)."""
     conn.executescript(SCHEMA_SQL)
+    _migrate_watchlists_to_multiuser(conn)
     _add_column_if_missing(conn, "venues", "genre", "TEXT")
     _add_column_if_missing(conn, "performers", "origin", "TEXT")
     _add_column_if_missing(conn, "performers", "origin_source", "TEXT")
@@ -176,3 +211,60 @@ def _add_column_if_missing(
     existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
     if column not in existing:
         conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+
+
+# The multi-user re-key (August 2026) changes these tables' PRIMARY KEY, which
+# SQLite can't ALTER in place — pre-existing single-tenant tables are rebuilt
+# row-preservingly. The new-shape DDL is re-derived from SCHEMA_SQL so the
+# rebuilt table can never drift from the canonical definition.
+_REKEYED_TABLES = {
+    "watchlist": "SELECT ?, canonical_name, display_name, added_at, notes FROM ",
+    "watched_venues": "SELECT ?, venue_slug, added_at, notes FROM ",
+}
+
+
+def _table_ddl(table: str) -> str:
+    """Extract one CREATE TABLE statement from SCHEMA_SQL."""
+    marker = f"CREATE TABLE IF NOT EXISTS {table} ("
+    start = SCHEMA_SQL.index(marker)
+    end = SCHEMA_SQL.index(";", start)
+    return SCHEMA_SQL[start : end + 1]
+
+
+def _migrate_watchlists_to_multiuser(conn: sqlite3.Connection) -> None:
+    """Rebuild single-tenant watchlist / watched_venues tables (no user_id
+    column) into the per-user shape, assigning existing rows to the first
+    admin user — created here as the bootstrap admin if none exists yet.
+    ``python -m foghorn.cli.auth bootstrap`` prints that admin's login link."""
+    for table, select_sql in _REKEYED_TABLES.items():
+        columns = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if "user_id" in columns:
+            continue
+        has_rows = conn.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone() is not None
+        owner_id = _ensure_bootstrap_admin(conn) if has_rows else 0
+        conn.execute(f"ALTER TABLE {table} RENAME TO {table}_legacy")
+        conn.execute(_table_ddl(table))
+        conn.execute(
+            f"INSERT INTO {table} {select_sql}{table}_legacy",  # noqa: S608
+            (owner_id,),
+        )
+        conn.execute(f"DROP TABLE {table}_legacy")
+
+
+def _ensure_bootstrap_admin(conn: sqlite3.Connection) -> int:
+    """Return the first admin user's id, creating one (already claimed, with a
+    fresh invite token) when no admin exists — the owner for rows that predate
+    multi-user."""
+    row = conn.execute(
+        "SELECT id FROM users WHERE is_admin = 1 ORDER BY id LIMIT 1"
+    ).fetchone()
+    if row is not None:
+        return int(row[0])
+    now = datetime.now(UTC).isoformat()
+    cursor = conn.execute(
+        "INSERT INTO users (display_name, invite_token, is_admin, created_at, claimed_at) "
+        "VALUES (?, ?, 1, ?, ?)",
+        ("Admin", secrets.token_urlsafe(24), now, now),
+    )
+    assert cursor.lastrowid is not None
+    return cursor.lastrowid

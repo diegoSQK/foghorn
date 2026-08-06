@@ -11,6 +11,7 @@ import sqlite3
 from foghorn.aggregators.ingest import ingest_aggregated_events
 from foghorn.aggregators.models import AggregatedEvent
 from foghorn.api.shows import build_show_views
+from foghorn.models import User
 from foghorn.repo import venues as venues_repo
 from foghorn.repo import watchlist as watchlist_repo
 from foghorn.repo.seed_venues import seed
@@ -30,8 +31,9 @@ def _event(venue: str, program: str, start: dt.datetime) -> AggregatedEvent:
 
 
 def test_group_feed_routes_to_halls_and_watchlist_follows(
-    conn: sqlite3.Connection,
+    conn: sqlite3.Connection, user: User
 ) -> None:
+    assert user.id is not None
     seed(conn)
     result = ingest_aggregated_events(
         conn,
@@ -71,13 +73,14 @@ def test_group_feed_routes_to_halls_and_watchlist_follows(
 
     # Watchlisting the group surfaces both shows — the Davies one normally,
     # the Legion of Honor one through the quarantine watchlist bypass.
-    watchlist_repo.add(conn, _GROUP)
+    watchlist_repo.add(conn, user.id, _GROUP)
     views = build_show_views(
         conn,
         venue_slugs=None,
         from_date="2026-09-01",
         to_date="2026-09-30",
         watchlist=True,
+        user_id=user.id,
     )
     assert [(v.headliner.display, v.venue.slug) for v in views] == [
         ("Mahler 9", "davies_symphony_hall"),

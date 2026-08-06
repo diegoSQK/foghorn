@@ -1,0 +1,60 @@
+# foghorn production stack: Caddy (auto-HTTPS) → frontend (Next standalone)
+#                                               ↘ /api/* → backend (FastAPI)
+#
+# Run from this directory on the VPS:
+#   cp .env.example .env   # set FOGHORN_DOMAIN
+#   docker compose up -d --build
+#
+# The SQLite DB lives in the foghorn-data volume; the backend's in-process
+# scheduler runs the nightly scrape. See docs/DEPLOY.md for the full guide
+# (provisioning, admin bootstrap, migrating an existing DB, backups).
+
+services:
+  backend:
+    build: ../backend
+    restart: unless-stopped
+    environment:
+      FOGHORN_DB_PATH: /data/foghorn.db
+      # Cookies ride HTTPS only in production (Caddy terminates TLS).
+      FOGHORN_SECURE_COOKIES: "1"
+      # Public deployments must not enable the JamBase source: the POC flag
+      # is licensed for personal evaluation only (see PROJECT_PLAN).
+      FOGHORN_SFJAZZ_ENABLED: "0"
+    volumes:
+      - foghorn-data:/data
+    expose:
+      - "8100"
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        BACKEND_URL: http://backend:8100
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8100
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      FOGHORN_DOMAIN: ${FOGHORN_DOMAIN:?set FOGHORN_DOMAIN in deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  foghorn-data:
+  caddy-data:
+  caddy-config:

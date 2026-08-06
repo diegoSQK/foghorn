@@ -23,6 +23,7 @@ import { chipClass, inputClass } from "./lib/ui";
 export default function FilterBar({
   venues,
   watchedVenueSlugs,
+  signedIn = true,
   watchlistCount = 0,
   showOriginFilter = false,
   showDateControls = true,
@@ -31,6 +32,9 @@ export default function FilterBar({
   venues: VenueOption[];
   // Followed venues (venue watchlist): sorts the picker and drives its ★s.
   watchedVenueSlugs?: Set<string>;
+  // Anonymous visitors don't get the personal chips (watchlist / my venues)
+  // or the picker's pin affordances — those require an account.
+  signedIn?: boolean;
   // Performer-watchlist size, shown on the Watchlist chip. The chip renders
   // even at 0 — it's the feature's entry point now that /watchlist is gone.
   watchlistCount?: number;
@@ -218,15 +222,17 @@ export default function FilterBar({
           className="mx-1 hidden h-4 w-px bg-zinc-300 sm:inline-block dark:bg-zinc-700"
           aria-hidden="true"
         />
-        <button
-          type="button"
-          className={chipClass(watchlistOn)}
-          title="Only shows where a performer you follow is on the bill"
-          onClick={() => navigate({ watchlist: watchlistOn ? null : "true" })}
-        >
-          Watchlist{watchlistCount > 0 ? ` (${watchlistCount})` : ""}
-        </button>
-        {showMyVenuesChip && (
+        {signedIn && (
+          <button
+            type="button"
+            className={chipClass(watchlistOn)}
+            title="Only shows where a performer you follow is on the bill"
+            onClick={() => navigate({ watchlist: watchlistOn ? null : "true" })}
+          >
+            Watchlist{watchlistCount > 0 ? ` (${watchlistCount})` : ""}
+          </button>
+        )}
+        {signedIn && showMyVenuesChip && (
           <button
             type="button"
             className={chipClass(myVenues)}
@@ -315,6 +321,7 @@ export default function FilterBar({
           <VenuePicker
             venues={venues}
             watchedVenueSlugs={watchedVenueSlugs ?? new Set()}
+            showPins={signedIn}
           />
         </div>
       </details>

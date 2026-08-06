@@ -3,12 +3,19 @@
 // about in person. Server component fetches the venue list for the picker;
 // the form itself is a client component.
 
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import AddEventForm from "../AddEventForm";
 import { getJSON, type VenueOption } from "../lib/api";
+import { getMe } from "../lib/serverAuth";
 
 export default async function AddEventPage() {
+  // Admin-only since multi-user (August 2026) — manual events are global
+  // calendar rows. The backend enforces it; the 404 keeps the URL quiet.
+  const me = await getMe();
+  if (!me?.is_admin) notFound();
+
   const venues = await getJSON<VenueOption[]>("/api/venues");
 
   return (

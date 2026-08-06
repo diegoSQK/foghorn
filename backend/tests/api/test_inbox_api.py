@@ -31,7 +31,7 @@ EMAIL = {
 
 
 @pytest.fixture
-def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sign_in) -> Iterator[TestClient]:
     monkeypatch.setenv("FOGHORN_DB_PATH", str(tmp_path / "api.db"))
     conn = db.connect()
     seed(conn)
@@ -54,11 +54,13 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClie
     )
     conn.close()
     with TestClient(app) as test_client:
+        sign_in(test_client, admin=True)
         test_client.post(
             "/api/inbox/senders",
             json={"email": "list@dillonvado.com", "artist_display": "Dillon Vado"},
         )
         yield test_client
+
 
 
 def test_ingest_parses_and_queues(client: TestClient) -> None:

@@ -19,9 +19,12 @@ const REGION_ORDER = ["SF", "East Bay", "Peninsula", "South Bay", "Santa Cruz"];
 export default function VenuePicker({
   venues,
   watchedVenueSlugs,
+  showPins = true,
 }: {
   venues: VenueOption[];
   watchedVenueSlugs: Set<string>;
+  // Pinning needs an account; anonymous visitors get a pin-less picker.
+  showPins?: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -138,12 +141,14 @@ export default function VenuePicker({
                 >
                   {v.name}
                 </button>
-                <span className="shrink-0">
-                  <PinVenueButton
-                    venueSlug={v.slug}
-                    initiallyOn={watchedVenueSlugs.has(v.slug)}
-                  />
-                </span>
+                {showPins && (
+                  <span className="shrink-0">
+                    <PinVenueButton
+                      venueSlug={v.slug}
+                      initiallyOn={watchedVenueSlugs.has(v.slug)}
+                    />
+                  </span>
+                )}
               </span>
             ))}
           </div>

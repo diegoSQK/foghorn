@@ -21,9 +21,10 @@ from __future__ import annotations
 import datetime as dt
 import sqlite3
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from foghorn.api.auth import require_admin
 from foghorn.api.events import ManualEvent, ManualEventView, NewVenue, create_manual_event
 from foghorn.ingest.pipeline import canonicalize
 from foghorn.mailingest.parser import parse_email
@@ -35,7 +36,9 @@ from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
 from foghorn.repo.performer_match import matches_token_bag
 
-router = APIRouter()
+# The review queue approves events into the global calendar, so the whole
+# surface is admin-only (August 2026 multi-user).
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 class DuplicateView(BaseModel):

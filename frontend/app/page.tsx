@@ -36,6 +36,7 @@ import {
   todayISO,
 } from "./lib/dates";
 import { followedShowIds } from "./lib/precedence";
+import { getMe, sessionHeaders } from "./lib/serverAuth";
 
 const DEFAULT_WINDOW_DAYS = 14;
 // List view renders at most this many shows per "page"; a Load More link
@@ -107,8 +108,15 @@ export default async function Home({
   const origin = first(sp.origin);
   const type = first(sp.type);
   const longTail = first(sp.long_tail) === "true";
-  const watchlistOn = first(sp.watchlist) === "true";
-  const myVenues = first(sp.venue_watchlist) === "true";
+
+  // The personal filters only exist for signed-in users; anonymous visitors
+  // with a stale ?watchlist=true URL just get the plain calendar (rather
+  // than a 401-shaped error state).
+  const me = await getMe();
+  const signedIn = me !== null;
+  const authHeaders = signedIn ? await sessionHeaders() : undefined;
+  const watchlistOn = signedIn && first(sp.watchlist) === "true";
+  const myVenues = signedIn && first(sp.venue_watchlist) === "true";
 
   // List-view pagination: fetch one row beyond the cap so "more exists" is
   // exact, then slice. The other views' windows are inherently bounded.
@@ -132,11 +140,15 @@ export default async function Home({
   if (longTail) query.set("long_tail", "true");
   if (myVenues) query.set("venue_watchlist", "true");
 
+  // The session cookie is forwarded so the shows fetch applies per-user
+  // filters/pins, and the two watchlist fetches resolve to *this* user's
+  // lists (anonymous → they 401 into null → rendered as empty).
+  const init = authHeaders ? { headers: authHeaders } : undefined;
   const [fetchedShows, allVenues, watchlist, watchedVenues] = await Promise.all([
-    getJSON<ShowView[]>(`/api/shows?${query.toString()}`),
+    getJSON<ShowView[]>(`/api/shows?${query.toString()}`, init),
     getJSON<VenueOption[]>(`/api/venues`),
-    getJSON<WatchlistEntry[]>(`/api/watchlist`),
-    getJSON<WatchedVenueEntry[]>(`/api/venues/watchlist`),
+    getJSON<WatchlistEntry[]>(`/api/watchlist`, init),
+    getJSON<WatchedVenueEntry[]>(`/api/venues/watchlist`, init),
   ]);
   const hasMore =
     view === "list" && fetchedShows !== null && fetchedShows.length > listLimit;
@@ -205,6 +217,7 @@ export default async function Home({
             <FilterBar
               venues={allVenues ?? []}
               watchedVenueSlugs={watchedVenueSlugs}
+              signedIn={signedIn}
               watchlistCount={watchlistEntries.length}
               showMyVenuesChip={watchedVenueSlugs.size > 0}
               showDateControls={view === "list"}
@@ -302,8 +315,10 @@ export default async function Home({
               <ShowList
                 shows={shows}
                 watchlistCanon={watchlistCanon}
-                watchedVenueSlugs={watchedVenueSlugs}
+                watchedVenueSlugs={signedIn ? watchedVenueSlugs : undefined}
                 followedIds={followedIds}
+                showFollowButtons={signedIn}
+                isAdmin={me?.is_admin ?? false}
               />
               {hasMore && (
                 <div className="mt-8 text-center">
