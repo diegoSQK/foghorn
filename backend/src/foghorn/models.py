@@ -182,6 +182,9 @@ class ShowFilters(BaseModel):
     # explicitly selected, or the performer-watchlist filter is active —
     # the watchlist always sees through the quarantine.
     include_long_tail: bool = False
+    # Whose pins count for the quarantine pin-promotion above. None (anonymous
+    # request) = no pin exemption. Per-user since the multi-user re-key.
+    user_id: int | None = None
     # "early" = start_local_time < 21:00; "late" = >= 21:00 (exact complements).
     time_of_day: Literal["early", "late"] | None = None
     # Cap the result count (chronological prefix). None = no cap. Used by the
@@ -270,11 +273,28 @@ class PendingEvent(BaseModel):
 
 
 class Watchlist(BaseModel):
-    """A performer the user follows. ``canonical_name`` (the canonicalized
-    ``display_name``) is the match key + primary key; ``display_name`` is the
-    verbatim string the user added, kept for the UI. Single-tenant — no user_id."""
+    """A performer a user follows. ``canonical_name`` (the canonicalized
+    ``display_name``) is the match key; ``display_name`` is the verbatim
+    string the user added, kept for the UI. Keyed per-user since the
+    multi-user re-key (August 2026)."""
 
     canonical_name: str
     display_name: str
     added_at: str  # ISO 8601 UTC
     notes: str | None = None
+
+
+class User(BaseModel):
+    """An account (August 2026). Created at invite time; ``invite_token`` is
+    both the invite and the durable login credential (the "keep this link"
+    model), so ``claimed_at`` merely records first use. ``email`` is optional
+    and only collected to enable magic-link recovery later."""
+
+    id: int | None = None
+    display_name: str
+    email: str | None = None
+    invite_token: str
+    is_admin: bool = False
+    disabled: bool = False
+    created_at: str  # ISO 8601 UTC
+    claimed_at: str | None = None

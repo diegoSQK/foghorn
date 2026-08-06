@@ -19,6 +19,13 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClie
         yield test_client
 
 
+@pytest.fixture(autouse=True)
+def _session(client: TestClient, sign_in) -> None:
+    """Every request in this module runs signed in."""
+    sign_in(client)
+
+
+
 def test_post_get_delete_roundtrip(client: TestClient) -> None:
     created = client.post("/api/watchlist", json={"display_name": "Joshua Redman Quartet"})
     assert created.status_code == 200

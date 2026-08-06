@@ -46,6 +46,13 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClie
         yield test_client
 
 
+@pytest.fixture(autouse=True)
+def _session(client: TestClient, sign_in) -> None:
+    """Every request in this module runs signed in."""
+    sign_in(client)
+
+
+
 def _june(client: TestClient, **params: str) -> list[dict]:
     return client.get(
         "/api/shows", params={"from": "2026-06-01", "to": "2026-06-30", **params}

@@ -1,4 +1,4 @@
-.PHONY: gate backend-gate frontend-gate frontend-test install scrape mail-poll tag-origins tag-genres backend-run frontend-run
+.PHONY: gate backend-gate frontend-gate frontend-test install scrape mail-poll tag-origins tag-genres backend-run frontend-run auth-bootstrap invite users
 
 # Where the live foghorn database lives. fleet's PM2 manifest points the API
 # at this same path; the targets below are the other writers, and they must
@@ -74,3 +74,16 @@ backend-run:
 # Run the Next.js dev server (http://localhost:3000).
 frontend-run:
 	cd frontend && npm run dev
+
+# Ensure an admin account exists in the live DB and print its login link
+# (multi-user, August 2026). Safe to re-run.
+auth-bootstrap:
+	cd backend && FOGHORN_DB_PATH="$(FOGHORN_DB_PATH)" python -m foghorn.cli.auth bootstrap
+
+# Create a friend's account and print their invite link: make invite NAME="Ada"
+invite:
+	cd backend && FOGHORN_DB_PATH="$(FOGHORN_DB_PATH)" python -m foghorn.cli.auth invite "$(NAME)"
+
+# List all accounts in the live DB.
+users:
+	cd backend && FOGHORN_DB_PATH="$(FOGHORN_DB_PATH)" python -m foghorn.cli.auth list

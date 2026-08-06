@@ -17,6 +17,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from foghorn.api.auth import router as auth_router
 from foghorn.api.events import router as events_router
 from foghorn.api.health import router as health_router
 from foghorn.api.inbox import router as inbox_router
@@ -59,6 +60,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(events_router)
 app.include_router(inbox_router)
 app.include_router(performers_router)

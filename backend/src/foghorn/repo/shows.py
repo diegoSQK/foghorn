@@ -217,17 +217,23 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         not filters.include_long_tail
         and filters.watchlist_token_bags is None
     ):
-        exemptions = [
-            "v.slug IN (SELECT venue_slug FROM watched_venues)",
-        ]
+        exemptions: builtins.list[str] = []
         quarantine_params: builtins.list[object] = []
+        # A pin promotes a quarantined venue — but only for the pinning user
+        # (multi-user, August 2026); anonymous browsing gets no pin exemption.
+        if filters.user_id is not None:
+            exemptions.append(
+                "v.slug IN (SELECT venue_slug FROM watched_venues WHERE user_id = ?)"
+            )
+            quarantine_params.append(filters.user_id)
         if filters.venue_slugs:
             placeholders = ", ".join("?" for _ in filters.venue_slugs)
             exemptions.append(f"v.slug IN ({placeholders})")
             quarantine_params.extend(filters.venue_slugs)
-        clauses.append(
-            "(v.source != 'aggregator' OR " + " OR ".join(exemptions) + ")"
-        )
+        clause = "v.source != 'aggregator'"
+        if exemptions:
+            clause = "(" + " OR ".join([clause, *exemptions]) + ")"
+        clauses.append(clause)
         params.extend(quarantine_params)
     if filters.region:
         clauses.append("v.region = ?")

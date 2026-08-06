@@ -349,14 +349,29 @@ def test_explicit_selection_reveals(client: TestClient) -> None:
     assert len(_june(client, venues="peacock_lounge")) == 1
 
 
-def test_pin_promotes_into_main_ui(client: TestClient) -> None:
+def test_pin_promotes_into_main_ui(client: TestClient, sign_in) -> None:
+    pinner = sign_in(client)
+    assert pinner.id is not None
     conn = db.connect()
-    watched_repo.add(conn, "peacock_lounge")
+    watched_repo.add(conn, pinner.id, "peacock_lounge")
     conn.close()
     assert len(_june(client)) == 1  # no toggle needed once pinned
 
 
-def test_performer_watchlist_bypasses_quarantine(client: TestClient) -> None:
+def test_pin_promotion_is_per_user(client: TestClient, sign_in) -> None:
+    # One user's pin must not reveal the quarantined venue to anonymous
+    # browsers (multi-user, August 2026).
+    pinner = sign_in(client)
+    assert pinner.id is not None
+    conn = db.connect()
+    watched_repo.add(conn, pinner.id, "peacock_lounge")
+    conn.close()
+    client.cookies.clear()
+    assert _june(client) == []
+
+
+def test_performer_watchlist_bypasses_quarantine(client: TestClient, sign_in) -> None:
+    sign_in(client)
     client.post("/api/watchlist", json={"display_name": "Euphotic"})
     rows = _june(client, watchlist="true")
     assert [r["headliner"]["display"] for r in rows] == ["Euphotic"]

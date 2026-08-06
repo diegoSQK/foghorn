@@ -2,21 +2,25 @@
 
 ``GET`` lists entries, ``POST`` adds one (canonicalizing the display name),
 ``DELETE`` removes by canonical name. ``GET /api/watchlist/digest`` returns the
-next-N upcoming matches for a future cron/email/push consumer. Single-tenant.
-The watchlist *filter* on shows lives on ``GET /api/shows?watchlist=true`` (see
-``api/shows.py``); this module is the CRUD + digest surface.
+next-N upcoming matches for a future cron/email/push consumer. Per-user since
+the multi-user re-key (August 2026): every endpoint requires a session and
+operates on the signed-in user's list. The watchlist *filter* on shows lives on
+``GET /api/shows?watchlist=true`` (see ``api/shows.py``); this module is the
+CRUD + digest surface.
 """
 
 from __future__ import annotations
 
 import datetime as dt
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel
 
+from foghorn.api.auth import require_user
 from foghorn.api.shows import ShowView, build_show_views
 from foghorn.ingest.pipeline import canonicalize
-from foghorn.models import Watchlist
+from foghorn.models import User, Watchlist
 from foghorn.repo import db
 from foghorn.repo import watchlist as watchlist_repo
 from foghorn.repo.performer_match import matches_token_bag
@@ -46,16 +50,20 @@ def _to_view(entry: Watchlist) -> WatchlistEntryView:
 
 
 @router.get("/api/watchlist", response_model=list[WatchlistEntryView])
-def list_watchlist() -> list[WatchlistEntryView]:
+def list_watchlist(user: Annotated[User, Depends(require_user)]) -> list[WatchlistEntryView]:
+    assert user.id is not None
     conn = db.connect()
     try:
-        return [_to_view(entry) for entry in watchlist_repo.list_all(conn)]
+        return [_to_view(entry) for entry in watchlist_repo.list_all(conn, user.id)]
     finally:
         conn.close()
 
 
 @router.post("/api/watchlist", response_model=WatchlistEntryView)
-def add_watchlist(body: WatchlistCreate) -> WatchlistEntryView:
+def add_watchlist(
+    body: WatchlistCreate, user: Annotated[User, Depends(require_user)]
+) -> WatchlistEntryView:
+    assert user.id is not None
     display_name = body.display_name.strip()
     # Reject names that canonicalize to nothing (empty / punctuation only) —
     # they'd be an unusable match key.
@@ -63,17 +71,20 @@ def add_watchlist(body: WatchlistCreate) -> WatchlistEntryView:
         raise HTTPException(status_code=422, detail="display_name must contain a name")
     conn = db.connect()
     try:
-        entry = watchlist_repo.add(conn, display_name, body.notes)
+        entry = watchlist_repo.add(conn, user.id, display_name, body.notes)
     finally:
         conn.close()
     return _to_view(entry)
 
 
 @router.delete("/api/watchlist/{canonical_name}", status_code=204)
-def delete_watchlist(canonical_name: str) -> Response:
+def delete_watchlist(
+    canonical_name: str, user: Annotated[User, Depends(require_user)]
+) -> Response:
+    assert user.id is not None
     conn = db.connect()
     try:
-        removed = watchlist_repo.remove(conn, canonical_name)
+        removed = watchlist_repo.remove(conn, user.id, canonical_name)
     finally:
         conn.close()
     if not removed:
@@ -98,6 +109,7 @@ class DigestResponse(BaseModel):
 
 @router.get("/api/watchlist/digest", response_model=DigestResponse)
 def watchlist_digest(
+    user: Annotated[User, Depends(require_user)],
     days: int = Query(default=14, ge=1, le=365, description="look-ahead window"),
     limit: int = Query(default=20, ge=1, le=200, description="max matches"),
     include_venues: bool = Query(
@@ -111,10 +123,11 @@ def watchlist_digest(
     With ``include_venues=true``, shows at venues on the venue watchlist are
     merged in (deduped by show id, still chronological) and flagged
     ``watched_venue``."""
+    assert user.id is not None
     generated_at = dt.datetime.now(dt.UTC).isoformat()
     conn = db.connect()
     try:
-        entries = watchlist_repo.list_all(conn)
+        entries = watchlist_repo.list_all(conn, user.id)
         today = dt.date.today()
         from_date = today.isoformat()
         to_date = (today + dt.timedelta(days=days)).isoformat()
@@ -126,6 +139,7 @@ def watchlist_digest(
                 from_date=from_date,
                 to_date=to_date,
                 watchlist=True,
+                user_id=user.id,
             )
         venue_views: list[ShowView] = []
         if include_venues:
@@ -135,6 +149,7 @@ def watchlist_digest(
                 from_date=from_date,
                 to_date=to_date,
                 venue_watchlist=True,
+                user_id=user.id,
             )
     finally:
         conn.close()

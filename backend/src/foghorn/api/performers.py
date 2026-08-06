@@ -9,14 +9,17 @@ watchlist endpoints.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from foghorn.api.auth import require_admin
 from foghorn.models import Origin
 from foghorn.repo import db
 from foghorn.repo import performers as performers_repo
 
-router = APIRouter()
+# Origin/genre corrections are permanent global tags, so the surface is
+# admin-only (August 2026 multi-user).
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 class OriginUpdate(BaseModel):
