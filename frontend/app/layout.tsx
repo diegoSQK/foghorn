@@ -3,7 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 
 import "./globals.css";
+import UserMenu from "./UserMenu";
 import { getJSON, type PendingEventView } from "./lib/api";
+import { getMe, sessionHeaders } from "./lib/serverAuth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,11 +46,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Server-rendered per request, so the count reflects current state on
-  // every navigation. (Watchlist and venue-follow counts moved onto the main
-  // page's filter chips when those pages folded into the calendar.)
-  const inbox = await getJSON<PendingEventView[]>("/api/inbox");
-  const inboxCount = inbox?.length ?? 0;
+  // Server-rendered per request, so the session state and inbox count
+  // reflect current state on every navigation. The inbox (and the nav links
+  // to it and to Add event) is admin-only since multi-user (August 2026).
+  const me = await getMe();
+  let inboxCount = 0;
+  if (me?.is_admin) {
+    const headers = await sessionHeaders();
+    const inbox = await getJSON<PendingEventView[]>("/api/inbox", { headers });
+    inboxCount = inbox?.length ?? 0;
+  }
 
   return (
     <html
@@ -69,12 +76,20 @@ export default async function RootLayout({
           <Link href="/" className="font-medium hover:text-teal-700 dark:hover:text-teal-300">
             Shows
           </Link>
-          <Link href="/add" className="hover:text-teal-700 dark:hover:text-teal-300">
-            Add event
-          </Link>
-          <Link href="/inbox" className="hover:text-teal-700 dark:hover:text-teal-300">
-            Inbox{inboxCount > 0 ? ` (${inboxCount})` : ""}
-          </Link>
+          {me?.is_admin && (
+            <>
+              <Link href="/add" className="hover:text-teal-700 dark:hover:text-teal-300">
+                Add event
+              </Link>
+              <Link href="/inbox" className="hover:text-teal-700 dark:hover:text-teal-300">
+                Inbox{inboxCount > 0 ? ` (${inboxCount})` : ""}
+              </Link>
+              <Link href="/people" className="hover:text-teal-700 dark:hover:text-teal-300">
+                People
+              </Link>
+            </>
+          )}
+          <UserMenu me={me} />
         </nav>
         {children}
       </body>

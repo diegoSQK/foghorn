@@ -59,6 +59,8 @@ export default function ShowList({
   watchlistCanon,
   watchedVenueSlugs,
   followedIds,
+  showFollowButtons = true,
+  isAdmin = false,
 }: {
   shows: ShowView[];
   watchlistCanon: Set<string>;
@@ -67,6 +69,10 @@ export default function ShowList({
   // Shows with display precedence (watched venue / watchlist match): they
   // lead each date group. The rows' ✓ and ★ affordances explain the float.
   followedIds?: Set<number>;
+  // Anonymous visitors browse without the +/★ follow affordances.
+  showFollowButtons?: boolean;
+  // Event-type corrections and manual-event removal are admin-only.
+  isAdmin?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-8">
@@ -96,14 +102,17 @@ export default function ShowList({
                     <EventTypeToggle
                       showId={show.id}
                       initialType={show.event_type}
+                      interactive={isAdmin}
                     />
                     <LocalBadge origin={show.headliner.origin} />
-                    <AddToWatchlistButton
-                      displayName={show.headliner.display}
-                      canonicalName={show.headliner.canonical}
-                      initiallyOn={watchlistCanon.has(show.headliner.canonical)}
-                    />
-                    {show.source === "manual" && (
+                    {showFollowButtons && (
+                      <AddToWatchlistButton
+                        displayName={show.headliner.display}
+                        canonicalName={show.headliner.canonical}
+                        initiallyOn={watchlistCanon.has(show.headliner.canonical)}
+                      />
+                    )}
+                    {show.source === "manual" && isAdmin && (
                       <>
                         <span
                           className="ml-1 rounded-full border border-sky-300 px-1.5 py-px align-middle text-[10px] font-medium uppercase tracking-wide text-sky-700 dark:border-sky-800 dark:text-sky-400"
@@ -127,11 +136,13 @@ export default function ShowList({
                         {j > 0 ? ", " : ""}
                         {performer.display}
                         <LocalBadge origin={performer.origin} />
-                        <AddToWatchlistButton
-                          displayName={performer.display}
-                          canonicalName={performer.canonical}
-                          initiallyOn={watchlistCanon.has(performer.canonical)}
-                        />
+                        {showFollowButtons && (
+                          <AddToWatchlistButton
+                            displayName={performer.display}
+                            canonicalName={performer.canonical}
+                            initiallyOn={watchlistCanon.has(performer.canonical)}
+                          />
+                        )}
                       </span>
                     ))}
                   </p>

@@ -117,11 +117,38 @@ export type WatchlistEntry = {
   notes: string | null;
 };
 
+// The signed-in user (GET /api/auth/me). Null in callers = anonymous.
+export type MeView = {
+  id: number;
+  display_name: string;
+  email: string | null;
+  is_admin: boolean;
+};
+
+// A user row as the admin management surface sees it (GET /api/auth/users).
+export type UserAdminView = {
+  id: number;
+  display_name: string;
+  email: string | null;
+  is_admin: boolean;
+  disabled: boolean;
+  created_at: string;
+  claimed_at: string | null;
+  // Path form ("/join/<token>") — prefix with the serving origin to share.
+  invite_path: string;
+};
+
 // Server-side fetch (no-store so filters/watchlist always reflect current
 // state). Returns null on any failure so callers can render a fallback.
-export async function getJSON<T>(path: string): Promise<T | null> {
+// Server components fetch the backend directly (bypassing the browser), so
+// per-user endpoints need the incoming request's session cookie forwarded
+// via `init.headers` — see lib/serverAuth.ts.
+export async function getJSON<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T | null> {
   try {
-    const res = await fetch(`${API_BASE}${path}`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}${path}`, { cache: "no-store", ...init });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {

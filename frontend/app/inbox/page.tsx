@@ -2,6 +2,8 @@
 // poll or the paste form); each card is an editable draft that approves into
 // a manual event or gets rejected. Nothing enters the calendar unapproved.
 
+import { notFound } from "next/navigation";
+
 import InboxCard from "./InboxCard";
 import PasteEmailForm from "./PasteEmailForm";
 import SendersManager from "./SendersManager";
@@ -11,12 +13,20 @@ import {
   type PendingEventView,
   type VenueOption,
 } from "../lib/api";
+import { getMe, sessionHeaders } from "../lib/serverAuth";
 
 export default async function InboxPage() {
+  // Admin-only since multi-user (August 2026) — approvals write the global
+  // calendar. The backend enforces this; the 404 just keeps the URL quiet.
+  const me = await getMe();
+  if (!me?.is_admin) notFound();
+
+  const headers = await sessionHeaders();
+  const init = { headers };
   const [pending, venues, senders] = await Promise.all([
-    getJSON<PendingEventView[]>("/api/inbox"),
+    getJSON<PendingEventView[]>("/api/inbox", init),
     getJSON<VenueOption[]>("/api/venues"),
-    getJSON<MailSenderEntry[]>("/api/inbox/senders"),
+    getJSON<MailSenderEntry[]>("/api/inbox/senders", init),
   ]);
 
   return (

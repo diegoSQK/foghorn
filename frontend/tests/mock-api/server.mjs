@@ -29,6 +29,14 @@ const routes = {
   "/api/shows": readFileSync(join(fixtures, "shows.json"), "utf8"),
   "/api/venues": readFileSync(join(fixtures, "venues.json"), "utf8"),
   "/api/venues/watchlist": "[]",
+  // Specs run "signed in as an admin" — the UI hides the follow/correction
+  // affordances and admin nav entirely when /api/auth/me doesn't resolve.
+  "/api/auth/me": JSON.stringify({
+    id: 1,
+    display_name: "Test User",
+    email: null,
+    is_admin: true,
+  }),
 };
 
 // In-memory performer watchlist, reset on server start.
