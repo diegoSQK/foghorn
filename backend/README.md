@@ -125,7 +125,42 @@ the real one (Bird & Beckett's is set as of Phase 2.1).
 FastAPI app `foghorn.api:app` (run with `make backend-run` →
 `uvicorn foghorn.api:app --reload` on `:8000`). On startup it seeds the venues
 so a fresh DB serves correctly and starts the nightly scrape scheduler (see
-[Scheduled jobs](#scheduled-jobs)). Read-only so far.
+[Scheduled jobs](#scheduled-jobs)).
+
+**Auth posture (multi-user, August 2026).** Browse endpoints (`/api/shows`
+without personal filters, `/api/venues`, `/api/health/scrape`) are public.
+Personal data (both watchlists, the digest, the `?watchlist=` /
+`?venue_watchlist=` filters) requires a session and is scoped to the signed-in
+user. Global mutations (inbox, manual events, performer origin/genre and
+event-type corrections, user management) are admin-only. See
+[`/api/auth/*`](#auth-apiauth) below.
+
+### Auth (`/api/auth/*`)
+
+Invite-link-as-credential (no passwords, no email dependency): an admin
+creates a user, which mints a token; `/join/<token>` claims the account on
+first open and signs back in on later opens. Sessions are opaque tokens
+(SHA-256 stored, `sessions` table) in an HttpOnly `foghorn_session` cookie
+with rolling ~13-month expiry — active users never expire. Set
+`FOGHORN_SECURE_COOKIES=1` wherever HTTPS terminates (the VPS deployment
+does); leave it unset for plain-HTTP serving (the Tailscale fleet
+deployment).
+
+- `GET /api/auth/invite/{token}` → `{display_name, claimed}` (what the join
+  page renders); 404 for unknown/disabled.
+- `POST /api/auth/claim` body `{token, display_name?, email?}` → sets the
+  session cookie, returns the user. First use stamps `claimed_at`; the
+  optional email is only stored to enable magic-link recovery later.
+- `GET /api/auth/me` → `{id, display_name, email, is_admin}`; 401 anonymous.
+- `POST /api/auth/logout` → 204, deletes the session + clears the cookie.
+- Admin: `GET/POST /api/auth/users` (list / create-invite),
+  `POST /api/auth/users/{id}/regenerate` (new link; old link dies, open
+  sessions survive), `PUT /api/auth/users/{id}/disabled` (disable also
+  revokes the user's sessions; self-disable is refused).
+
+CLI equivalents (run against `FOGHORN_DB_PATH`): `make auth-bootstrap`
+(ensure an admin exists, print its login link — the first-run entry point),
+`make invite NAME="Ada"`, `make users`.
 
 ### `GET /api/shows`
 
@@ -160,17 +195,19 @@ All filters stack as ANDs. Date filters compare against `start_local_date`. Resp
 
 ### `GET/POST/DELETE /api/watchlist`
 
-The single-tenant watchlist of followed performers (Phase 4.1). The canonical
-performer-match utility is `repo/performer_match.py` (token-bag), shared with
-`?performer_query=`.
+The signed-in user's watchlist of followed performers (Phase 4.1; per-user
+since the multi-user re-key). All three require a session (401 otherwise).
+The canonical performer-match utility is `repo/performer_match.py`
+(token-bag), shared with `?performer_query=`.
 
 - `GET /api/watchlist` → `[{slug-less entry}]`: `canonical_name`, `display_name`, `added_at`, `notes` (newest first).
 - `POST /api/watchlist` body `{"display_name": "Joshua Redman Quartet", "notes": null}` → canonicalizes the name (422 if it canonicalizes to nothing), returns the entry. Re-adding an existing canonical name keeps the original `display_name`/`added_at`.
 - `DELETE /api/watchlist/{canonical_name}` → 204, or 404 if not present.
 
-**CORS:** the frontend's add/remove buttons call these cross-origin, so the app
-enables `CORSMiddleware` (permissive by default for local-first use; tighten via
-`FOGHORN_CORS_ORIGINS` when deployed).
+**CORS:** browser calls are same-origin in practice (the Next `/api` rewrite
+proxies them), which is also what lets the session cookie ride along without
+CORS-with-credentials complexity. The permissive `CORSMiddleware` default
+remains for ad-hoc cross-origin dev use; tighten via `FOGHORN_CORS_ORIGINS`.
 
 ### `GET /api/watchlist/digest`
 
@@ -190,9 +227,10 @@ user is the source of truth. `PUT` body `{"event_type": "jam"}` (or
 `"show"`); the correction is stored as a **venue+billing override rule**
 (see the data model), so it survives the nightly re-ingest and applies to
 every instance of a recurring session. `DELETE` removes the rule (the
-inferred type applies again). 404 for unknown show ids. Same single-tenant
-no-auth posture as the performer origin/genre corrections; the frontend
-exposes it as the clickable jam badge / faint "jam?" chip on show rows.
+inferred type applies again). 404 for unknown show ids. Admin-only (like the
+performer origin/genre corrections — the override is global data); the
+frontend exposes it as the clickable jam badge / faint "jam?" chip on show
+rows for admins, a static badge for everyone else.
 
 ### `GET /api/venues`
 

@@ -1,0 +1,15 @@
+# Caddy fronts everything on FOGHORN_DOMAIN with automatic Let's Encrypt
+# HTTPS. /api/* goes straight to the backend (one hop less than the Next
+# rewrite, same first-party cookies); everything else is the Next app.
+
+{$FOGHORN_DOMAIN} {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy backend:8100
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}

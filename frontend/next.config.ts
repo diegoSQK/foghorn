@@ -7,6 +7,9 @@ import type { NextConfig } from "next";
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8100";
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for the Docker image (deploy/); local
+  // `npm run dev` / `npm run start` behavior is unchanged.
+  output: "standalone",
   // Browser-side API calls use relative /api/* URLs so they reach whatever
   // host served the page (the laptop directly, or the laptop over Tailscale
   // from a phone). This rewrite proxies those to the backend server-side, so
