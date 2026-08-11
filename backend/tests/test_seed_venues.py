@@ -20,3 +20,16 @@ def test_seed_is_idempotent(conn: sqlite3.Connection) -> None:
     seed(conn)
     seed(conn)
     assert len(venues_repo.list_all(conn)) == len(SEED_VENUES)
+
+
+def test_the_mellow_seeds_both_rooms_separately(conn: sqlite3.Connection) -> None:
+    # One venue's calendar, two rooms in different neighborhoods. Folding them
+    # into one row would file Lakehouse Jazz under the Haight and make the
+    # venue watchlist unable to pin one room without the other.
+    seed(conn)
+    haight = venues_repo.get_by_slug(conn, "the_mellow_haight")
+    boathouse = venues_repo.get_by_slug(conn, "blue_heron_boathouse")
+    assert haight is not None and boathouse is not None
+    assert (haight.neighborhood, haight.region) == ("Haight", "SF")
+    assert (boathouse.neighborhood, boathouse.region) == ("Golden Gate Park", "SF")
+    assert haight.genre == boathouse.genre == "jazz"
