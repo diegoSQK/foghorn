@@ -8,6 +8,114 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## The Mellow — EventON recon + two-room scraper (August 2026)
+
+The Mellow (1401 Haight St) is a plant store / cafe / barbershop that took on
+ticketed live music in early August 2026 once its Type 90 entertainment licence
+came through; the owners are both musicians and jazz is the primary booking.
+That's the Bird & Beckett shape — a room where the jazz is the point but the
+building isn't a music venue — which is what foghorn exists to surface and what
+a generic aggregator misses. Two rooms shipped: the Haight shop, and the **Blue
+Heron Lake Boathouse** in Golden Gate Park, home of the weekly **Lakehouse
+Jazz** series.
+
+**Two venue rows, not one.** Following the Davies / Herbst / Wilsey precedent.
+They're in different neighborhoods, so folding the boathouse under the shop
+would file Lakehouse Jazz under "Haight" and make the venue watchlist unable to
+pin one room without the other.
+
+### The EventON datetime problem (the reusable part)
+
+The site is WordPress running **EventON 5.0.11**, not The Events Calendar, so
+the Tribe REST pattern used elsewhere in the codebase does not apply. Every
+obvious route is a dead end, and one of them is an *attractive* dead end:
+
+- `/wp-json/tribe/events/v1/events` → **404**. Not Tribe.
+- `/wp-json/wp/v2/ajde_events` → **clean JSON, and a trap.** Its `date` /
+  `date_gmt` are the WordPress *post* timestamps — several sit in 2021–2023 —
+  and the object carries no start/end datetime at all. EventON keeps showtimes
+  in post meta (`evcal_srow` / `evcal_erow`, unix seconds) that the REST API
+  does not register: `?_fields=meta` returns only theme keys.
+- `/events/feed/` → **301 to the archive**, no feed.
+- `/calendar/` → renders client-side; the initial HTML says "10 Event(s) found"
+  with zero event rows in the markup.
+- Single-event pages **do** carry `schema.org/Event` JSON-LD with a real
+  `startDate`, plus EventON's own `data-time="<srow>-<erow>"` — but only for the
+  *first* occurrence of a repeating event. Lakehouse Jazz's two pages advertised
+  2026-03-21 and 2026-05-16, both long past. Unusable for a weekly series, which
+  is the whole calendar here.
+
+The path that works is the endpoint `/calendar/` calls itself:
+
+    POST https://themellowsf.com/?evo-ajax=eventon_get_events
+
+It answers unauthenticated, and its `json` key is one entry **per occurrence**
+with `unix_start` / `unix_end` — plus the ticket link (`evcal_lmlink`), price
+(`_seo_offer_price`), and subtitle in `event_pmv`. Three constraints, each found
+the hard way and each worth carrying to the next EventON site:
+
+1. **The nonce is required.** It's `evo_general_params.n` on `/calendar/`.
+   Missing or wrong returns `{"status":"bad"}` — a 200 with no error text.
+2. **The harvested shortcode config is required.** A hand-built minimal payload
+   returns `{"status":"GOOD"}` and *zero events*. The scraper reads the real
+   config off the `evo_cal_data` `data-sc` attribute and overrides fields on top
+   of it.
+3. **`fixed_month` / `fixed_year` only relabel the calendar header.** Paging
+   month-by-month returned the same 12 August rows five times under five
+   different `cal_month_title`s — a bug that looks exactly like "the venue only
+   books one month out". The real window is
+   `focus_start_date_range` / `focus_end_date_range` (unix seconds), and setting
+   those returns the whole window in **one** request. Blanking them makes the
+   endpoint answer with a non-JSON body, so they're always set explicitly.
+
+`show_repeats=yes` is the other load-bearing override: the site's own config
+ships `no`, which collapses a weekly series to a single row.
+
+**Room routing joins two payloads.** The AJAX response carries no location, and
+the rendered HTML carries no location classes either. The taxonomy lives on the
+WordPress REST objects as `class_list` entries
+(`event_location-the-mellow-haight` / `event_location-blue-heron-boathouse`), so
+the scraper joins occurrences to the REST index on event id. An unrecognized
+location term **raises** rather than defaulting to a room — silently folding an
+unknown room into one of the two known ones would put shows in the wrong
+neighborhood, which is the exact failure the venue split exists to prevent. The
+closed Mission room is the one deliberate drop.
+
+**Non-music programming** (retail pop-ups, plant workshops) is dropped on the
+venue's own `event_type` taxonomy, with a short title-signal backstop for the
+entries carrying no type term at all — "Mindful Flow" has none. Everything else
+is kept, matching the err-toward-inclusion posture of the other mixed-programming
+scrapers.
+
+**Registered twice, once per room.** `REGISTERED_SCRAPERS` maps one slug to one
+callable and the runner ingests a scraper's whole output against that one venue,
+so `scrape_haight()` / `scrape_boathouse()` each filter the shared fetch. That
+keeps the nightly prune scoped to the venue it actually has authoritative
+listings for — a single registration would have let one room's window reap the
+other's shows.
+
+### Coverage as shipped
+
+The live run returns **68 shows** — Lakehouse Jazz, two sets a night (7:00 and
+8:30), Fridays and Saturdays from 2026-08-14 through 2026-12-05, all with
+Eventbrite ticket URLs and a `$35` price.
+
+**The Haight room currently yields zero shows, and that's the source's state,
+not a scraper bug.** Every Haight-tagged event on the site is stale: workshops
+and pop-ups from 2021–2023, and a "Mellow Sessions" concert entry last dated
+2024-01-06. The August 2026 ticketed shows that motivated the ticket are not
+published to the EventON calendar, and `/music/` carries no calendar and no
+ticket links either. The venue row and the routing are in place, so those shows
+land automatically once they're scheduled — but if the Haight programming stays
+off the site, picking it up needs a different source (an `.ics` from the venue,
+or their Eventbrite org page) and that's a fresh decision, not this ticket.
+
+Also resolved: the boathouse address. Listings disagree because the lake was
+renamed from Stow Lake in 2024; The Mellow's own event pages give **50 Blue
+Heron Lake Dr East**, which is what's seeded.
+
+---
+
 ## Single-user mode for the fleet deployment (August 2026)
 
 Multi-user (previous entry) left the fleet deployment stranded on the

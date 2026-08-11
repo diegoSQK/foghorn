@@ -503,6 +503,40 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://thedeluxesf.com/calendar/",
         genre="jazz",
     ),
+    # The Mellow programs two rooms out of one WordPress calendar. They get two
+    # rows, not one: the boathouse is in Golden Gate Park, so folding it under
+    # the Haight shop would file Lakehouse Jazz in the wrong neighborhood and
+    # make the venue watchlist unable to pin one room without the other.
+    Venue(
+        slug="the_mellow_haight",
+        name="The Mellow",
+        neighborhood="Haight",
+        region="SF",
+        address="1401 Haight St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://themellowsf.com",
+        # Plant store / cafe / barbershop that added ticketed music in Aug 2026
+        # under a Type 90 licence. EventON calendar, shared with the boathouse
+        # row and split by the source's location taxonomy — see
+        # scrapers/the_mellow.
+        calendar_url="https://themellowsf.com/calendar/",
+        genre="jazz",
+    ),
+    Venue(
+        slug="blue_heron_boathouse",
+        name="Blue Heron Lake Boathouse",
+        neighborhood="Golden Gate Park",
+        region="SF",
+        # The lake was renamed from Stow Lake in 2024 and third-party listings
+        # still disagree; this is the address The Mellow's own event pages give.
+        address="50 Blue Heron Lake Dr East, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://themellowsf.com",
+        # Home of The Mellow's weekly Lakehouse Jazz series (two sets a night,
+        # Fri + Sat) — see scrapers/the_mellow.
+        calendar_url="https://themellowsf.com/calendar/",
+        genre="jazz",
+    ),
     Venue(
         slug="club_fox",
         name="Club Fox",
