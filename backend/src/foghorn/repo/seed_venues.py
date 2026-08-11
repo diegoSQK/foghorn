@@ -140,6 +140,23 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="freight_and_salvage",
+        name="Freight & Salvage",
+        neighborhood="Downtown Berkeley",
+        region="East Bay",
+        address="2020 Addison St, Berkeley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://thefreight.org",
+        # The marketing site is behind a Cloudflare challenge; the scraper goes
+        # to the venue's Tessitura TNEW ticketing host instead, which isn't —
+        # see scrapers/freight_and_salvage.
+        calendar_url="https://secure.thefreight.org/",
+        # 400-seat nonprofit coffeehouse: folk / roots / Americana led, with a
+        # real jazz and world strand. Not "jazz" as the default — the per-show
+        # override (7.2) carries the jazz nights.
+        genre="folk",
+    ),
+    Venue(
         slug="the_back_room",
         name="The Back Room",
         neighborhood="Downtown Berkeley",

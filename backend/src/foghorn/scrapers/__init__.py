@@ -35,6 +35,7 @@ from foghorn.scrapers import (
     dresher_ensemble_studio,
     felton_music_hall,
     fox_theater_oakland,
+    freight_and_salvage,
     gilman_924,
     gray_area,
     great_american_music_hall,
@@ -165,6 +166,7 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     the_lost_church.VENUE_SLUG: the_lost_church.scrape,
     stanford_jazz_workshop.VENUE_SLUG: stanford_jazz_workshop.scrape,
     noontime_concerts.VENUE_SLUG: noontime_concerts.scrape,
+    freight_and_salvage.VENUE_SLUG: freight_and_salvage.scrape,
     # One scraper, two rooms. Registered once per venue (each entry filters the
     # shared fetch to its own room) so the nightly run's prune stays scoped to
     # the venue it actually has authoritative listings for.

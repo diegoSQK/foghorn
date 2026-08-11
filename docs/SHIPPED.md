@@ -8,6 +8,120 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Freight & Salvage — behind the Cloudflare wall via Tessitura (August 2026)
+
+Freight & Salvage (2020 Addison St) is a 400-seat nonprofit coffeehouse and the
+most conspicuous hole in foghorn's East Bay coverage — every other Downtown
+Berkeley room was already scraped. Folk/roots-led with a real jazz and world
+strand: Bobby McFerrin, Jeff Parker's ETA IVtet, Bill Frisell, Bettye LaVette,
+Meshell Ndegeocello, Bruce Cockburn, Ladysmith Black Mambazo.
+
+What existed before was worse than nothing because it looked like coverage: an
+aggregator-created `the_freight` row holding two past dates of a free lunchtime
+talk series, quarantined, with empty region/neighborhood/genre so no filter
+could reach it.
+
+### The site is walled; the ticketing host is not
+
+`thefreight.org` sits behind a Cloudflare managed challenge — 403 with a "Just a
+moment..." interstitial to every plain client, polite UA and Chrome UA alike,
+right down to `robots.txt` and `sitemap.xml`. Per the posture set in #91 we
+don't touch the challenge. Ticketmaster Discovery was the obvious fallback and
+is a dead end in a confusing way: it carries **three** Freight venue ids
+(including a "Memberships" one) and every one returns `totalElements: 0`,
+because the Freight self-tickets. A Berkeley city sweep returns 43 events across
+only UC Theatre, Greek, and Cornerstone — all already covered.
+
+**The way in was DNS, not HTTP.** `secure.thefreight.org` is a CNAME to
+`frts-tnew-prod.tnhs.cloud` — Tessitura Network Hosting Services running TNEW
+(Tessitura Network Express Web) — and that host has no bot challenge on it. It
+answers 200 to a plain client with our polite UA and serves the real events
+listing. The Cloudflare wall only ever covered the WordPress marketing site.
+
+**Carry this forward: when a venue site is challenge-walled, check for a
+`secure.` / `tickets.` / `ci.` CNAME before writing the venue off.** A
+self-ticketing venue usually fronts ticketing on a separate host that has no
+reason to be challenged. This is the cheapest unexplored move on any venue
+currently parked as "blocked" — SFJAZZ included.
+
+### The endpoint
+
+The listing renders client-side from one unauthenticated JSON endpoint — no
+nonce, no cookie, no key, found in the TNEW bundle on `tnew-assets.com`:
+
+```
+POST https://secure.thefreight.org/api/products/productionseasons
+{"startDate": "2026-08-11T00:00", "endDate": "2027-02-07T23:59"}
+```
+
+It returns the whole window in one request (a year came back as 78 productions
+/ 119 performances) with no pagination and no sign of a cap. Multi-night runs
+and residencies arrive already expanded, one entry per performance, so there's
+no recurrence maths.
+
+Shape notes: `performanceTitle` is the billed act while `productionTitle` is the
+umbrella ("Jeff Parker ETA IVtet" vs "Jeff Parker"); `iso8601DateString` is
+local-with-offset and carries seven fractional digits that `fromisoformat`
+won't take unaided; titles embed raw HTML (`<br>` + `<font>` subtitles, `&amp;`,
+and two that leak a whole `<h1 id="tn-page-heading">`); there is no price field
+anywhere, so `price_text` is always `None`; and 11 performances are
+`isOnSale: false` ("Tickets Not On Sale") — real announced dates whose on-sale
+hasn't opened, kept as shows but with the ticket link withheld.
+
+### The product-type trap, and why the first filter was wrong
+
+Tessitura's `productTypeId` looked like the clean classes-vs-concerts
+discriminator: type 3 is the concert programme, types 1 and 2 the teaching
+programme, and `productTypeName` is an empty string on every record so the id is
+the only taxonomy available. Gating on it is wrong in **both** directions, and
+the first cut of this scraper shipped that bug until an audit of what the live
+run discarded caught it — **39 in-window entries dropped**, including the
+weekly Country Bluegrass Jam, four open mics, and a booked Karl Evangelista /
+Grex gig. Meanwhile type 3 happily carried a Berkeley Public Library story time.
+
+The feed's real structure is three-way:
+
+- **Term classes** are filed under a `"<Term> <N>: <instructor>"` production
+  ("Fall I: Tamsen Fynn"). That production-title pattern is the single cleanest
+  class marker in the feed and catches 17 performances exactly.
+- **Community Mondays** is a genuinely mixed community series sitting on the
+  teaching product type — jams, open mics, and booked gigs alongside comedy and
+  a vinyl listening party. Kept as a carve-out and filtered on title.
+- **Everything else** on a non-concert type is a one-off class, caught by
+  skill-level title framing ("Beginning Harmonica with Aki Kumar").
+
+So the filter drops the term-class production pattern first, then non-music
+title signals (story time, The Moth's storytelling slams, comedy, listening
+party, singalong, workshop, skill levels), and only then consults the product
+type — with the Community Mondays carve-out on top. Live result: 80 shows over
+the 180-day window, versus 71 under the broken gate.
+
+Jams and open mics are tagged `event_type="jam"` explicitly. The ingest's own
+inference is deliberately narrow and would catch "open mic" but miss "Country
+Bluegrass Jam" (no genre word it knows, no session/night framing); the scraper
+is the source that knows, and an explicit tag always wins.
+
+### Reconciling the aggregator row
+
+Seeding the venue was not sufficient, and the failure would have been silent.
+`aggregators/ingest.py::resolve_venue` tries the alias map, then an **exact**
+canonical-name match, then token-subset. Bay Improviser bills the venue as "The
+Freight", which strips to canonical `"freight"` — and the pre-existing
+aggregator row *named* "The Freight" strips to exactly that too. The quarantined
+row wins the exact pass, while the seeded "Freight & Salvage" could only ever
+match on token-subset, which runs later. One room, two venue rows, shows split
+between them.
+
+Fixed with a `VENUE_ALIASES` entry (`"the freight"` / `"freight"` →
+`freight_and_salvage`), which is consulted before the exact pass, plus a
+regression test that reconstructs the live DB's exact state — a quarantined
+"The Freight" row alongside the seeded one — and asserts the seeded row wins.
+
+Genre is `folk`, not `jazz`: the booking is folk/roots-led and the per-show
+genre override (7.2) carries the jazz nights.
+
+---
+
 ## The Mellow — EventON recon + two-room scraper (August 2026)
 
 The Mellow (1401 Haight St) is a plant store / cafe / barbershop that took on
