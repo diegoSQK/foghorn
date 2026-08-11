@@ -91,9 +91,9 @@ Root `Makefile` wraps both halves: `make gate` runs backend then frontend; `make
 
 ## Live test deployment (fleet)
 
-The foghorn instance Diego actually uses — laptop and phone via Tailscale — is not served from any working tree. It runs under PM2 from a detached serve worktree at `~/fleet/serve/foghorn`, managed by the fleet CLI (github.com/diegoSQK/fleet): API on **:8100**, web on **:3100**, pointed at the canonical DB (`backend/foghorn.db` in the main tree) via `FOGHORN_DB_PATH`.
+The foghorn instance Diego actually uses — laptop and phone via Tailscale — is not served from any working tree. It runs under PM2 from a detached serve worktree at `~/fleet/serve/foghorn`, managed by the fleet CLI (github.com/diegoSQK/fleet): API on **:8100**, web on **:3100**, pointed at the fleet-owned DB at `~/fleet-data/foghorn/foghorn.db` via `FOGHORN_DB_PATH`, set in fleet's `ecosystem.config.js`. The DB deliberately lives outside `~/Documents` (PM2 runs under launchd, where reads of protected folders silently fail) and outside the fleet repo itself, so it survives a re-clone. The root `Makefile` defaults every DB-writing target to that same path — keep them in agreement: if a CLI writer and the API disagree nothing errors, because `repo/db.py`'s `connect()` runs `init_schema()`, so a wrong path silently creates a fresh empty DB and forks the data.
 
-- **After your PR merges, run `fleet sync foghorn`** — deploys `origin/main`, reinstalls deps only if lockfiles/pyproject changed, restarts both processes. Idempotent and conflict-free; this is the last step of shipping.
+- **After your PR merges, run `fleet sync foghorn`** — deploys `origin/main`, reinstalls deps only if lockfiles/pyproject changed, rebuilds the frontend (`next build` — the web process runs `next start`, not `next dev`), restarts both processes. Idempotent and conflict-free; this is the last step of shipping.
 - **To demo unmerged work:** push your branch, then `fleet preview foghorn <branch>`; `fleet sync foghorn` returns the deployment to main.
 - **Never edit files under `~/fleet/serve/`** — serve trees change only via the fleet CLI.
 - Ad-hoc dev runs from a working tree must not bind :8100/:3100 — use alternate ports (fleet port + 1000). Check `~/fleet/PORTS.md` before binding anything; something off? Run `fleet doctor` first.
