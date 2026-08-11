@@ -72,6 +72,30 @@ def test_both_center_rooms_fold_into_one_venue(parsed: list[ScrapedShow]) -> Non
     assert "Paul Cornish Trio" in center  # Joe Henderson Lab
 
 
+def test_center_shows_carry_their_room(parsed: list[ScrapedShow]) -> None:
+    """Both Center rooms share the ``sfjazz`` row, so the room is what keeps
+    them apart — 38% of programmed nights run both, and without it the venue
+    reads as double-booking itself."""
+    by_name = {s.headliner_raw: s.room for s in parsed}
+    assert by_name["Take 6"] == "Miner Auditorium"
+    assert by_name["Paul Cornish Trio"] == "Joe Henderson Lab"
+
+
+def test_room_casing_is_canonicalised(parsed: list[ScrapedShow]) -> None:
+    # The feed ships both "Joe Henderson Lab" and "Joe Henderson lab"; one
+    # venue's rooms shouldn't render two ways.
+    lab_rooms = {s.room for s in parsed if s.room and "henderson" in s.room.lower()}
+    assert lab_rooms == {"Joe Henderson Lab"}
+
+
+def test_offsite_bookings_carry_no_room(parsed: list[ScrapedShow]) -> None:
+    # An off-site booking's "room" is its own venue row, so the field stays
+    # empty rather than duplicating the venue name.
+    offsite = [s for s in parsed if s.venue_slug != sfjazz.VENUE_SLUG]
+    assert offsite
+    assert all(s.room is None for s in offsite)
+
+
 def test_offsite_bookings_route_to_the_host_venue(parsed: list[ScrapedShow]) -> None:
     # SFJAZZ is a presenter, not just a venue. Without routing, Brad Mehldau's
     # Paramount date would file under Hayes Valley instead of Uptown Oakland.

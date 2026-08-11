@@ -80,6 +80,15 @@ REQUEST_TIMEOUT = 45.0
 # are listed here so the unmapped-location warning stays meaningful: a location
 # in this map is one we've looked at and made a decision about, so anything that
 # warns is genuinely new programming worth a human glance.
+# The two rooms inside the Center, canonicalised for display. The feed ships
+# the Lab as both "Joe Henderson Lab" and "Joe Henderson lab"; a venue's rooms
+# shouldn't render two ways, so the casing is pinned here rather than passed
+# through verbatim.
+_ROOM_LABELS = {
+    "miner auditorium": "Miner Auditorium",
+    "joe henderson lab": "Joe Henderson Lab",
+}
+
 _LOCATION_SLUGS = {
     "miner auditorium": VENUE_SLUG,
     "joe henderson lab": VENUE_SLUG,  # the feed also spells this "Joe Henderson lab"
@@ -297,6 +306,12 @@ def parse_events(
                 price_text=None,
                 source_url=source_url,
                 event_type="jam" if _is_jam(headliner) else None,
+                # Both Center rooms share the `sfjazz` row, so without this the
+                # 700-seat hall and the 100-seat club are indistinguishable —
+                # and since 38% of programmed nights run both, the venue reads
+                # as double-booking itself. Only set for the rooms that share a
+                # venue row; an off-site booking's "room" is its own venue.
+                room=_ROOM_LABELS.get(location.casefold()) if venue_slug == VENUE_SLUG else None,
             )
         )
 

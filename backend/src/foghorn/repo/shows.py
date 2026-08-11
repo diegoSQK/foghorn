@@ -29,7 +29,7 @@ _SHOW_COLUMNS = (
     "end_local_time, doors_local_time, headliner_canonical, ticket_url, price_text, "
     "source_url, scraped_at, source, "
     + _EVENT_TYPE_RESOLVED.format(alias="shows")
-    + " AS event_type, genre_override"
+    + " AS event_type, genre_override, room"
 )
 
 
@@ -50,6 +50,7 @@ def _row_to_show(row: sqlite3.Row) -> Show:
         source=row["source"],
         event_type=row["event_type"],
         genre_override=row["genre_override"],
+        room=row["room"],
     )
 
 
@@ -122,8 +123,8 @@ def upsert(
         INSERT INTO shows (venue_id, start_utc, start_local_date, start_local_time,
                            end_local_time, doors_local_time, headliner_canonical,
                            ticket_url, price_text, source_url, scraped_at, source,
-                           event_type, genre_override)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           event_type, genre_override, room)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(venue_id, start_local_date, start_local_time, headliner_canonical)
         DO UPDATE SET
             start_utc        = excluded.start_utc,
@@ -135,7 +136,8 @@ def upsert(
             scraped_at       = excluded.scraped_at,
             source           = excluded.source,
             event_type       = excluded.event_type,
-            genre_override   = excluded.genre_override
+            genre_override   = excluded.genre_override,
+            room             = excluded.room
         """,
         (
             show.venue_id,
@@ -152,6 +154,7 @@ def upsert(
             show.source,
             show.event_type,
             show.genre_override,
+            show.room,
         ),
     )
     stored = get_by_natural_key(
@@ -316,7 +319,7 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         "s.start_local_time, s.end_local_time, s.doors_local_time, "
         "s.headliner_canonical, "
         "s.ticket_url, s.price_text, s.source_url, s.scraped_at, s.source, "
-        f"{resolved} AS event_type, s.genre_override "
+        f"{resolved} AS event_type, s.genre_override, s.room "
         "FROM shows s JOIN venues v ON v.id = s.venue_id"
     )
     if clauses:

@@ -116,6 +116,12 @@ class Show(BaseModel):
     # publish per-event genre. Genre resolution is layered: this override
     # wins, else the venue's default genre. None = no per-show signal.
     genre_override: str | None = None
+    # Room within a multi-room venue, verbatim from the source ("Joe Henderson
+    # Lab", "Miner Auditorium"). Deliberately *not* part of the natural key:
+    # a venue can't run two different bills in one room at one time, so the
+    # key stays (venue, date, time, headliner) and a room correction updates
+    # the row instead of forking it. None = single-room venue, or unstated.
+    room: str | None = None
     performers: list[ShowPerformer] = Field(default_factory=list)
 
 
@@ -148,6 +154,11 @@ class ScrapedShow(BaseModel):
     # (SeeTickets cards, Dice tags, …). Normalized to the coarse vocabulary at
     # ingest; junk values normalize to None (venue default applies).
     genre: str | None = None
+    # Room within a multi-room venue, when the source names one ("Joe Henderson
+    # Lab" vs "Miner Auditorium"). Set it whenever the source distinguishes
+    # rooms that share a venue row — without it a hall and its 100-seat club
+    # read as one venue double-booking itself. None = single room / unstated.
+    room: str | None = None
 
 
 class ShowFilters(BaseModel):

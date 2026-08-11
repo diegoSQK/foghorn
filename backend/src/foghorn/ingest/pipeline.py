@@ -187,6 +187,20 @@ def infer_genre_from_title(title: str) -> str | None:
     return buckets.pop() if len(buckets) == 1 else None
 
 
+def _clean_room(room: str | None) -> str | None:
+    """Normalize a room label's whitespace, keeping the source's own casing.
+
+    Sources are inconsistent about spacing and case (SFJAZZ ships both "Joe
+    Henderson Lab" and "Joe Henderson lab"), and the display name is the
+    source's to choose — same posture as performer display names, which are
+    never rewritten. Case folding belongs in whatever compares rooms, not here.
+    """
+    if room is None:
+        return None
+    collapsed = re.sub(r"\s+", " ", room).strip()
+    return collapsed or None
+
+
 def _to_show(
     venue: Venue,
     scraped: ScrapedShow,
@@ -214,6 +228,9 @@ def _to_show(
         source=source,
         event_type=infer_event_type(scraped),
         genre_override=genre_override,
+        # Verbatim from the source; whitespace-normalized so "Joe Henderson Lab"
+        # and "Joe Henderson  lab " don't read as two rooms downstream.
+        room=_clean_room(scraped.room),
         venue_id=venue.id,
         start_utc=start_local.astimezone(UTC).isoformat(),
         start_local_date=scraped.start_local.strftime("%Y-%m-%d"),

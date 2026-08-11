@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS shows (
     source               TEXT NOT NULL DEFAULT 'scrape',  -- 'scrape' | 'manual'
     event_type           TEXT NOT NULL DEFAULT 'show',    -- 'show' | 'jam'
     genre_override       TEXT,  -- per-show genre; NULL = venue default applies
+    room                 TEXT,  -- room within a multi-room venue; NULL = unspecified
     UNIQUE (venue_id, start_local_date, start_local_time, headliner_canonical)
 );
 
@@ -200,6 +201,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
     _add_column_if_missing(conn, "shows", "event_type", "TEXT NOT NULL DEFAULT 'show'")
     _add_column_if_missing(conn, "shows", "end_local_time", "TEXT")
     _add_column_if_missing(conn, "shows", "genre_override", "TEXT")
+    _add_column_if_missing(conn, "shows", "room", "TEXT")
     _add_column_if_missing(conn, "performers", "genre", "TEXT")
     _add_column_if_missing(conn, "performers", "genre_source", "TEXT")
     conn.commit()

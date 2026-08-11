@@ -8,6 +8,64 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Per-show `room` — multi-room venues stop looking double-booked (August 2026)
+
+Shipping SFJAZZ exposed a modelling gap. Its `sfjazz` row covers two rooms in
+one building — Miner Auditorium (~700 seats) and the Joe Henderson Lab (~100) —
+and the scraper folded them together on the SoundBox-under-Davies precedent.
+The numbers said that was wrong:
+
+- The Lab is **45% of the venue's calendar** (80 of 177 shows in the window),
+  not an occasional side room like SoundBox.
+- **36 of 95 programmed nights (38%) run both rooms**, so the venue read as
+  double- or triple-booking itself. Sep 19 listed five shows at "SFJAZZ Center",
+  two of them at overlapping times.
+
+The obvious fix was to split into two venue rows, as The Mellow's rooms are
+split. But The Mellow's split earns its keep because those rooms sit in
+*different neighborhoods*, so the region and neighborhood filters gain real
+precision. SFJAZZ's rooms share an address; a split would buy nothing for
+filtering while fragmenting a venue that genuinely is one place. The general
+answer was the missing field, not a second row.
+
+### The field
+
+`shows.room TEXT` (nullable), threaded through `ScrapedShow` → pipeline → repo →
+API → UI. Added via the existing additive-ALTER path in `init_schema`, since
+`CREATE TABLE IF NOT EXISTS` skips tables that already exist and the live DB
+carries ~1,000 shows predating the column.
+
+**It is deliberately not part of the natural key**, which stays
+`(venue_id, start_local_date, start_local_time, headliner_canonical)`. One room
+can't host two bills at one moment, so the key already separates concurrent
+shows on the headliner. Putting the room in it would mean a venue relabelling a
+room — or a scraper *learning* to read one, which is exactly what happened here
+— doubles every affected show instead of correcting it. There's a test pinning
+that: ingesting the same show first without a room and then with one leaves one
+row, updated.
+
+Room strings are whitespace-normalized but keep the source's casing, the same
+posture as performer display names. Where a source is internally inconsistent
+the *scraper* canonicalizes: SFJAZZ ships both "Joe Henderson Lab" and "Joe
+Henderson lab", and one venue's rooms shouldn't render two ways.
+
+Off-site bookings carry no room — an off-site venue's "room" is its own venue
+row, so the field stays empty rather than duplicating the venue name.
+
+In the UI the room sits between venue and neighborhood, reading innermost
+outward (venue → room → area), with slightly more weight than the neighborhood
+so "Joe Henderson Lab" isn't misread as a district. Single-room venues render
+exactly as before.
+
+### Scope note
+
+Only SFJAZZ populates it so far. Other multi-room venues in the set — DNA
+Lounge's rooms, SoundBox inside Davies — can adopt it whenever their scrapers
+are next touched; nothing forces a sweep, and `NULL` is the correct value until
+then.
+
+---
+
 ## SFJAZZ — the last dormant Phase 2 venue, finally scraped (August 2026)
 
 `sfjazz` has been seeded since Phase 2 with `calendar_url = "TBD"` and zero

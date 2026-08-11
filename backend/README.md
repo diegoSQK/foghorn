@@ -82,7 +82,13 @@ the Python models live in `foghorn/models.py`.
 - **`shows`** — `id`, `venue_id` → `venues`, `start_utc` (ISO 8601, normalized
   to `+00:00`), `start_local_date` (`YYYY-MM-DD` in venue tz),
   `start_local_time` (`HH:MM` in venue tz), `doors_local_time` (nullable),
-  `headliner_canonical`, `ticket_url`, `price_text`, `source_url`, `scraped_at`.
+  `headliner_canonical`, `ticket_url`, `price_text`, `source_url`, `scraped_at`,
+  `room` (nullable). `room` names the performance space inside a venue that has
+  more than one — SFJAZZ's `sfjazz` row covers both Miner Auditorium and the
+  Joe Henderson Lab, and 38% of its nights run both, so without it the venue
+  reads as double-booking itself. Deliberately **not** part of the natural key:
+  one room can't host two bills at one time, so a room correction updates the
+  row rather than forking it. `NULL` for the single-room majority.
 - **`event_type_overrides`** — manual event-type corrections: `venue_id` →
   `venues`, `headliner_canonical`, `event_type` (`show` / `jam`),
   `created_at`; PK `(venue_id, headliner_canonical)`. Keyed on venue +
@@ -209,7 +215,8 @@ All filters stack as ANDs. Date filters compare against `start_local_date`. Resp
   "support": [{"display": "...", "canonical": "..."}],
   "ticket_url": null,
   "price_text": null,
-  "source_url": "https://birdbeckett.com/events/"
+  "source_url": "https://birdbeckett.com/events/",
+  "room": null
 }
 ```
 
