@@ -37,8 +37,8 @@ def list_venues() -> list[VenueView]:
     # aggregator-discovered venues (flagged via `source` so the frontend can
     # quarantine them), and seeded venues that carry shows without a venue
     # scraper of their own — halls fed by group feeds (Davies, Herbst, the
-    # Wilsey Atrium). SFJAZZ — seeded but deferred, no scraper, no shows —
-    # stays excluded.
+    # Wilsey Atrium). SFJAZZ was the long-standing dormant exception here; it
+    # has had a scraper since August 2026 and now lists like any other venue.
     return [
         VenueView(
             slug=v.slug,

@@ -67,6 +67,7 @@ from foghorn.scrapers import (
     poor_house_bistro,
     regency_ballroom,
     rickshaw_stop,
+    sfjazz,
     sjz_break_room,
     smileys_saloon,
     stanford_jazz_workshop,
@@ -167,6 +168,9 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     stanford_jazz_workshop.VENUE_SLUG: stanford_jazz_workshop.scrape,
     noontime_concerts.VENUE_SLUG: noontime_concerts.scrape,
     freight_and_salvage.VENUE_SLUG: freight_and_salvage.scrape,
+    # Only the Center's own rooms — registering SFJAZZ under the venues it
+    # books off-site would let its prune reap those venues' own listings.
+    sfjazz.VENUE_SLUG: sfjazz.scrape_center,
     # One scraper, two rooms. Registered once per venue (each entry filters the
     # shared fetch to its own room) so the nightly run's prune stays scoped to
     # the venue it actually has authoritative listings for.
