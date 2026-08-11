@@ -161,6 +161,18 @@ export default function ShowList({
                       initiallyOn={watchedVenueSlugs.has(show.venue.slug)}
                     />
                   )}
+                  {/* Room sits between venue and neighborhood — it reads
+                      venue → room → area, innermost outward. Given slightly
+                      more weight than the neighborhood so "Joe Henderson Lab"
+                      isn't misread as a district. */}
+                  {show.room && (
+                    <>
+                      {" · "}
+                      <span className="font-medium text-zinc-600 dark:text-zinc-300">
+                        {show.room}
+                      </span>
+                    </>
+                  )}
                   {show.venue.neighborhood ? ` · ${show.venue.neighborhood}` : ""}
                   {/* "eclectic" resolves from a mixed-booking venue's default
                       — it says nothing about the show, so no badge: absence

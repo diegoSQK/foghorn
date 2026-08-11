@@ -66,6 +66,9 @@ class ShowView(BaseModel):
     ticket_url: str | None
     price_text: str | None
     source_url: str
+    # Room within a multi-room venue ("Joe Henderson Lab"). None for the
+    # single-room majority, which the UI renders exactly as before.
+    room: str | None
 
 
 def _to_view(show: Show, venue: Venue) -> ShowView:
@@ -117,6 +120,7 @@ def _to_view(show: Show, venue: Venue) -> ShowView:
         ticket_url=show.ticket_url,
         price_text=show.price_text,
         source_url=show.source_url,
+        room=show.room,
     )
 
 

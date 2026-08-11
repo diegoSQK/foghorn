@@ -58,6 +58,9 @@ export type ShowView = {
   ticket_url: string | null;
   price_text: string | null;
   source_url: string;
+  // Room within a multi-room venue ("Joe Henderson Lab"). Null for the
+  // single-room majority.
+  room: string | null;
 };
 
 export type VenueOption = {
