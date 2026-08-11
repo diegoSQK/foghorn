@@ -9,6 +9,8 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    // The e2e suite's second build (playwright.config.ts's single-user app).
+    ".next-single-user/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
