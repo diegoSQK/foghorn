@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from foghorn.api.auth import router as auth_router
+from foghorn.api.auth import warn_if_single_user
 from foghorn.api.events import router as events_router
 from foghorn.api.health import router as health_router
 from foghorn.api.inbox import router as inbox_router
@@ -36,6 +37,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     conn = db.connect()
     try:
         seed(conn)
+        warn_if_single_user(conn)
     finally:
         conn.close()
     scheduler = start_scheduler()  # None when disabled (e.g. tests)

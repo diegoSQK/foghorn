@@ -7,6 +7,14 @@ expiry (see ``repo/sessions.py``). ``Secure`` on the cookie is opt-in via
 ``FOGHORN_SECURE_COOKIES=1`` because the Tailscale fleet deployment serves
 plain HTTP, where a Secure cookie would never be stored.
 
+``FOGHORN_SINGLE_USER=1`` collapses this back to the pre-multi-user posture:
+a request with no session cookie resolves as the bootstrap admin instead of
+anonymous. That's the right shape for the Tailscale fleet deployment, where
+the only reader is the machine's owner and the iOS home-screen PWA has no way
+to open an invite link (separate storage container, no address bar). It grants
+unauthenticated admin to anything that can reach the port, so it is
+laptop/Tailscale only — never a public deployment.
+
 Dependencies exported for other routers:
 
 - ``optional_user`` — the session's ``User`` or ``None``; never raises.
@@ -16,7 +24,9 @@ Dependencies exported for other routers:
 
 from __future__ import annotations
 
+import logging
 import os
+import sqlite3
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -27,9 +37,40 @@ from foghorn.repo import db
 from foghorn.repo import sessions as sessions_repo
 from foghorn.repo import users as users_repo
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 SESSION_COOKIE = "foghorn_session"
+
+
+def single_user_mode() -> bool:
+    """Whether cookie-less requests resolve as the bootstrap admin.
+
+    Read per-call rather than at import so tests can toggle it with
+    ``monkeypatch.setenv`` and so a deployment can flip it with a restart."""
+    return os.environ.get("FOGHORN_SINGLE_USER") == "1"
+
+
+def warn_if_single_user(conn: sqlite3.Connection) -> None:
+    """Announce single-user mode at startup. Unauthenticated admin should
+    never be silent, so this logs at WARNING and names the account."""
+    if not single_user_mode():
+        return
+    admin = users_repo.first_admin(conn)
+    if admin is None:
+        logger.warning(
+            "FOGHORN_SINGLE_USER=1 but this DB has no admin user — requests "
+            "stay anonymous. Run `make auth-bootstrap` to create one."
+        )
+        return
+    logger.warning(
+        "FOGHORN_SINGLE_USER=1: unauthenticated requests resolve as admin "
+        "%r (id=%s). This grants admin to anything that can reach this port — "
+        "intended for the Tailscale fleet deployment only, never a public one.",
+        admin.display_name,
+        admin.id,
+    )
 
 
 def _set_session_cookie(response: Response, token: str) -> None:
@@ -46,11 +87,17 @@ def _set_session_cookie(response: Response, token: str) -> None:
 
 def optional_user(request: Request) -> User | None:
     token = request.cookies.get(SESSION_COOKIE)
-    if not token:
-        return None
     conn = db.connect()
     try:
-        return sessions_repo.resolve(conn, token)
+        # A real session always wins: single-user mode is a fallback for the
+        # anonymous case only, so a signed-in non-admin stays themselves.
+        if token:
+            return sessions_repo.resolve(conn, token)
+        if single_user_mode():
+            # No admin row → behave anonymous rather than conjure a user on a
+            # GET; `make auth-bootstrap` is the documented fix.
+            return users_repo.first_admin(conn)
+        return None
     finally:
         conn.close()
 
@@ -72,6 +119,9 @@ class MeView(BaseModel):
     display_name: str
     email: str | None
     is_admin: bool
+    # The frontend hides the sign-out control in single-user mode, where
+    # signing out would just re-resolve to the same admin on the next request.
+    single_user: bool = False
 
 
 def _me(user: User) -> MeView:
@@ -81,6 +131,7 @@ def _me(user: User) -> MeView:
         display_name=user.display_name,
         email=user.email,
         is_admin=user.is_admin,
+        single_user=single_user_mode(),
     )
 
 
