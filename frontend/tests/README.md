@@ -23,14 +23,26 @@ file).
 
 ## How it's wired (`playwright.config.ts`)
 
-Playwright starts two servers and waits for both before running:
+Playwright starts three servers and waits for them before running:
 
-1. **Mock backend** — `tests/mock-api/server.mjs`, a ~30-line Node HTTP server
-   that returns the fixture JSON below for `/api/shows` and `/api/venues`.
-2. **The app** — `npm run build && npm run start` on port **3200**, run with
-   `BACKEND_URL` pointed at the mock. Server components fetch it directly;
+1. **Mock backend** — `tests/mock-api/server.mjs`, a small Node HTTP server
+   returning the fixture JSON below for `/api/shows` and `/api/venues`. One
+   process, two ports: **4010** (normal auth) and **4011** (single-user).
+2. **The app** — `npm run build && npm run start` on port **3200**, with
+   `BACKEND_URL` pointed at :4010. Server components fetch it directly;
    browser fetches go relative and the `next.config.ts` rewrite proxies them
    to the mock.
+3. **A second app** on port **3201**, pointed at the single-user mock (:4011).
+   It gets its own build under `NEXT_DIST_DIR=.next-single-user`: the rewrite
+   destination is resolved at *build* time, so sharing one build would proxy
+   this app's browser calls to the other mock.
+
+**Auth in the specs.** The config seeds a `foghorn_session` cookie, so specs
+run signed in as an admin; the mock 401s personal routes without it, like the
+real backend. `auth-modes.spec.ts` clears the cookie to cover the two
+cookie-less modes — anonymous (:3200) and single-user (:3201). Those two are
+the *same* request distinguished only by the backend's `FOGHORN_SINGLE_USER`
+flag, which is why there's a second app/mock pair rather than one.
 
 **Why a mock *server* and not Playwright's `page.route()`?** `app/page.tsx` is
 an async *server* component: it fetches the API from the Next server process,

@@ -44,6 +44,18 @@ def get_by_invite_token(conn: sqlite3.Connection, token: str) -> User | None:
     return _row_to_user(row) if row is not None else None
 
 
+def first_admin(conn: sqlite3.Connection) -> User | None:
+    """The lowest-id admin, or ``None`` when the DB has no admin yet.
+
+    Same selection ``schema._ensure_bootstrap_admin`` uses, so single-user mode
+    (``FOGHORN_SINGLE_USER=1``) resolves to exactly the account the multi-user
+    migration assigned the pre-existing single-tenant watchlist rows to."""
+    row = conn.execute(
+        f"SELECT {_COLUMNS} FROM users WHERE is_admin = 1 ORDER BY id LIMIT 1"
+    ).fetchone()
+    return _row_to_user(row) if row is not None else None
+
+
 def list_all(conn: sqlite3.Connection) -> list[User]:
     rows = conn.execute(f"SELECT {_COLUMNS} FROM users ORDER BY id").fetchall()
     return [_row_to_user(row) for row in rows]

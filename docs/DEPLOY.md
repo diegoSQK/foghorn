@@ -106,6 +106,10 @@ survive a dead disk.
 - **Secure cookies.** `FOGHORN_SECURE_COOKIES=1` is set in compose — session
   cookies are HTTPS-only in production. Don't set it for the Tailscale
   fleet deployment, which serves plain HTTP.
+- **Single-user mode.** `FOGHORN_SINGLE_USER` **must stay `0`** on the VPS
+  (pinned in compose): it resolves every unauthenticated request as the
+  bootstrap admin, which on a public deployment hands admin to the internet.
+  It exists for the Tailscale fleet deployment only.
 - **Mail ingest.** `make mail-poll` (Phase 8) isn't wired into the container
   scheduler; if you want it on the box, add a host cron running
   `docker compose exec -T backend python -m foghorn.cli.mail_poll` with the

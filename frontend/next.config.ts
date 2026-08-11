@@ -10,11 +10,18 @@ const nextConfig: NextConfig = {
   // Self-contained server bundle for the Docker image (deploy/); local
   // `npm run dev` / `npm run start` behavior is unchanged.
   output: "standalone",
+  // Normally .next. The e2e suite builds two apps against two mock backends
+  // (see playwright.config.ts) and the rewrite below is baked in at *build*
+  // time, so those builds need separate output directories to coexist.
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   // Browser-side API calls use relative /api/* URLs so they reach whatever
   // host served the page (the laptop directly, or the laptop over Tailscale
   // from a phone). This rewrite proxies those to the backend server-side, so
   // the backend can keep binding 127.0.0.1 only and remote devices still work.
   // The frontend has no route handlers under /api, so there's no collision.
+  // NOTE: rewrites are resolved at build time — BACKEND_URL must be set for
+  // `next build`, not just `next start`, or browser calls proxy to the
+  // default. (Server-component fetches read it at runtime; see lib/api.ts.)
   async rewrites() {
     return [
       {
