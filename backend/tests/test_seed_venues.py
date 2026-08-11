@@ -22,6 +22,18 @@ def test_seed_is_idempotent(conn: sqlite3.Connection) -> None:
     assert len(venues_repo.list_all(conn)) == len(SEED_VENUES)
 
 
+def test_freight_and_salvage_is_seeded_as_east_bay(conn: sqlite3.Connection) -> None:
+    seed(conn)
+    freight = venues_repo.get_by_slug(conn, "freight_and_salvage")
+    assert freight is not None
+    assert (freight.neighborhood, freight.region) == ("Downtown Berkeley", "East Bay")
+    # The scraper reads the Tessitura ticketing host, not the challenge-walled
+    # marketing site.
+    assert freight.calendar_url.startswith("https://secure.thefreight.org")
+    # Folk/roots-led, not jazz — the per-show override carries the jazz nights.
+    assert freight.genre == "folk"
+
+
 def test_the_mellow_seeds_both_rooms_separately(conn: sqlite3.Connection) -> None:
     # One venue's calendar, two rooms in different neighborhoods. Folding them
     # into one row would file Lakehouse Jazz under the Haight and make the

@@ -1,0 +1,422 @@
+{
+ "productions": [
+  {
+   "productionSeasonId": "15675",
+   "productionTitle": "Musical Story Time",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/15675",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 15937,
+     "performanceDate": "2026-08-13T17:30:00+00:00",
+     "iso8601DateString": "2026-08-13T10:30:00.0000000-07:00",
+     "displayDate": "Thursday, August 13, 2026",
+     "displayTime": "10:30AM",
+     "performanceTitle": "Musical Story Time with the Berkeley Public Library Story Time Band",
+     "actionUrl": "https://berkeleypubliclibrary.libnet.info/event/16327170",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "15627",
+   "productionTitle": "<h1 id=\"tn-page-heading\">Bobby McFerrin and Motion</h1>\n",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/15627",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 15985,
+     "performanceDate": "2026-08-17T19:00:00+00:00",
+     "iso8601DateString": "2026-08-17T12:00:00.0000000-07:00",
+     "displayDate": "Monday, August 17, 2026",
+     "displayTime": "12:00PM",
+     "performanceTitle": "Bobby McFerrin and MOTION: Circlesongs",
+     "actionUrl": "https://secure.thefreight.org/15627/15985-bobby-mcferrin-260817",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    },
+    {
+     "id": 15986,
+     "performanceDate": "2026-08-24T19:00:00+00:00",
+     "iso8601DateString": "2026-08-24T12:00:00.0000000-07:00",
+     "displayDate": "Monday, August 24, 2026",
+     "displayTime": "12:00PM",
+     "performanceTitle": "Bobby McFerrin and MOTION: Circlesongs",
+     "actionUrl": "https://secure.thefreight.org/15627/15986-bobby-mcferrin-260824",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    },
+    {
+     "id": 15987,
+     "performanceDate": "2026-08-31T19:00:00+00:00",
+     "iso8601DateString": "2026-08-31T12:00:00.0000000-07:00",
+     "displayDate": "Monday, August 31, 2026",
+     "displayTime": "12:00PM",
+     "performanceTitle": "Bobby McFerrin and MOTION: Circlesongs",
+     "actionUrl": "https://secure.thefreight.org/15627/15987-bobby-mcferrin-260831",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "15902",
+   "productionTitle": "2026 Zola Jesus",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/15902",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 15903,
+     "performanceDate": "2026-08-22T03:00:00+00:00",
+     "iso8601DateString": "2026-08-21T20:00:00.0000000-07:00",
+     "displayDate": "Friday, August 21, 2026",
+     "displayTime": "8:00PM",
+     "performanceTitle": "Zola Jesus<br />\n<font style=\"font-size: 80%\">Solo Voice + Piano</font>",
+     "actionUrl": "https://secure.thefreight.org/15902/15903-zola-jesus-260821",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "15883",
+   "productionTitle": "Jeff Parker",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/15883",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 15884,
+     "performanceDate": "2026-08-23T03:00:00+00:00",
+     "iso8601DateString": "2026-08-22T20:00:00.0000000-07:00",
+     "displayDate": "Saturday, August 22, 2026",
+     "displayTime": "8:00PM",
+     "performanceTitle": "Jeff Parker ETA IVtet",
+     "actionUrl": "https://secure.thefreight.org/15883/15884-jeff-parker-eta-ivtet-260822",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "15964",
+   "productionTitle": "Linda Tillery & The East Bay Allstars",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/15964",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 15965,
+     "performanceDate": "2026-09-04T03:00:00+00:00",
+     "iso8601DateString": "2026-09-03T20:00:00.0000000-07:00",
+     "displayDate": "Thursday, September 3, 2026",
+     "displayTime": "8:00PM",
+     "performanceTitle": "Linda Tillery &amp; The East Bay Allstars<br><font style=\"font-size:80%\">78th Birthday Celebration</font>",
+     "actionUrl": "https://secure.thefreight.org/15964/15965-linda-tillery-and-east-bay-allstars-260903",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "15968",
+   "productionTitle": "Bettye LaVette",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/15968",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 15969,
+     "performanceDate": "2026-09-05T03:00:00+00:00",
+     "iso8601DateString": "2026-09-04T20:00:00.0000000-07:00",
+     "displayDate": "Friday, September 4, 2026",
+     "displayTime": "8:00PM",
+     "performanceTitle": " Bettye LaVette<br><font style=\"font-size:80%\">The Songs, The Stories, The Great Lady Of Soul<br>accompanied by Etienne Stadwijk on keyboards</font>",
+     "actionUrl": "https://secure.thefreight.org/15968/15969-bettye-lavette-260904",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    },
+    {
+     "id": 15970,
+     "performanceDate": "2026-09-06T03:00:00+00:00",
+     "iso8601DateString": "2026-09-05T20:00:00.0000000-07:00",
+     "displayDate": "Saturday, September 5, 2026",
+     "displayTime": "8:00PM",
+     "performanceTitle": " Bettye LaVette<br><font style=\"font-size:80%\">The Songs, The Stories, The Great Lady Of Soul<br>accompanied by Etienne Stadwijk on keyboards</font>",
+     "actionUrl": "https://secure.thefreight.org/15968/15970-bettye-lavette-260905",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "16112",
+   "productionTitle": "Fall I: Tamsen Fynn",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/16112",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 16113,
+     "performanceDate": "2026-09-10T00:30:00+00:00",
+     "iso8601DateString": "2026-09-09T17:30:00.0000000-07:00",
+     "displayDate": "September 9, 2026",
+     "displayTime": "5:30PM",
+     "performanceTitle": "The Joy of Singing with Tamsen Fynn",
+     "actionUrl": "https://secure.thefreight.org/16112/260909josw",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": false,
+     "performanceStatusMessage": "Tickets Not On Sale",
+     "productTypeId": 2,
+     "productTypeName": ""
+    },
+    {
+     "id": 16114,
+     "performanceDate": "2026-09-10T02:00:00+00:00",
+     "iso8601DateString": "2026-09-09T19:00:00.0000000-07:00",
+     "displayDate": "September 9, 2026",
+     "displayTime": "7:00PM",
+     "performanceTitle": "Strum & Sing with Tamsen Fynn",
+     "actionUrl": "https://secure.thefreight.org/16112/260909sstf",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": false,
+     "performanceStatusMessage": "Tickets Not On Sale",
+     "productTypeId": 2,
+     "productTypeName": ""
+    },
+    {
+     "id": 16115,
+     "performanceDate": "2026-09-12T00:30:00+00:00",
+     "iso8601DateString": "2026-09-11T17:30:00.0000000-07:00",
+     "displayDate": "September 11, 2026",
+     "displayTime": "5:30PM",
+     "performanceTitle": "Harmonize It! with Tamsen Fynn",
+     "actionUrl": "https://secure.thefreight.org/16112/260911hitf",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 2,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "16027",
+   "productionTitle": "2026 CM: Fall",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/16027",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 16029,
+     "performanceDate": "2026-09-29T02:30:00+00:00",
+     "iso8601DateString": "2026-09-28T19:30:00.0000000-07:00",
+     "displayDate": "September 28, 2026",
+     "displayTime": "7:30PM",
+     "performanceTitle": "Community Mondays: Country Bluegrass Jam with Richard Brandenburg",
+     "actionUrl": "https://secure.thefreight.org/16027/16029",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 2,
+     "productTypeName": ""
+    },
+    {
+     "id": 16028,
+     "performanceDate": "2026-09-15T02:30:00+00:00",
+     "iso8601DateString": "2026-09-14T19:30:00.0000000-07:00",
+     "displayDate": "September 14, 2026",
+     "displayTime": "7:30PM",
+     "performanceTitle": "Community Mondays: Open Mic with Jamey Williams",
+     "actionUrl": "https://secure.thefreight.org/16027/16028",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 2,
+     "productTypeName": ""
+    },
+    {
+     "id": 16087,
+     "performanceDate": "2026-10-27T02:30:00+00:00",
+     "iso8601DateString": "2026-10-26T19:30:00.0000000-07:00",
+     "displayDate": "October 26, 2026",
+     "displayTime": "7:30PM",
+     "performanceTitle": "Community Mondays: Fil Am Futurism with Karl Evangelista and Grex",
+     "actionUrl": "https://secure.thefreight.org/16027/16087",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 2,
+     "productTypeName": ""
+    },
+    {
+     "id": 16088,
+     "performanceDate": "2026-11-10T03:30:00+00:00",
+     "iso8601DateString": "2026-11-09T19:30:00.0000000-08:00",
+     "displayDate": "November 9, 2026",
+     "displayTime": "7:30PM",
+     "performanceTitle": "Community Mondays: Comedy at The Freight",
+     "actionUrl": "https://secure.thefreight.org/16027/16088",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 2,
+     "productTypeName": ""
+    },
+    {
+     "id": 16086,
+     "performanceDate": "2026-09-22T02:30:00+00:00",
+     "iso8601DateString": "2026-09-21T19:30:00.0000000-07:00",
+     "displayDate": "September 21, 2026",
+     "displayTime": "7:30PM",
+     "performanceTitle": "Community Mondays: Rickie Lee Jones Vinyl Listening Party @ Tessier Winery",
+     "actionUrl": "https://secure.thefreight.org/16027/16086",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 2,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "16009",
+   "productionTitle": "Aki Kumar",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/250919hwak",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 16010,
+     "performanceDate": "2026-09-19T20:00:00+00:00",
+     "iso8601DateString": "2026-09-19T13:00:00.0000000-07:00",
+     "displayDate": "September 19, 2026",
+     "displayTime": "1:00PM",
+     "performanceTitle": "Beginning Harmonica with Aki Kumar",
+     "actionUrl": "https://secure.thefreight.org/250919hwak/16010",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": false,
+     "performanceStatusMessage": "Tickets Not On Sale",
+     "productTypeId": 2,
+     "productTypeName": ""
+    },
+    {
+     "id": 16106,
+     "performanceDate": "2026-10-10T19:00:00+00:00",
+     "iso8601DateString": "2026-10-10T12:00:00.0000000-07:00",
+     "displayDate": "October 10, 2026",
+     "displayTime": "12:00PM",
+     "performanceTitle": "Intermediate Harmonica with Aki Kumar",
+     "actionUrl": "https://secure.thefreight.org/250919hwak/16106",
+     "actionUrlText": "Register",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 2,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "15975",
+   "productionTitle": "Vienna Teng",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/15975",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 15976,
+     "performanceDate": "2026-12-28T03:00:00+00:00",
+     "iso8601DateString": "2026-12-27T19:00:00.0000000-08:00",
+     "displayDate": "Sunday, December 27, 2026",
+     "displayTime": "7:00PM",
+     "performanceTitle": "Vienna Teng",
+     "actionUrl": "https://secure.thefreight.org/15975/15976-vienna-teng-261227",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    },
+    {
+     "id": 15977,
+     "performanceDate": "2026-12-29T04:00:00+00:00",
+     "iso8601DateString": "2026-12-28T20:00:00.0000000-08:00",
+     "displayDate": "Monday, December 28, 2026",
+     "displayTime": "8:00PM",
+     "performanceTitle": "Vienna Teng",
+     "actionUrl": "https://secure.thefreight.org/15975/15977-vienna-teng-261228",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": false,
+     "performanceStatusMessage": "Tickets Not On Sale",
+     "productTypeId": 3,
+     "productTypeName": ""
+    }
+   ]
+  },
+  {
+   "productionSeasonId": "15993",
+   "productionTitle": "2027 Debashish Bhattacharya",
+   "productionSeasonActionUrl": "https://secure.thefreight.org/15993",
+   "isPerformanceListVisible": true,
+   "performances": [
+    {
+     "id": 15994,
+     "performanceDate": "2027-04-25T03:00:00+00:00",
+     "iso8601DateString": "2027-04-24T20:00:00.0000000-07:00",
+     "displayDate": "Saturday, April 24, 2027",
+     "displayTime": "8:00PM",
+     "performanceTitle": "Debashish Bhattacharya &amp; George Brooks<br><font style=\"font-size:80%\">With Eman Hashimi, Rohan Krishnamurthy and Suryadipta Bhattacharya</font>",
+     "actionUrl": "https://secure.thefreight.org/15993/15994-debashish-bhattacharya-george-brooks-260908",
+     "actionUrlText": "Purchase",
+     "isPerformanceVisible": true,
+     "isOnSale": true,
+     "performanceStatusMessage": "",
+     "productTypeId": 3,
+     "productTypeName": ""
+    }
+   ]
+  }
+ ]
+}

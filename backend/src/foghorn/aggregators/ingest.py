@@ -36,6 +36,14 @@ VENUE_ALIASES: dict[str, str] = {
     "bird beckett": "bird_and_beckett",
     "back room": "the_back_room",
     "makeout room": "make_out_room",
+    # Bay Improviser bills Freight & Salvage as "The Freight", which strips to
+    # the canonical "freight" — and an aggregator-created venue *named* "The
+    # Freight" strips to exactly that too. Since the exact-match pass runs
+    # before token-subset, without this alias the quarantined row would keep
+    # winning over the seeded "Freight & Salvage" (which only matches on
+    # token-subset), splitting one room across two venues.
+    "freight": "freight_and_salvage",
+    "the freight": "freight_and_salvage",
     # Series → the venue that hosts them (long-tail audit, July 2026). Routes
     # future aggregator events to the promoted venue, where the duplicate
     # guard defers to its scraper.
