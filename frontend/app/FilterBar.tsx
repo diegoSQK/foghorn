@@ -62,8 +62,6 @@ export default function FilterBar({
   const time = params.get("time_of_day");
   const watchlistOn = params.get("watchlist") === "true";
   const myVenues = params.get("venue_watchlist") === "true";
-  const longTail = params.get("long_tail") === "true";
-  const hasLongTail = venues.some((v) => v.source === "aggregator");
   const venuesParam = params.get("venues");
   const selected = venuesParam
     ? new Set(venuesParam.split(",").filter(Boolean))
@@ -244,16 +242,10 @@ export default function FilterBar({
             My venues ★
           </button>
         )}
-        {hasLongTail && (
-          <button
-            type="button"
-            className={chipClass(longTail)}
-            title="Include shows at community-listed spaces foghorn doesn't scrape directly (via Bay Improviser)"
-            onClick={() => navigate({ long_tail: longTail ? null : "true" })}
-          >
-            Long tail
-          </button>
-        )}
+        {/* The community-listed switch used to sit here as a "Long tail" chip.
+            It moved into VenuePicker: every chip in this row narrows the
+            results, that one widened them, and it decides which venues exist
+            rather than which shows match. Same `long_tail` URL param. */}
       </div>
 
       <button

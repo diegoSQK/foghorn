@@ -14,7 +14,22 @@ import PinVenueButton from "./PinVenueButton";
 import type { VenueOption } from "./lib/api";
 import { inputClass } from "./lib/ui";
 
-const REGION_ORDER = ["SF", "East Bay", "Peninsula", "South Bay", "Santa Cruz"];
+// Mirrors the backend's `Region` literal. "North Bay" was missing here, so its
+// venues (Sweetwater, Mystic, Smiley's, Uptown Napa) fell through to the
+// unordered tail and sorted after whatever else landed there.
+const REGION_ORDER = [
+  "SF",
+  "East Bay",
+  "North Bay",
+  "Peninsula",
+  "South Bay",
+  "Santa Cruz",
+];
+// Aggregator-discovered venues group under this heading, and the toggle above
+// the list uses the same words. Previously both said "Long tail" — foghorn's
+// own term for how well a venue is covered, which says nothing to someone
+// looking for a gig.
+const COMMUNITY_GROUP = "Community-listed";
 
 export default function VenuePicker({
   venues,
@@ -55,6 +70,18 @@ export default function VenuePicker({
     setSelection(next);
   }
 
+  // The community-listed switch lives here rather than in the chip row: it
+  // decides which *venues* exist to choose from, and unlike every chip it
+  // widens the results instead of narrowing them. Same `long_tail` URL param
+  // as before — this is presentation only.
+  function setLongTail(on: boolean): void {
+    const nextParams = new URLSearchParams(params.toString());
+    if (on) nextParams.set("long_tail", "true");
+    else nextParams.delete("long_tail");
+    const q = nextParams.toString();
+    router.push(q ? `${pathname}?${q}` : pathname);
+  }
+
   const needle = query.trim().toLowerCase();
   const longTail = params.get("long_tail") === "true";
   const visible = venues.filter(
@@ -67,15 +94,22 @@ export default function VenuePicker({
   const matches = visible.filter(
     (v) => !needle || v.name.toLowerCase().includes(needle),
   );
+  const hasCommunityVenues = venues.some((v) => v.source === "aggregator");
   const groups = new Map<string, VenueOption[]>();
   for (const v of matches) {
     const region =
-      v.source === "aggregator" ? "Long tail" : (v.region ?? "Other");
+      v.source === "aggregator" ? COMMUNITY_GROUP : (v.region ?? "Other");
     (groups.get(region) ?? groups.set(region, []).get(region)!).push(v);
   }
+  // Known regions in geographic order, then anything unexpected, and the
+  // community-listed group always last — it's a provenance bucket, not a
+  // place, so it shouldn't interleave with the regions.
   const orderedRegions = [
     ...REGION_ORDER.filter((r) => groups.has(r)),
-    ...[...groups.keys()].filter((r) => !REGION_ORDER.includes(r)),
+    ...[...groups.keys()].filter(
+      (r) => !REGION_ORDER.includes(r) && r !== COMMUNITY_GROUP,
+    ),
+    ...(groups.has(COMMUNITY_GROUP) ? [COMMUNITY_GROUP] : []),
   ];
   const sortGroup = (list: VenueOption[]) =>
     [...list].sort((a, b) => {
@@ -116,6 +150,25 @@ export default function VenuePicker({
         aria-label="Filter venues"
         className={`${inputClass} max-w-xs`}
       />
+
+      {hasCommunityVenues && (
+        <label className="flex max-w-prose cursor-pointer items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <input
+            type="checkbox"
+            checked={longTail}
+            onChange={(e) => setLongTail(e.target.checked)}
+            className="mt-0.5 shrink-0 accent-teal-700 dark:accent-teal-500"
+          />
+          <span>
+            Show community-listed venues
+            <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+              Small spaces foghorn doesn’t scrape directly, listed via Bay
+              Improviser. Their details are patchier. Shows by performers on
+              your watchlist appear either way.
+            </span>
+          </span>
+        </label>
+      )}
 
       {orderedRegions.map((region) => (
         <div key={region}>
