@@ -19,9 +19,16 @@ export async function sessionHeaders(): Promise<HeadersInit | undefined> {
   return token ? { cookie: `${SESSION_COOKIE}=${token}` } : undefined;
 }
 
-/** The signed-in user for this request, or null when anonymous. */
+/**
+ * The signed-in user for this request, or null when anonymous.
+ *
+ * Always asks the backend, even with no cookie to forward: under
+ * FOGHORN_SINGLE_USER the backend resolves a cookie-less call to the
+ * bootstrap admin (see backend/README.md → Auth). Short-circuiting here on a
+ * missing cookie would hide that mode from the whole UI. Anonymous requests
+ * in normal mode still land as null — /api/auth/me 401s and getJSON maps a
+ * non-OK response to null.
+ */
 export async function getMe(): Promise<MeView | null> {
-  const headers = await sessionHeaders();
-  if (!headers) return null;
-  return getJSON<MeView>("/api/auth/me", { headers });
+  return getJSON<MeView>("/api/auth/me", { headers: await sessionHeaders() });
 }

@@ -123,6 +123,9 @@ export type MeView = {
   display_name: string;
   email: string | null;
   is_admin: boolean;
+  // The backend is running with FOGHORN_SINGLE_USER=1, so this user was
+  // resolved from the flag rather than a session — signing out is a no-op.
+  single_user: boolean;
 };
 
 // A user row as the admin management surface sees it (GET /api/auth/users).
