@@ -65,15 +65,30 @@ tag-origins:
 tag-genres:
 	cd backend && FOGHORN_DB_PATH="$(FOGHORN_DB_PATH)" python -m foghorn.cli.tag_genres
 
-# Run the backend API (http://localhost:8000) with autoreload. Points at the
+# Run the backend API (http://localhost:9100) with autoreload. Points at the
 # live DB, as it did before the path moved — this is the dev counterpart of
 # fleet's foghorn-api, not an isolated sandbox.
+#
+# The port is fleet's foghorn-api port + 1000, per the ad-hoc-dev convention
+# in ~/fleet/PORTS.md. Explicitly NOT uvicorn's default 8000 — that is
+# ficycle-api's fleet port on this machine, so binding it collides with a
+# running ficycle. next.config.ts carries the same warning about its own
+# default; this target was the one place still ignoring it.
 backend-run:
-	cd backend && FOGHORN_DB_PATH="$(FOGHORN_DB_PATH)" uvicorn foghorn.api:app --reload
+	cd backend && FOGHORN_DB_PATH="$(FOGHORN_DB_PATH)" uvicorn foghorn.api:app --reload --port 9100
 
-# Run the Next.js dev server (http://localhost:3000).
+# Which backend the dev web server proxies /api/* to. Defaults to fleet's
+# foghorn-api on :8100, so `make frontend-run` on its own still works against
+# live data exactly as before. To pair it with `make backend-run` instead:
+#   make frontend-run BACKEND_URL=http://127.0.0.1:9100
+# An existing BACKEND_URL in your environment wins.
+BACKEND_URL ?= http://127.0.0.1:8100
+
+# Run the Next.js dev server (http://localhost:4100). Same rule as backend-run:
+# fleet's foghorn-web port + 1000, NOT Next's default 3000 — that is
+# ficycle-web's fleet port.
 frontend-run:
-	cd frontend && npm run dev
+	cd frontend && BACKEND_URL="$(BACKEND_URL)" npm run dev -- --port 4100
 
 # Ensure an admin account exists in the live DB and print its login link
 # (multi-user, August 2026). Safe to re-run.
