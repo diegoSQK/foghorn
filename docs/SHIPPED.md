@@ -8,6 +8,66 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Single-user mode for the fleet deployment (August 2026)
+
+Multi-user (previous entry) left the fleet deployment stranded on the
+anonymous view: no star/pin on venues, no `+` on performers, no `jam?`
+correction. No data was lost — the migration re-keyed the 30 watchlist and
+15 watched-venue rows onto a bootstrap admin — the deployment simply had no
+session, and the frontend hides every follow affordance without one.
+
+**Why the phone couldn't just sign in.** `/join/<token>` works fine on the
+laptop, and that was verified. But foghorn is installed on the phone as an
+iOS home-screen PWA (`display: "standalone"`): it gets its own storage
+container, so a Safari sign-in doesn't carry; it has no address bar to reach
+the join URL; iOS opens tapped links in Safari rather than the installed app;
+and `UserMenu` renders nothing for anonymous visitors by design. A daily-use
+deployment that couldn't sign itself in.
+
+**Why not pin fleet to the pre-multi-user commit.** The live DB is already
+migrated — `watchlist` / `watched_venues` carry a `NOT NULL user_id` with no
+default, and the old repo layer inserts without it, so reads would render but
+every new follow would `IntegrityError`. An honest revert also meant restoring
+the Aug 1 DB copy and losing ~10 days of scrapes, and `fleet sync foghorn`
+would silently undo the pin.
+
+**The flag.** `FOGHORN_SINGLE_USER=1` makes `optional_user` resolve a
+*cookie-less* request as the bootstrap admin (`users_repo.first_admin` —
+lowest-id admin, the same selection `_ensure_bootstrap_admin` uses, so the
+flag lands on exactly the account the migration gave the legacy rows to)
+instead of anonymous. Precedence is the load-bearing part: a real session
+cookie always wins, so a signed-in non-admin still resolves to *themselves*.
+With no admin row it degrades to anonymous rather than conjuring a user on a
+GET (`make auth-bootstrap` is the documented fix). Startup logs a `WARNING`
+naming the resolved admin — unauthenticated admin should never be silent.
+Multi-user on the VPS is untouched, and `deploy/`'s compose pins the flag to
+`0` alongside `FOGHORN_SECURE_COOKIES=1` so an inherited env can't turn it on.
+
+**The frontend change is one deleted line, and it mattered.**
+`serverAuth.getMe()` short-circuited to `null` whenever there was no cookie to
+forward — so no backend response could ever have revealed the mode. It now
+always calls `/api/auth/me`; anonymous-in-normal-mode still yields `null`
+because `getJSON` maps a non-OK response to `null`, leaving that UI unchanged.
+`/api/auth/me` also grew `single_user: bool`, which `UserMenu` uses to drop
+the sign-out control (signing out would just re-resolve to the same admin).
+
+**Two e2e wrinkles worth remembering.** (1) "Anonymous" and "single-user" are
+the *same* cookie-less request, distinguished only by the backend flag, so one
+mock can't serve both: the mock backend now listens on two ports (:4010
+normal, :4011 single-user) with a second Next app on :3201 in front of the
+latter, and `auth-modes.spec.ts` clears the seeded cookie for both halves.
+(2) Next resolves `next.config.ts` rewrites at **build** time — so the two
+apps need separate builds (`NEXT_DIST_DIR`), not one shared one, or the
+second app's *browser* calls proxy to the wrong mock. That also means
+`BACKEND_URL` must be set for `next build`, not just `next start`; getting
+this wrong silently sends browser mutations to the default backend.
+
+The fleet side is a one-line `FOGHORN_SINGLE_USER: '1'` in the separate
+`fleet` repo's `ecosystem.config.js` (`foghorn-api` only — the frontend asks
+the backend). Resolves [#97](https://github.com/diegoSQK/foghorn/issues/97).
+
+---
+
 ## Multi-user accounts + VPS deployment (August 2026)
 
 Friends asked for access — the exact unblock condition the plan had written

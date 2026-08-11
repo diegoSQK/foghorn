@@ -151,12 +151,32 @@ deployment).
 - `POST /api/auth/claim` body `{token, display_name?, email?}` → sets the
   session cookie, returns the user. First use stamps `claimed_at`; the
   optional email is only stored to enable magic-link recovery later.
-- `GET /api/auth/me` → `{id, display_name, email, is_admin}`; 401 anonymous.
+- `GET /api/auth/me` → `{id, display_name, email, is_admin, single_user}`;
+  401 anonymous.
 - `POST /api/auth/logout` → 204, deletes the session + clears the cookie.
 - Admin: `GET/POST /api/auth/users` (list / create-invite),
   `POST /api/auth/users/{id}/regenerate` (new link; old link dies, open
   sessions survive), `PUT /api/auth/users/{id}/disabled` (disable also
   revokes the user's sessions; self-disable is refused).
+
+**Single-user mode (`FOGHORN_SINGLE_USER=1`).** A request with *no* session
+cookie resolves as the bootstrap admin (lowest-id `is_admin` user — the same
+account the multi-user migration assigned pre-existing watchlist rows to)
+instead of anonymous, so the whole personal + admin surface works with no
+sign-in at all. A real session cookie always wins, so a signed-in non-admin
+still resolves to themselves. With no admin row in the DB the flag degrades to
+anonymous rather than creating a user implicitly — run `make auth-bootstrap`.
+`/api/auth/me` reports the mode as `single_user: true` (the frontend uses it to
+drop the meaningless sign-out control), and the app logs a `WARNING` at startup
+naming the resolved admin.
+
+This is **laptop / Tailscale only** — it grants admin to anything that can
+reach the port. It exists because the Tailscale fleet deployment can't sign
+itself in: foghorn is installed there as an iOS home-screen PWA, which gets its
+own storage container (a Safari sign-in doesn't carry), has no address bar to
+reach `/join/<token>`, and iOS opens tapped links in Safari rather than the
+installed app. **Never set it on a public deployment** — `deploy/`'s compose
+pins it to `0` for exactly that reason.
 
 CLI equivalents (run against `FOGHORN_DB_PATH`): `make auth-bootstrap`
 (ensure an admin exists, print its login link — the first-run entry point),

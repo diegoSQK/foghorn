@@ -17,6 +17,10 @@ services:
       FOGHORN_DB_PATH: /data/foghorn.db
       # Cookies ride HTTPS only in production (Caddy terminates TLS).
       FOGHORN_SECURE_COOKIES: "1"
+      # Never on a public deployment: single-user mode resolves *every*
+      # unauthenticated request as the bootstrap admin. Off is already the
+      # default; pinned so an inherited env can't quietly turn it on.
+      FOGHORN_SINGLE_USER: "0"
       # Public deployments must not enable the JamBase source: the POC flag
       # is licensed for personal evaluation only (see PROJECT_PLAN).
       FOGHORN_SFJAZZ_ENABLED: "0"
