@@ -64,7 +64,10 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClie
     ingest_scraped_shows(
         conn,
         rooms["eb_rock_room"],
-        [_show("eb_rock_room", "EB Rock Act", 20), _show("eb_rock_room", "EB Jam Act", 21, jam=True)],
+        [
+            _show("eb_rock_room", "EB Rock Act", 20),
+            _show("eb_rock_room", "EB Jam Act", 21, jam=True),
+        ],
     )
     ingest_scraped_shows(conn, rooms["nb_folk_room"], [_show("nb_folk_room", "NB Folk Act", 20)])
     conn.commit()
