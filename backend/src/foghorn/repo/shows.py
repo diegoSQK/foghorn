@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import builtins
 import sqlite3
+from collections.abc import Sequence
 
 from foghorn.models import Show, ShowFilters, ShowPerformer
 from foghorn.repo.performer_match import token_match_sql
@@ -198,6 +199,11 @@ def _performer_match_clause(
     return clause, params
 
 
+def _placeholders(values: Sequence[object]) -> str:
+    """``?, ?, ?`` for an IN list."""
+    return ", ".join("?" for _ in values)
+
+
 def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
     """Return shows matching ``filters``, ordered by ``start_utc``, each with
     its bill attached. Date filters are inclusive and compare against
@@ -206,8 +212,7 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
     params: builtins.list[object] = []
 
     if filters.venue_slugs:
-        placeholders = ", ".join("?" for _ in filters.venue_slugs)
-        clauses.append(f"v.slug IN ({placeholders})")
+        clauses.append(f"v.slug IN ({_placeholders(filters.venue_slugs)})")
         params.extend(filters.venue_slugs)
     # Aggregator quarantine (decided July 2026: quarantine-with-flag,
     # watchlist bypass). Shows at aggregator-created venues are hidden unless:
@@ -230,21 +235,26 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
             )
             quarantine_params.append(filters.user_id)
         if filters.venue_slugs:
-            placeholders = ", ".join("?" for _ in filters.venue_slugs)
-            exemptions.append(f"v.slug IN ({placeholders})")
+            exemptions.append(f"v.slug IN ({_placeholders(filters.venue_slugs)})")
             quarantine_params.extend(filters.venue_slugs)
         clause = "v.source != 'aggregator'"
         if exemptions:
             clause = "(" + " OR ".join([clause, *exemptions]) + ")"
         clauses.append(clause)
         params.extend(quarantine_params)
+    # Facets are multi-select: values within one OR together, facets AND with
+    # each other. A single selection collapses to a one-element IN, so the
+    # single-value behaviour is unchanged.
     if filters.region:
-        clauses.append("v.region = ?")
-        params.append(filters.region)
+        clauses.append(f"v.region IN ({_placeholders(filters.region)})")
+        params.extend(filters.region)
     if filters.neighborhood:
-        # Neighborhoods are short distinct strings; case-insensitive exact match.
-        clauses.append("v.neighborhood = ? COLLATE NOCASE")
-        params.append(filters.neighborhood)
+        # Neighborhoods are short distinct strings; case-insensitive exact
+        # match. COLLATE binds to the comparison, so it goes after the IN list.
+        clauses.append(
+            f"v.neighborhood COLLATE NOCASE IN ({_placeholders(filters.neighborhood)})"
+        )
+        params.extend(filters.neighborhood)
     if filters.genre:
         # Layered genre resolution: per-show override > the headliner's
         # performer-level genre (Phase 7.4) > the venue's default lean.
@@ -253,31 +263,36 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
             "(SELECT pg.genre FROM show_performers spg "
             " JOIN performers pg ON pg.id = spg.performer_id "
             " WHERE spg.show_id = s.id AND spg.role = 'headliner' LIMIT 1), "
-            "v.genre) = ? COLLATE NOCASE"
+            f"v.genre) COLLATE NOCASE IN ({_placeholders(filters.genre)})"
         )
-        params.append(filters.genre)
+        params.extend(filters.genre)
     if filters.origin:
         # Any-performer semantics, like the watchlist: a touring headliner
         # with a local opener matches origin=local (the opener is the reason
-        # a support-local user would go).
+        # a support-local user would go). With several origins selected, one
+        # matching performer anywhere on the bill is enough.
         clauses.append(
             "EXISTS (SELECT 1 FROM show_performers spo "
             "JOIN performers po ON po.id = spo.performer_id "
-            "WHERE spo.show_id = s.id AND po.origin = ?)"
+            f"WHERE spo.show_id = s.id AND po.origin IN ({_placeholders(filters.origin)}))"
         )
-        params.append(filters.origin)
+        params.extend(filters.origin)
     if filters.watched_venue_slugs is not None:
         if filters.watched_venue_slugs:
-            ph = ", ".join("?" for _ in filters.watched_venue_slugs)
-            clauses.append(f"v.slug IN ({ph})")
+            clauses.append(
+                f"v.slug IN ({_placeholders(filters.watched_venue_slugs)})"
+            )
             params.extend(filters.watched_venue_slugs)
         else:
             clauses.append("1 = 0")  # empty venue watchlist -> no matches
     if filters.event_type:
         # Filter on the RESOLVED type so manual corrections move shows
         # between the Shows/Jam facets.
-        clauses.append(_EVENT_TYPE_RESOLVED.format(alias="s") + " = ?")
-        params.append(filters.event_type)
+        clauses.append(
+            _EVENT_TYPE_RESOLVED.format(alias="s")
+            + f" IN ({_placeholders(filters.event_type)})"
+        )
+        params.extend(filters.event_type)
     if filters.from_date:
         clauses.append("s.start_local_date >= ?")
         params.append(filters.from_date)

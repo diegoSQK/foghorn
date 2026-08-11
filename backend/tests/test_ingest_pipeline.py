@@ -214,9 +214,9 @@ def test_event_type_filter(conn: sqlite3.Connection, venue: Venue) -> None:
             _scraped("Some Band", datetime(2026, 6, 2, 20, 0)),
         ],
     )
-    jams = shows_repo.list(conn, ShowFilters(event_type="jam"))
+    jams = shows_repo.list(conn, ShowFilters(event_type=["jam"]))
     assert [s.headliner_canonical for s in jams] == ["open jam mondays"]
-    shows_only = shows_repo.list(conn, ShowFilters(event_type="show"))
+    shows_only = shows_repo.list(conn, ShowFilters(event_type=["show"]))
     assert [s.headliner_canonical for s in shows_only] == ["some band"]
 
 

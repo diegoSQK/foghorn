@@ -5,6 +5,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { facetHas, toggleFacet } from "./lib/facets";
 import { chipClass } from "./lib/ui";
 
 const OPTIONS = [
@@ -17,12 +18,13 @@ export default function TypeFilter() {
   const params = useSearchParams();
   const pathname = usePathname();
 
-  const active = params.get("type");
+  const activeParam = params.get("type");
 
-  function selectType(value: string): void {
+  function toggleType(value: string): void {
     const next = new URLSearchParams(params.toString());
-    if (active === value) next.delete("type");
-    else next.set("type", value);
+    const updated = toggleFacet(activeParam, value);
+    if (updated === null) next.delete("type");
+    else next.set("type", updated);
     const query = next.toString();
     router.push(query ? `${pathname}?${query}` : pathname);
   }
@@ -37,9 +39,9 @@ export default function TypeFilter() {
           <button
             key={value}
             type="button"
-            aria-pressed={active === value}
-            onClick={() => selectType(value)}
-            className={chipClass(active === value)}
+            aria-pressed={facetHas(activeParam, value)}
+            onClick={() => toggleType(value)}
+            className={chipClass(facetHas(activeParam, value))}
           >
             {label}
           </button>

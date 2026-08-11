@@ -9,6 +9,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { facetHas, toggleFacet } from "./lib/facets";
 import { chipClass } from "./lib/ui";
 
 const OPTIONS = [
@@ -21,12 +22,13 @@ export default function OriginFilter() {
   const params = useSearchParams();
   const pathname = usePathname();
 
-  const active = params.get("origin");
+  const activeParam = params.get("origin");
 
-  function selectOrigin(origin: string): void {
+  function toggleOrigin(value: string): void {
     const next = new URLSearchParams(params.toString());
-    if (active === origin) next.delete("origin");
-    else next.set("origin", origin);
+    const updated = toggleFacet(activeParam, value);
+    if (updated === null) next.delete("origin");
+    else next.set("origin", updated);
     const query = next.toString();
     router.push(query ? `${pathname}?${query}` : pathname);
   }
@@ -44,9 +46,9 @@ export default function OriginFilter() {
           <button
             key={value}
             type="button"
-            aria-pressed={active === value}
-            onClick={() => selectOrigin(value)}
-            className={chipClass(active === value)}
+            aria-pressed={facetHas(activeParam, value)}
+            onClick={() => toggleOrigin(value)}
+            className={chipClass(facetHas(activeParam, value))}
           >
             {label}
           </button>

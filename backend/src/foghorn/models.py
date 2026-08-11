@@ -176,15 +176,19 @@ class ShowFilters(BaseModel):
     # matches if any performer token-matches any bag. Empty list = no matches
     # (empty watchlist), None = filter not requested.
     watchlist_token_bags: list[list[str]] | None = None
-    region: Region | None = None
-    neighborhood: str | None = None  # case-insensitive exact match on venue
+    # Facet filters. Each is a *set* of accepted values: within a facet the
+    # values OR together (a show has one region, so "SF and East Bay" can only
+    # sensibly mean either), and the facets AND together with each other.
+    # None or empty = facet not constrained.
+    region: list[Region] | None = None
+    neighborhood: list[str] | None = None  # case-insensitive exact match on venue
     # Case-insensitive exact match on the show's *resolved* genre:
-    # COALESCE(show.genre_override, venue.genre).
-    genre: str | None = None
-    # A show matches if ANY performer on the bill carries this origin tag
-    # (same any-performer semantics as the watchlist filter).
-    origin: Origin | None = None
-    event_type: EventType | None = None  # None = both shows and jams
+    # COALESCE(show.genre_override, headliner genre, venue.genre).
+    genre: list[str] | None = None
+    # A show matches if ANY performer on the bill carries ANY of these origin
+    # tags (same any-performer semantics as the watchlist filter).
+    origin: list[Origin] | None = None
+    event_type: list[EventType] | None = None  # None/empty = shows and jams
     # Venue watchlist filter (Phase 9): shows at any of these venue slugs.
     # Empty list = no matches (empty watchlist); None = filter not requested.
     watched_venue_slugs: list[str] | None = None

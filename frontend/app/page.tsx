@@ -135,8 +135,11 @@ export default async function Home({
   if (region) query.set("region", region);
   if (neighborhood) query.set("neighborhood", neighborhood);
   if (genre) query.set("genre", genre);
-  if (origin === "local" || origin === "touring") query.set("origin", origin);
-  if (type === "show" || type === "jam") query.set("type", type);
+  // Facets are comma-separated multi-select, so these forward verbatim rather
+  // than being matched against a single allowed value — the API narrows each
+  // value and ignores anything it doesn't recognise.
+  if (origin) query.set("origin", origin);
+  if (type) query.set("type", type);
   if (longTail) query.set("long_tail", "true");
   if (myVenues) query.set("venue_watchlist", "true");
 
