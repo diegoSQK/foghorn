@@ -1,0 +1,431 @@
+[
+ {
+  "id": "19656",
+  "name": "Studio Production Intensive",
+  "subtitle": "<p><strong>3-day Course | Wed-Fri, August 12-14 | 10:30AM-1:30PM</strong></p>",
+  "artists": [],
+  "eventTypes": [
+   "Education",
+   "Classes & Workshops",
+   "Digital Lab"
+  ],
+  "eventDate": "2026-08-12T10:30:00-07:00",
+  "eventDateString": "8/12/2026",
+  "eventTimeString": "10:30 AM",
+  "location": "Joe Henderson Lab",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=19656",
+  "viewDetailCtaUrl": "/tickets/productions/summer-2026/education/digital-labs/studio-production-intensive/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "19613",
+  "name": "Take 6",
+  "subtitle": "",
+  "artists": [
+   "Take 6",
+   "Alvin Chea",
+   "Khristian Dentley",
+   "Joey Kibble",
+   "Mark Kibble",
+   "Claude V. McKnight III",
+   "David Thomas"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-08-13T19:30:00-07:00",
+  "eventDateString": "8/13/2026",
+  "eventTimeString": "7:30 PM",
+  "location": "Miner Auditorium",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=19613",
+  "viewDetailCtaUrl": "/tickets/productions/summer-2026/take-6/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "5719",
+  "name": "Mary Stallings & Bill Charlap Trio",
+  "subtitle": null,
+  "artists": [
+   "Mary Stallings",
+   "Bill Charlap",
+   "Kenny Washington",
+   "Peter Washington"
+  ],
+  "eventTypes": [
+   "Fridays Live"
+  ],
+  "eventDate": "2026-08-14T19:30:00",
+  "eventDateString": "8/14/2026",
+  "eventTimeString": "7:30 PM",
+  "location": "SFJAZZ At Home",
+  "buyTicketCtaUrl": "/athome/fridays-live/mary-stallings-bill-charlap-trio/",
+  "viewDetailCtaUrl": "/athome/fridays-live/mary-stallings-bill-charlap-trio/",
+  "isSoldOut": false,
+  "isStreamingEvent": true,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "19614",
+  "name": "Take 6",
+  "subtitle": "",
+  "artists": [
+   "Take 6",
+   "Alvin Chea",
+   "Khristian Dentley",
+   "Joey Kibble",
+   "Mark Kibble",
+   "Claude V. McKnight III",
+   "David Thomas"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-08-14T19:30:00-07:00",
+  "eventDateString": "8/14/2026",
+  "eventTimeString": "7:30 PM",
+  "location": "Miner Auditorium",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=19614",
+  "viewDetailCtaUrl": "/tickets/productions/summer-2026/take-6/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "5722",
+  "name": "'Kind of Blue' Birthday Celebration (Miles Davis Centennial)",
+  "subtitle": null,
+  "artists": [
+   "Patrice Rushen",
+   "Rodney Whitaker",
+   "Lenny White",
+   "Eddie Henderson",
+   "Donald Harrison",
+   "Javon Jackson"
+  ],
+  "eventTypes": [
+   "Fridays Live"
+  ],
+  "eventDate": "2026-08-21T19:30:00",
+  "eventDateString": "8/21/2026",
+  "eventTimeString": "7:30 PM",
+  "location": "SFJAZZ At Home",
+  "buyTicketCtaUrl": "/athome/fridays-live/kind-of-blue-birthday-miles-davis-centennial/",
+  "viewDetailCtaUrl": "/athome/fridays-live/kind-of-blue-birthday-miles-davis-centennial/",
+  "isSoldOut": false,
+  "isStreamingEvent": true,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "5725",
+  "name": "Kenny Garrett: Sounds from the Ancestors (5-Year Anniversary)",
+  "subtitle": null,
+  "artists": [
+   "Kenny Garrett",
+   "Keith Brown",
+   "Jeremiah Edwards",
+   "Ronald Bruner",
+   "Rudy Bird",
+   "Melvis Santa"
+  ],
+  "eventTypes": [
+   "Fridays Live"
+  ],
+  "eventDate": "2026-08-28T19:30:00",
+  "eventDateString": "8/28/2026",
+  "eventTimeString": "7:30 PM",
+  "location": "SFJAZZ At Home",
+  "buyTicketCtaUrl": "/athome/fridays-live/kenny-garrett-sounds-from-the-ancestors/",
+  "viewDetailCtaUrl": "/athome/fridays-live/kenny-garrett-sounds-from-the-ancestors/",
+  "isSoldOut": false,
+  "isStreamingEvent": true,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "19634",
+  "name": "Brad Mehldau: Ride Into The Sun",
+  "subtitle": "<p>featuring <strong>Chris Thile</strong>, <strong>Blake Mills</strong>, <strong>Matt Chamberlain</strong> &amp; <strong>John Davis</strong><br>with USC Thornton Chamber Virtuosi, <strong>Dan Coleman</strong> conductor&nbsp;</p>",
+  "artists": [
+   "Chris Thile",
+   "Brad Mehldau",
+   "John Davis",
+   "Matt Chamberlain",
+   "Blake Mills"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-08-29T20:00:00-07:00",
+  "eventDateString": "8/29/2026",
+  "eventTimeString": "8:00 PM",
+  "location": "Paramount Theatre, Oakland",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=19634",
+  "viewDetailCtaUrl": "/tickets/productions/25-26/brad-mehldau-ride-into-the-sun/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "20010",
+  "name": "Paul Cornish Trio",
+  "subtitle": "",
+  "artists": [
+   "Paul Cornish"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-09-10T19:00:00-07:00",
+  "eventDateString": "9/10/2026",
+  "eventTimeString": "7:00 PM",
+  "location": "Joe Henderson Lab",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=20010",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/paul-cornish-trio/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "20011",
+  "name": "Paul Cornish Trio",
+  "subtitle": "",
+  "artists": [
+   "Paul Cornish"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-09-10T20:30:00-07:00",
+  "eventDateString": "9/10/2026",
+  "eventTimeString": "8:30 PM",
+  "location": "Joe Henderson Lab",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=20011",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/paul-cornish-trio/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "5581",
+  "name": "SFJAM: Free Community Jam Session: 100 Years of Coltrane\u00a0",
+  "subtitle": null,
+  "artists": [
+   "Terrence Brewer"
+  ],
+  "eventTypes": [
+   "Education"
+  ],
+  "eventDate": "2026-09-14T19:00:00",
+  "eventDateString": "9/14/2026",
+  "eventTimeString": "7:00 PM",
+  "location": "Joe Henderson Lab",
+  "buyTicketCtaUrl": "/tickets/productions/26-27/education/sfjam/100-years-of-coltrane-terrence-brewer/",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/education/sfjam/100-years-of-coltrane-terrence-brewer/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "19646",
+  "name": "Brian Simpson featuring Grace Kelly ",
+  "subtitle": "",
+  "artists": [],
+  "eventTypes": [],
+  "eventDate": "2026-09-16T13:15:00-07:00",
+  "eventDateString": "9/16/2026",
+  "eventTimeString": "1:15 PM",
+  "location": "Miner Auditorium",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=19646",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/brian-simpson-featuring-grace-kelly/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "20022",
+  "name": "Camille Kerani",
+  "subtitle": "<p><strong>plays</strong> John Coltrane\u2019s <em>A Love Supreme&nbsp;</em></p>",
+  "artists": [
+   "Camille Kerani"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-09-18T19:00:00-07:00",
+  "eventDateString": "9/18/2026",
+  "eventTimeString": "7:00 PM",
+  "location": "Joe Henderson Lab",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=20022",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/hotplate-camille-kerani-a-love-supreme/",
+  "isSoldOut": true,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "20166",
+  "name": "WeBop at SFJAZZ: Stompers",
+  "subtitle": "<p>Ages 2 - 3.5</p>",
+  "artists": [
+   "WeBop at SFJAZZ"
+  ],
+  "eventTypes": [
+   "Family Events",
+   "Education"
+  ],
+  "eventDate": "2026-09-19T10:00:00-07:00",
+  "eventDateString": "9/19/2026",
+  "eventTimeString": "10:00 AM",
+  "location": "Joe Henderson Lab",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=20166",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/education/webop-at-sfjazz/stompers/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "99999",
+  "name": "Test Act At A New Room",
+  "subtitle": "<p><strong>3-day Course | Wed-Fri, August 12-14 | 10:30AM-1:30PM</strong></p>",
+  "artists": [],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-09-20T20:00:00-07:00",
+  "eventDateString": "8/12/2026",
+  "eventTimeString": "10:30 AM",
+  "location": "Fox Theater, Redwood City",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=99999",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/test/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "19724",
+  "name": "Julian Lage Quartet",
+  "subtitle": "<p>Feat. John Medeski, Jorge Roeder, &amp; Kenny Wollesen&nbsp;</p>",
+  "artists": [
+   "Julian Lage",
+   "Kenny Wollesen",
+   "John Medeski",
+   "Jorge Roeder"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-10-19T20:00:00-07:00",
+  "eventDateString": "10/19/2026",
+  "eventTimeString": "8:00 PM",
+  "location": "Davies Symphony Hall",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=19724",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/julian-lage-quartet/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "20141",
+  "name": "Discover Jazz: Impressions of John Coltrane",
+  "subtitle": "",
+  "artists": [
+   "Terrence Brewer"
+  ],
+  "eventTypes": [
+   "Classes & Workshops",
+   "Education"
+  ],
+  "eventDate": "2026-10-29T19:00:00-07:00",
+  "eventDateString": "10/29/2026",
+  "eventTimeString": "7:00 PM",
+  "location": "Joe Henderson Lab",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=20141",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/education/discover-jazz/impressions-of-john-coltrane/",
+  "isSoldOut": true,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "19733",
+  "name": "Dr. Jekyll & Mr. Hyde ",
+  "subtitle": "<p>with Dorothy Papadakos, organ&nbsp;</p>",
+  "artists": [
+   "Dorothy Papadakos"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2026-10-30T20:00:00-07:00",
+  "eventDateString": "10/30/2026",
+  "eventTimeString": "8:00 PM",
+  "location": "Grace Cathedral",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=19733",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/dr-jekyll-mr-hyde-dorothy-papadakos/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "20152",
+  "name": "DEEP DIVE INTO ABLETON LIVE W/ JEF STOTT",
+  "subtitle": "",
+  "artists": [
+   "Jef Stott"
+  ],
+  "eventTypes": [
+   "Education",
+   "Classes & Workshops",
+   "Digital Lab"
+  ],
+  "eventDate": "2026-11-07T10:30:00-08:00",
+  "eventDateString": "11/7/2026",
+  "eventTimeString": "10:30 AM",
+  "location": "Joe Henderson lab",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=20152",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/education/digital-labs/deep-dive-into-ableton-live-jef-stott/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ },
+ {
+  "id": "19987",
+  "name": "Chucho Vald\u00e9s ",
+  "subtitle": "",
+  "artists": [
+   "Chucho Vald\u00e9s"
+  ],
+  "eventTypes": [
+   "Shows"
+  ],
+  "eventDate": "2027-05-30T15:00:00-07:00",
+  "eventDateString": "5/30/2027",
+  "eventTimeString": "3:00 PM",
+  "location": "Miner Auditorium",
+  "buyTicketCtaUrl": "/smartseat/?itemNumber=19987",
+  "viewDetailCtaUrl": "/tickets/productions/26-27/chucho-valdes/",
+  "isSoldOut": false,
+  "isStreamingEvent": false,
+  "hideFromCalendar": false,
+  "genres": []
+ }
+]

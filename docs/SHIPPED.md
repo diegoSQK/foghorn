@@ -8,6 +8,112 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## SFJAZZ — the last dormant Phase 2 venue, finally scraped (August 2026)
+
+`sfjazz` has been seeded since Phase 2 with `calendar_url = "TBD"` and zero
+shows — the original pilot venue, dormant for the entire life of the project
+because the site sits behind a Cloudflare managed challenge. The venues endpoint
+had a special case naming it as the one seeded-but-excluded row. That's closed:
+**182 shows** over a 180-day window, 177 of them at the Center itself.
+
+### What actually changed
+
+The re-recon (#91) started by applying the Freight playbook — check for a
+`secure.`/`tickets.` CNAME off the challenge — and that failed. Subdomains
+enumerated from certificate-transparency logs (`admin`, `athome`, `shop`,
+`staging`, `venuebuilder`, `vpn`, `wifi`, `www`) are all Cloudflare-fronted
+except Shopify merch and Vimeo streaming; SFJAZZ self-hosts ticketing on
+`sfjazz.org`. Ticketmaster remains a dead end.
+
+What had changed since July is the site itself. `robots.txt` gives it away —
+it's now Umbraco, built by Adage Technologies, and it disallows only
+`/umbraco/`. The calendar renders client-side from an endpoint named in
+`/Static/dist/calendar.js`:
+
+```
+GET https://www.sfjazz.org/ace-api/events/?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+```
+
+Unauthenticated, no nonce, no key, one request for the whole window (a year =
+282 events), already one entry per performance. It carries the room, the full
+artist list, ticket and detail URLs, and sold-out state. No price — only the
+per-production HTML pages have that, at ~300 extra fetches a night, which isn't
+worth a price string.
+
+### The client is load-bearing, and that is a real cost
+
+Cloudflare fingerprints client stacks. Measured interleaved, same URL, same
+polite UA, 2s apart: `urllib` `[200, 200, 200, 200]`, `httpx`
+`[403, 403, 403, 403]` with `cf-mitigated: challenge`. `curl` is challenged too.
+So this scraper deliberately uses stdlib `urllib` where every other scraper in
+the repo uses `httpx`.
+
+That was Diego's call, taken with the tradeoff stated: no challenge is solved
+and no auth bypassed (these are ordinary GETs of openly-served endpoints),
+`robots.txt` permits these paths, and it's one request per night from a
+contactable UA — but it is **fragile**, because Cloudflare reclassifies clients
+routinely.
+
+The header set turned out to be load-bearing too, and counter-intuitively so.
+Mid-build the scraper started 403ing, which looked like the predicted
+reclassification. It wasn't — it was a `Referer` header added for politeness.
+Reproducibly:
+
+```
+UA + Accept           -> 200
+UA + Accept + Referer -> 403 cf-mitigated: challenge
+UA, no Accept         -> 403 cf-mitigated: challenge
+```
+
+An explicit `Accept` is required and a `Referer` is fatal — the reverse of the
+usual "look more like a browser" instinct. A test pins the exact header set so a
+well-meaning edit can't quietly break it, and `fetch_events` translates a
+returning challenge into a raised error so the venue reads as *errored* on the
+scrape-health surface rather than reporting an empty calendar, which would look
+identical to "SFJAZZ has no shows".
+
+### SFJAZZ is a presenter, not just a venue
+
+The feed's `location` field routes each event. Miner Auditorium and the Joe
+Henderson Lab fold into the one `sfjazz` row (same building, same neighborhood —
+the SoundBox-under-Davies precedent, unlike The Mellow's two rooms in different
+neighborhoods). The feed spells the Lab both ways, `Lab` and `lab`, so matching
+is casefolded — a case-sensitive map would have sent 7 events a year to the
+unmapped-location warning.
+
+SFJAZZ also books off-site: the Paramount, the UC Theatre, Davies, Grace
+Cathedral. Those are routed but **not ingested**, and that restraint is a safety
+property rather than tidiness. The runner ingests a registered scraper's whole
+output against one venue with `prune=True`; SFJAZZ lists only the two nights it
+presents at the Paramount, so registering this scraper under
+`paramount_theatre_oakland` would reap every *other* Paramount show in that span
+and wipe out that venue's own scraper's work. Off-site dates arrive through the
+host venue's scraper, where they already do — Snarky Puppy's Paramount date was
+in foghorn before this shipped, with a natural key identical to what this feed
+reports. Unmapped locations drop with a warning rather than raising: losing one
+one-off room beats losing the other ~180 shows in the window.
+
+### SFJAM
+
+`eventTypes` separates classes from concerts, but a bare `Education` tag is not
+the class programme — it is SFJAZZ's monthly **SFJAM free community jam
+session**, and every bare-`Education` event across a year of the feed is one.
+Nine dates that a naive read of the taxonomy would have dropped, of exactly the
+participatory "bring your horn" event `event_type="jam"` exists for. They're
+kept and tagged explicitly. Family matinees carry `Education` alongside
+`Family Events` and are kept; plain concerts sometimes carry no type at all and
+are kept too.
+
+Also worth keeping: the feed lists every named player, so a trio's sidemen
+become support rows and the watchlist can follow a musician across the bands
+they sit in.
+
+A drop audit of the live run confirmed no silent losses: 207 events in window →
+182 kept, 25 dropped (16 streamed "SFJAZZ At Home" dates, 9 classes/workshops),
+zero unmapped locations.
+
+---
+
 ## Freight & Salvage — behind the Cloudflare wall via Tessitura (August 2026)
 
 Freight & Salvage (2020 Addison St) is a 400-seat nonprofit coffeehouse and the

@@ -30,12 +30,12 @@ def test_lists_only_scraped_venues(client: TestClient) -> None:
     assert resp.status_code == 200
     slugs = [v["slug"] for v in resp.json()]
     # Every seeded venue with a registered scraper — and nothing else while
-    # the DB carries no shows: seeded-but-dormant venues (SFJAZZ) and still
-    # -empty group-feed halls (Davies, Herbst, the Wilsey Atrium) both wait
-    # until they have data.
+    # the DB carries no shows: still-empty group-feed halls (Davies, Herbst,
+    # the Wilsey Atrium) wait until they have data.
     expected = sorted(v.slug for v in SEED_VENUES if v.slug in REGISTERED_SCRAPERS)
     assert sorted(slugs) == expected
-    assert "sfjazz" not in slugs
+    # SFJAZZ was the long-standing dormant exception; it has a scraper now.
+    assert "sfjazz" in slugs
 
 
 def test_group_fed_hall_appears_once_it_has_shows(client: TestClient) -> None:
@@ -63,7 +63,6 @@ def test_group_fed_hall_appears_once_it_has_shows(client: TestClient) -> None:
     conn.close()
     venues = {v["slug"]: v for v in client.get("/api/venues").json()}
     assert venues["davies_symphony_hall"]["source"] == "seed"
-    assert "sfjazz" not in venues  # still dormant, still excluded
 
 
 def test_venue_shape(client: TestClient) -> None:

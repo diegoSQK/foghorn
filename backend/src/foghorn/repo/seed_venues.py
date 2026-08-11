@@ -28,7 +28,12 @@ SEED_VENUES: list[Venue] = [
         address="201 Franklin St, San Francisco, CA",
         tz="America/Los_Angeles",
         website_url="https://www.sfjazz.org",
-        calendar_url=_TBD,
+        # Covers both rooms in the building — Miner Auditorium and the Joe
+        # Henderson Lab — folded into one row, as SoundBox is under Davies.
+        # The calendar renders client-side from an "ace" JSON API; SFJAZZ also
+        # presents off-site, which the scraper routes by location. See
+        # scrapers/sfjazz.
+        calendar_url="https://www.sfjazz.org/calendar/",
         genre="jazz",
     ),
     Venue(
