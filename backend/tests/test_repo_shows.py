@@ -141,7 +141,7 @@ def test_list_filters(conn: sqlite3.Connection) -> None:
     }
 
     # region
-    east_bay = shows_repo.list(conn, ShowFilters(region="East Bay"))
+    east_bay = shows_repo.list(conn, ShowFilters(region=["East Bay"]))
     assert [s.headliner_canonical for s in east_bay] == ["brad mehldau"]
 
     # date window (inclusive, on start_local_date)
@@ -174,15 +174,15 @@ def test_list_filters_by_neighborhood(conn: sqlite3.Connection) -> None:
     _insert_show(conn, north_beach, date="2026-06-01", headliner="Keys Act")
     _insert_show(conn, glen_park, date="2026-06-02", headliner="Bird Act")
 
-    exact = shows_repo.list(conn, ShowFilters(neighborhood="North Beach"))
+    exact = shows_repo.list(conn, ShowFilters(neighborhood=["North Beach"]))
     assert [s.headliner_canonical for s in exact] == ["keys act"]
 
     # Case-insensitive exact match (COLLATE NOCASE).
-    lowered = shows_repo.list(conn, ShowFilters(neighborhood="north beach"))
+    lowered = shows_repo.list(conn, ShowFilters(neighborhood=["north beach"]))
     assert [s.headliner_canonical for s in lowered] == ["keys act"]
 
     # Region + neighborhood stack as an AND.
     combined = shows_repo.list(
-        conn, ShowFilters(region="SF", neighborhood="Glen Park")
+        conn, ShowFilters(region=["SF"], neighborhood=["Glen Park"])
     )
     assert [s.headliner_canonical for s in combined] == ["bird act"]

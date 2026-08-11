@@ -12,6 +12,12 @@ export function chipClass(active: boolean): string {
   }`;
 }
 
+/** A selected value rendered as a removable pill ("Mission ×"). Used where a
+ * facet has too many values for a chip row and is picked from a list instead —
+ * the venue picker and the neighborhood filter. */
+export const removableChipClass =
+  "rounded-full border border-teal-700 bg-teal-700 px-2.5 py-0.5 text-xs text-white transition-colors hover:bg-teal-800 dark:border-teal-500 dark:bg-teal-500 dark:text-zinc-950";
+
 /** Disabled "(soon)" chip — dashed, non-interactive. */
 export const disabledChipClass =
   "cursor-not-allowed rounded-full border border-dashed border-zinc-200 px-3 py-1 text-sm text-zinc-400 dark:border-zinc-800 dark:text-zinc-600";

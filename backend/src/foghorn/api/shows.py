@@ -35,6 +35,27 @@ _REGIONS: tuple[Region, ...] = (
 )
 
 
+def _csv(value: str | None) -> list[str]:
+    """Split a comma-separated facet param into trimmed, de-duplicated values.
+
+    Facets are multi-select — ``?genre=jazz,funk`` means "jazz or funk". A bare
+    ``?genre=jazz`` is just the one-element case, so existing single-value URLs
+    and bookmarks keep working unchanged.
+    """
+    if not value:
+        return []
+    seen: dict[str, None] = {}  # dict preserves insertion order; dedupes
+    for part in value.split(","):
+        trimmed = part.strip()
+        if trimmed:
+            seen.setdefault(trimmed, None)
+    return list(seen)
+
+
+_ORIGINS: tuple[Origin, ...] = ("local", "touring")
+_EVENT_TYPES: tuple[EventType, ...] = ("show", "jam")
+
+
 class VenueView(BaseModel):
     slug: str
     name: str
@@ -144,11 +165,11 @@ def build_show_views(
     to_date: str | None,
     time_of_day: Literal["early", "late"] | None = None,
     performer_query_canonical: str | None = None,
-    region: Region | None = None,
-    neighborhood: str | None = None,
-    genre: str | None = None,
-    origin: Origin | None = None,
-    event_type: EventType | None = None,
+    region: list[Region] | None = None,
+    neighborhood: list[str] | None = None,
+    genre: list[str] | None = None,
+    origin: list[Origin] | None = None,
+    event_type: list[EventType] | None = None,
     watchlist: bool = False,
     venue_watchlist: bool = False,
     long_tail: bool = False,
@@ -219,19 +240,24 @@ def list_shows(
         default=None, description="free-text performer name (canonicalized)"
     ),
     region: str | None = Query(
-        default=None, description="SF | East Bay | Peninsula | South Bay | Santa Cruz"
+        default=None,
+        description="comma-separated regions (OR within the facet), e.g. SF,East Bay"
     ),
     neighborhood: str | None = Query(
-        default=None, description="venue neighborhood (case-insensitive exact)"
+        default=None,
+        description="comma-separated venue neighborhoods (case-insensitive exact)"
     ),
     genre: str | None = Query(
-        default=None, description="venue-default genre (case-insensitive exact)"
+        default=None,
+        description="comma-separated genres (case-insensitive exact)"
     ),
     origin: str | None = Query(
-        default=None, description="local | touring (any performer on the bill)"
+        default=None,
+        description="comma-separated origins: local,touring (any performer on the bill)"
     ),
     type: str | None = Query(
-        default=None, description="show | jam (default: both)"
+        default=None,
+        description="comma-separated types: show,jam (default: both)"
     ),
     watchlist: str | None = Query(
         default=None, description="'true' to filter to watchlist matches"
@@ -274,21 +300,23 @@ def list_shows(
     # after canonicalization (e.g. only punctuation) means "no filter".
     performer_canonical = canonicalize(performer_query) if performer_query else ""
 
-    # Narrow region to a known value; unknown values are ignored, not a 400.
-    reg: Region | None = next((r for r in _REGIONS if r == region), None)
-
-    # Narrow origin the same way (mirrors time_of_day).
-    org: Origin | None = None
-    if origin == "local":
-        org = "local"
-    elif origin == "touring":
-        org = "touring"
-
-    etype: EventType | None = None
-    if type == "show":
-        etype = "show"
-    elif type == "jam":
-        etype = "jam"
+    # Facets are multi-select: comma-separated, OR within a facet, AND across
+    # facets. Unknown values are dropped rather than 400ing, and a single value
+    # is just the one-element case, so old single-value URLs behave identically.
+    # Each comprehension iterates the *allowed* literals and keeps the ones
+    # asked for. That drops unknown values for free and keeps the element type
+    # narrow enough for the Literal annotations without a cast.
+    requested_regions = set(_csv(region))
+    regs: list[Region] = [r for r in _REGIONS if r in requested_regions]
+    requested_origins = set(_csv(origin))
+    orgs: list[Origin] = [o for o in _ORIGINS if o in requested_origins]
+    requested_types = set(_csv(type))
+    etypes: list[EventType] = [t for t in _EVENT_TYPES if t in requested_types]
+    # Neighborhood and genre are open vocabularies (venue-supplied strings), so
+    # there's nothing to narrow against — the SQL match is exact-but-
+    # case-insensitive and an unknown value simply matches nothing.
+    hoods = _csv(neighborhood)
+    genres = _csv(genre)
 
     conn = db.connect()
     try:
@@ -299,11 +327,11 @@ def list_shows(
             to_date=to_date,
             time_of_day=tod,
             performer_query_canonical=performer_canonical or None,
-            region=reg,
-            neighborhood=neighborhood or None,
-            genre=genre or None,
-            origin=org,
-            event_type=etype,
+            region=regs,
+            neighborhood=hoods,
+            genre=genres,
+            origin=orgs,
+            event_type=etypes,
             watchlist=watchlist == "true",
             venue_watchlist=venue_watchlist == "true",
             long_tail=long_tail == "true",

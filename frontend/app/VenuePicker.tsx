@@ -12,7 +12,7 @@ import { useState } from "react";
 
 import PinVenueButton from "./PinVenueButton";
 import type { VenueOption } from "./lib/api";
-import { inputClass } from "./lib/ui";
+import { inputClass, removableChipClass } from "./lib/ui";
 
 // Mirrors the backend's `Region` literal. "North Bay" was missing here, so its
 // venues (Sweetwater, Mystic, Smiley's, Uptown Napa) fell through to the
@@ -128,7 +128,7 @@ export default function VenuePicker({
               type="button"
               onClick={() => toggle(slug)}
               aria-label={`Remove venue ${bySlug.get(slug)?.name ?? slug}`}
-              className="rounded-full border border-teal-700 bg-teal-700 px-2.5 py-0.5 text-xs text-white transition-colors hover:bg-teal-800 dark:border-teal-500 dark:bg-teal-500 dark:text-zinc-950"
+              className={removableChipClass}
             >
               {bySlug.get(slug)?.name ?? slug} ×
             </button>
