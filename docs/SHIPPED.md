@@ -170,6 +170,34 @@ A drop audit of the live run confirmed no silent losses: 207 events in window �
 182 kept, 25 dropped (16 streamed "SFJAZZ At Home" dates, 9 classes/workshops),
 zero unmapped locations.
 
+### Postscript (2026-08-13): the fragility came due, and the cadence changed
+
+The documented risk landed two days after shipping. From **2026-08-12** the site
+serves the scraper a Cloudflare challenge again — the client-fingerprint gap
+that made `urllib` work has closed. Both nightly runs since have failed
+identically, and a check on the 13th was still blocked, so this isn't reputation
+decay from the build's probing; it's the block.
+
+What held up: the failure is **loud and contained**. `fetch_events` raises
+`SFJazzSourceError`, so SFJAZZ shows as the one errored venue of 79 on
+`GET /api/health/scrape` rather than reporting an empty calendar. Because the
+raise happens before anything is returned, `ingest_scraped_shows` is never
+reached and `prune=True` never fires — **a broken scraper cannot reap its own
+venue**. All 177 shows, their rooms, and the 5 SFJAM jam tags are intact.
+
+So SFJAZZ moved to `MONTHLY_SCRAPERS`: it now attempts on the 1st rather than
+nightly. The season is already ingested through February, so freshness costs
+little, and a nightly error nobody can act on is just noise on the health
+surface. The monthly attempt is the cheap recovery probe — if the block lifts,
+the calendar comes back on its own.
+
+The durable fix is still to ask SFJAZZ for an `.ics` or a UA allowlist entry
+(their `robots.txt` already permits these paths), or to pick them up via the
+JamBase feed in #90. Chasing a new client fingerprint is explicitly *not* the
+plan: it's an arms race that breaks on Cloudflare's schedule, and it would edge
+from using an openly-served endpoint toward evading a block that is now
+unambiguous.
+
 ---
 
 ## Freight & Salvage — behind the Cloudflare wall via Tessitura (August 2026)

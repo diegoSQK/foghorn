@@ -1,10 +1,17 @@
 """Nightly scrape runner + the APScheduler wiring around it.
 
 `run_scrape` is the unit of work shared by the scheduler and `make scrape`: it
-runs every registered scraper through ingest, captures a per-venue result, and
-records one `scrape_runs` row (trimmed to the last N). It never raises on a
-per-venue failure — the failure is captured in that venue's `errors` so one bad
-venue can't take down the run or the scheduler thread.
+runs the scrapers it's given (default: every registered one) through ingest,
+captures a per-venue result, and records one `scrape_runs` row (trimmed to the
+last N). It never raises on a per-venue failure — the failure is captured in
+that venue's `errors` so one bad venue can't take down the run or the scheduler
+thread.
+
+**Cadence.** The scheduled run covers `scrapers_due(today)`, which is everything
+except `MONTHLY_SCRAPERS` on most days and everything on the 1st. `run_scrape`
+itself is cadence-agnostic, so `make scrape` still refreshes every venue —
+typing it is an explicit "refresh now", and silently skipping a venue there
+would be a footgun.
 
 **Scheduler choice: `BackgroundScheduler`, not `AsyncIOScheduler`.** The job is
 synchronous and blocking (httpx fetches + SQLite writes); running it on a
@@ -18,7 +25,7 @@ import logging
 import os
 import sqlite3
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -32,7 +39,7 @@ from foghorn.repo import db
 from foghorn.repo import scrape_runs as scrape_runs_repo
 from foghorn.repo import venues as venues_repo
 from foghorn.repo.seed_venues import seed
-from foghorn.scrapers import REGISTERED_SCRAPERS
+from foghorn.scrapers import MONTHLY_SCRAPERS, REGISTERED_SCRAPERS
 
 logger = logging.getLogger("foghorn.scheduler")
 
@@ -41,6 +48,8 @@ logger = logging.getLogger("foghorn.scheduler")
 SCRAPE_HOUR = 4
 SCRAPE_TZ = "America/Los_Angeles"
 JOB_ID = "nightly_scrape"
+# Day of the month the MONTHLY_SCRAPERS join the nightly run.
+MONTHLY_SCRAPE_DAY = 1
 DISABLE_ENV = "FOGHORN_DISABLE_SCHEDULER"
 
 ScraperMap = dict[str, Callable[[], list[ScrapedShow]]]
@@ -145,12 +154,31 @@ def run_scrape(
     return stored
 
 
+def scrapers_due(today: date, scrapers: ScraperMap | None = None) -> ScraperMap:
+    """The scrapers the scheduled run should cover on ``today``.
+
+    Everything runs nightly except ``MONTHLY_SCRAPERS``, which join in on the
+    1st. Varying one job's venue set — rather than adding a second monthly job
+    — keeps the scrape-health surface honest: it reports the *last run*, so a
+    separate job would leave it showing a single venue and 78 apparently
+    missing until the next nightly.
+    """
+    source = REGISTERED_SCRAPERS if scrapers is None else scrapers
+    if today.day == MONTHLY_SCRAPE_DAY:
+        return dict(source)
+    return {
+        slug: scrape
+        for slug, scrape in source.items()
+        if slug not in MONTHLY_SCRAPERS
+    }
+
+
 def scheduled_scrape() -> None:
     """Entry point APScheduler invokes — owns its own connection (it runs on a
     background thread)."""
     conn = db.connect()
     try:
-        run_scrape(conn)
+        run_scrape(conn, scrapers_due(date.today()))
     finally:
         conn.close()
 

@@ -296,11 +296,19 @@ recorded — distinct from "ran but a venue failed" (200 with that venue's
 ## Scheduled jobs
 
 A nightly scrape runs at **04:00 America/Los_Angeles** via APScheduler's
-`BackgroundScheduler` (started in the FastAPI lifespan), refreshing every
-registered scraper and recording a row read by `GET /api/health/scrape`.
-`make scrape` runs the same unit of work on demand. The scheduler is suppressed
-when `FOGHORN_DISABLE_SCHEDULER` is set (pytest sets it). Run history is kept to
-the most recent 30 runs. See `scheduler/runner.py`.
+`BackgroundScheduler` (started in the FastAPI lifespan), refreshing the
+scrapers due that day and recording a row read by `GET /api/health/scrape`.
+The scheduler is suppressed when `FOGHORN_DISABLE_SCHEDULER` is set (pytest
+sets it). Run history is kept to the most recent 30 runs. See
+`scheduler/runner.py`.
+
+**Cadence.** Everything runs nightly except `scrapers.MONTHLY_SCRAPERS`, which
+join the run on the 1st (`scrapers_due`). That's one job with a varying venue
+set rather than a second job, because the health endpoint reports the *last
+run* — a separate monthly job would leave it showing one venue and the rest
+apparently missing. `make scrape` is deliberately cadence-agnostic and
+refreshes every registered venue: typing it means "refresh now", and silently
+skipping one would be a footgun.
 
 ## Scrapers
 

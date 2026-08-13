@@ -177,3 +177,14 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     the_mellow.VENUE_SLUG_HAIGHT: the_mellow.scrape_haight,
     the_mellow.VENUE_SLUG_BOATHOUSE: the_mellow.scrape_boathouse,
 }
+
+# Scrapers that run monthly instead of nightly (see scheduler/runner.py).
+#
+# SFJAZZ is the only one. Its site began serving the scraper a Cloudflare
+# challenge again on 2026-08-12 — the client-fingerprint gap that made it
+# reachable has closed — so a nightly attempt can only produce a nightly error
+# on the scrape-health surface, for a venue whose season is already ingested
+# through February. Monthly keeps the noise proportional to what we can act on,
+# while still probing for recovery: if the block lifts, the next run picks the
+# calendar back up. Drop the slug from here the moment it does.
+MONTHLY_SCRAPERS: frozenset[str] = frozenset({sfjazz.VENUE_SLUG})
