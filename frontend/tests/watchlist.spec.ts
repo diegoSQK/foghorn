@@ -8,13 +8,23 @@ import { expect, test } from "@playwright/test";
 // watchlist route is stateful (POST appends), so the add-form spec uses a
 // name no other spec asserts on.
 
-// The chip row's remove buttons share their accessible name with the show
-// cards' on-watchlist toggles, so chip assertions scope to the section under
-// the "Your watchlist" heading.
-function chipRow(page: import("@playwright/test").Page) {
+// The panel's remove buttons share their accessible name with the show cards'
+// on-watchlist toggles, so entry assertions scope to the <details> carrying
+// the "Your watchlist" summary. The panel collapsed (it was a wall of chips at
+// 55 entries), so specs open it before asserting on entries.
+function watchlistPanel(page: import("@playwright/test").Page) {
   return page
-    .locator("section")
-    .filter({ has: page.getByRole("heading", { name: "Your watchlist" }) });
+    .locator("details")
+    .filter({ has: page.getByText("Your watchlist") });
+}
+
+async function openPanel(page: import("@playwright/test").Page) {
+  const panel = watchlistPanel(page);
+  await expect(panel).toBeVisible();
+  if (!(await panel.evaluate((el: HTMLDetailsElement) => el.open))) {
+    await panel.locator("summary").click();
+  }
+  return panel;
 }
 
 test("the Watchlist chip filters and reveals the management panel", async ({
@@ -26,17 +36,13 @@ test("the Watchlist chip filters and reveals the management panel", async ({
   // state (the add-form spec grows it in a parallel worker), so the locator
   // stays count-agnostic. The panel is hidden until the chip is active.
   const chip = page.getByRole("button", { name: /^Watchlist \(\d+\)$/ });
-  await expect(
-    page.getByRole("heading", { name: "Your watchlist" }),
-  ).toHaveCount(0);
+  await expect(watchlistPanel(page)).toHaveCount(0);
 
   await chip.click();
   await expect(page).toHaveURL(/[?&]watchlist=true/);
+  await openPanel(page);
   await expect(
-    page.getByRole("heading", { name: "Your watchlist" }),
-  ).toBeVisible();
-  await expect(
-    chipRow(page).getByRole("button", {
+    watchlistPanel(page).getByRole("button", {
       name: "Remove David Parker Sextet from watchlist",
     }),
   ).toBeVisible();
@@ -44,20 +50,16 @@ test("the Watchlist chip filters and reveals the management panel", async ({
   // Toggling off clears the param and the panel.
   await chip.click();
   await expect(page).not.toHaveURL(/watchlist=true/);
-  await expect(
-    page.getByRole("heading", { name: "Your watchlist" }),
-  ).toHaveCount(0);
+  await expect(watchlistPanel(page)).toHaveCount(0);
 });
 
 test("/watchlist redirects into the main-page filter", async ({ page }) => {
   await page.goto("/watchlist");
 
   await expect(page).toHaveURL(/\/\?.*watchlist=true/);
+  await openPanel(page);
   await expect(
-    page.getByRole("heading", { name: "Your watchlist" }),
-  ).toBeVisible();
-  await expect(
-    chipRow(page).getByRole("button", {
+    watchlistPanel(page).getByRole("button", {
       name: "Remove Late Night Trio from watchlist",
     }),
   ).toBeVisible();
@@ -77,17 +79,20 @@ test("follow-by-name form posts and the new chip appears on refresh", async ({
     .fill("Zawinul Syndicate");
   await page.getByRole("button", { name: "Follow", exact: true }).click();
 
-  // POST → router.refresh() → the server refetches GET /api/watchlist and the
-  // new entry lands in the chip row.
-  await expect(
-    chipRow(page).getByRole("button", {
-      name: "Remove Zawinul Syndicate from watchlist",
-    }),
-  ).toBeVisible();
-  // The input clears after a successful add.
+  // A genuinely new follow says so, and clears the input.
+  await expect(page.getByText("Now following Zawinul Syndicate.")).toBeVisible();
   await expect(
     page.getByRole("textbox", { name: "Follow a performer by name" }),
   ).toHaveValue("");
+
+  // POST → router.refresh() → the server refetches GET /api/watchlist and the
+  // new entry lands in the panel.
+  await openPanel(page);
+  await expect(
+    watchlistPanel(page).getByRole("button", {
+      name: "Remove Zawinul Syndicate from watchlist",
+    }),
+  ).toBeVisible();
 });
 
 test("a deep-linked /watchlist filter URL survives the redirect", async ({
@@ -122,4 +127,31 @@ test("a deep-linked /watchlist filter URL survives the redirect", async ({
 test("/venues redirects into the venue-watchlist filter", async ({ page }) => {
   await page.goto("/venues");
   await expect(page).toHaveURL(/\/\?.*venue_watchlist=true/);
+});
+
+test("re-following an existing name says so instead of silently succeeding", async ({
+  page,
+}) => {
+  await page.goto("/?watchlist=true");
+
+  const input = page.getByRole("textbox", {
+    name: "Follow a performer by name",
+  });
+  // "David Parker Sextet" is a fixture entry. Typed in a different case, to
+  // prove the check is on the canonical name rather than the literal string.
+  await input.fill("david parker SEXTET");
+  await page.getByRole("button", { name: "Follow", exact: true }).click();
+
+  await expect(
+    page.getByText("David Parker Sextet is already on your watchlist."),
+  ).toBeVisible();
+  // The text stays put on a duplicate, so it's obvious what was just judged
+  // one — unlike the old behaviour, which cleared the box either way.
+  await expect(input).toHaveValue("david parker SEXTET");
+
+  // Typing again clears the verdict.
+  await input.fill("david parker SEXTET!");
+  await expect(
+    page.getByText("David Parker Sextet is already on your watchlist."),
+  ).toHaveCount(0);
 });
