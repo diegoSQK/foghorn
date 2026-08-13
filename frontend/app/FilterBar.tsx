@@ -18,6 +18,7 @@ import TypeFilter from "./TypeFilter";
 import VenuePicker from "./VenuePicker";
 import type { VenueOption } from "./lib/api";
 import { addDaysISO, thisWeekend, todayISO } from "./lib/dates";
+import { facetValues } from "./lib/facets";
 import { chipClass, inputClass } from "./lib/ui";
 
 export default function FilterBar({
@@ -137,10 +138,24 @@ export default function FilterBar({
   // "More filters" toggle so shows aren't pushed two screens down. Desktop
   // (sm+) always shows the full panel; this state only matters under sm.
   const [moreOpen, setMoreOpen] = useState(false);
+  // How many selections are hidden behind the toggle. Two things made the old
+  // count read as arbitrary:
+  //
+  //  - it counted *params*, not selections, so picking three genres said "1";
+  //  - it counted `venue_watchlist`, whose "My venues ★" chip is in the
+  //    always-visible row above — so it reported something you could already
+  //    see, and reported it as hidden.
+  //
+  // Now it counts individual selections, and only for controls that actually
+  // live inside the collapsed panel. A date range stays one (it's one range,
+  // and its inputs are in here).
   const advancedActive =
-    ["region", "neighborhood", "genre", "origin", "type", "venues", "venue_watchlist", "long_tail"].filter(
-      (k) => params.get(k),
-    ).length + (params.get("from") || params.get("to") ? 1 : 0);
+    ["region", "neighborhood", "genre", "origin", "type", "venues"].reduce(
+      (total, key) => total + facetValues(params.get(key)).length,
+      0,
+    ) +
+    (params.get("long_tail") ? 1 : 0) +
+    (params.get("from") || params.get("to") ? 1 : 0);
 
   function setRange(active: boolean, range: { from: string; to: string }): void {
     navigate(active ? { from: null, to: null } : range);
