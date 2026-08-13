@@ -138,24 +138,34 @@ export default function FilterBar({
   // "More filters" toggle so shows aren't pushed two screens down. Desktop
   // (sm+) always shows the full panel; this state only matters under sm.
   const [moreOpen, setMoreOpen] = useState(false);
-  // How many selections are hidden behind the toggle. Two things made the old
-  // count read as arbitrary:
+  // The badge on the "More filters" button. One rule: count the selections you
+  // can't see while it's collapsed — nothing else.
   //
-  //  - it counted *params*, not selections, so picking three genres said "1";
-  //  - it counted `venue_watchlist`, whose "My venues ★" chip is in the
-  //    always-visible row above — so it reported something you could already
-  //    see, and reported it as hidden.
+  // Which means exactly the controls rendered below the toggle:
+  //   region, neighborhood (LocationFilter), genre, type, origin, and the
+  //   venue picker's venues + long_tail.
   //
-  // Now it counts individual selections, and only for controls that actually
-  // live inside the collapsed panel. A date range stays one (it's one range,
-  // and its inputs are in here).
+  // Everything in the always-visible row above is excluded, because reporting
+  // it as hidden is what made the number read as arbitrary: the performer
+  // search, the date quick chips, Early/Late, Watchlist, and My venues ★.
+  //
+  // `from`/`to` are excluded with them. The date *inputs* do sit inside the
+  // panel, but the same range is driven by the visible quick chips — and a
+  // date window always exists (it defaults), so it's the view's scope rather
+  // than a filter you switched on.
+  const ADVANCED_FACETS = [
+    "region",
+    "neighborhood",
+    "genre",
+    "origin",
+    "type",
+    "venues",
+  ];
   const advancedActive =
-    ["region", "neighborhood", "genre", "origin", "type", "venues"].reduce(
+    ADVANCED_FACETS.reduce(
       (total, key) => total + facetValues(params.get(key)).length,
       0,
-    ) +
-    (params.get("long_tail") ? 1 : 0) +
-    (params.get("from") || params.get("to") ? 1 : 0);
+    ) + (params.get("long_tail") ? 1 : 0);
 
   function setRange(active: boolean, range: { from: string; to: string }): void {
     navigate(active ? { from: null, to: null } : range);
