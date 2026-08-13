@@ -156,10 +156,37 @@ function createMockApi({ singleUser = false } = {}) {
           added_at: new Date().toISOString(),
           notes: null,
         };
-        if (!watchlist.some((e) => e.canonical_name === entry.canonical_name)) {
+        // Mirror the real endpoint's add-result fields (see
+        // api/watchlist.py): the POST is idempotent, so the caller can only
+        // tell "followed" from "already following" by these.
+        const existing = watchlist.find(
+          (e) => e.canonical_name === entry.canonical_name,
+        );
+        let coveredBy = null;
+        if (!existing) {
+          const newTokens = new Set(entry.canonical_name.split(" "));
+          // Shortest first, so the broadest existing entry is reported.
+          for (const other of [...watchlist].sort(
+            (a, b) =>
+              a.canonical_name.split(" ").length -
+              b.canonical_name.split(" ").length,
+          )) {
+            const tokens = other.canonical_name.split(" ").filter(Boolean);
+            if (tokens.length && tokens.every((t) => newTokens.has(t))) {
+              coveredBy = other.display_name;
+              break;
+            }
+          }
           watchlist.push(entry);
         }
-        send(200, JSON.stringify(entry));
+        send(
+          200,
+          JSON.stringify({
+            ...(existing ?? entry),
+            created: !existing,
+            already_covered_by: coveredBy,
+          }),
+        );
       });
       return;
     }

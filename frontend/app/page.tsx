@@ -19,7 +19,7 @@ import MonthView from "./MonthView";
 import PinVenueButton from "./PinVenueButton";
 import ShowList from "./ShowList";
 import ViewSwitcher from "./ViewSwitcher";
-import WatchlistChips from "./WatchlistChips";
+import WatchlistPanel from "./WatchlistPanel";
 import WeekView from "./WeekView";
 import {
   getJSON,
@@ -248,7 +248,7 @@ export default async function Home({
                   or hit the + next to any performer in the listings.
                 </p>
               ) : (
-                <WatchlistChips entries={watchlistEntries} />
+                <WatchlistPanel entries={watchlistEntries} />
               )}
             </div>
           )}

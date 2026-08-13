@@ -40,6 +40,27 @@ class WatchlistCreate(BaseModel):
     notes: str | None = None
 
 
+class WatchlistAddResult(WatchlistEntryView):
+    """The stored entry, plus what actually happened.
+
+    ``POST`` has always been idempotent, which left the caller unable to tell
+    "followed" from "you already follow them" — both returned 200 with the
+    entry. These two fields make the outcome legible so the UI can say so.
+    """
+
+    # False when an entry with this canonical name already existed.
+    created: bool
+    # Display name of a *different*, broader entry that already matches
+    # everything this one would. Watchlist matching is token-subset, so an
+    # entry whose tokens are a subset of the new name's tokens matches strictly
+    # more bills — "Christian McBride" already covers "Christian McBride's
+    # Ursa Major". Adding the narrower one is harmless but pointless, and it's
+    # how a list quietly grows: the "+" buttons on show cards add the venue's
+    # verbatim billing, which is exactly these long redundant strings.
+    # The entry is still added — this only reports.
+    already_covered_by: str | None = None
+
+
 def _to_view(entry: Watchlist) -> WatchlistEntryView:
     return WatchlistEntryView(
         canonical_name=entry.canonical_name,
@@ -59,22 +80,36 @@ def list_watchlist(user: Annotated[User, Depends(require_user)]) -> list[Watchli
         conn.close()
 
 
-@router.post("/api/watchlist", response_model=WatchlistEntryView)
+@router.post("/api/watchlist", response_model=WatchlistAddResult)
 def add_watchlist(
     body: WatchlistCreate, user: Annotated[User, Depends(require_user)]
-) -> WatchlistEntryView:
+) -> WatchlistAddResult:
     assert user.id is not None
     display_name = body.display_name.strip()
     # Reject names that canonicalize to nothing (empty / punctuation only) —
     # they'd be an unusable match key.
-    if not display_name or not canonicalize(display_name):
+    canonical = canonicalize(display_name)
+    if not display_name or not canonical:
         raise HTTPException(status_code=422, detail="display_name must contain a name")
     conn = db.connect()
     try:
+        before = watchlist_repo.list_all(conn, user.id)
+        existing = next((e for e in before if e.canonical_name == canonical), None)
+        covered_by = None
+        if existing is None:
+            # Shortest first, so the broadest entry is the one reported.
+            for other in sorted(before, key=lambda e: len(e.canonical_name.split())):
+                if matches_token_bag(other.canonical_name, canonical):
+                    covered_by = other.display_name
+                    break
         entry = watchlist_repo.add(conn, user.id, display_name, body.notes)
     finally:
         conn.close()
-    return _to_view(entry)
+    return WatchlistAddResult(
+        **_to_view(entry).model_dump(),
+        created=existing is None,
+        already_covered_by=covered_by,
+    )
 
 
 @router.delete("/api/watchlist/{canonical_name}", status_code=204)
