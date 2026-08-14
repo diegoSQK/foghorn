@@ -83,6 +83,24 @@ def _price_text(event: dict[str, Any]) -> str | None:
     return f"${low:.2f}–${high:.2f}"
 
 
+# Discovery's top-level segment. Only "Arts & Theatre" is dropped, and at these
+# venues it is entirely stand-up comedy — Chelsea Handler, John Mulaney, Daniel
+# Sloss and the like, which a music calendar shouldn't carry. Deliberately
+# narrow: "Undefined" and "Miscellaneous" are kept, because TM leaves plenty of
+# real gigs unclassified (a sixth of the Regency's listings), and dropping
+# those would lose shows to win a tidier taxonomy.
+_NON_MUSIC_SEGMENTS = frozenset({"arts & theatre"})
+
+
+def _is_non_music(event: dict[str, Any]) -> bool:
+    for cls in event.get("classifications") or []:
+        if not isinstance(cls, dict):
+            continue
+        segment = ((cls.get("segment") or {}).get("name") or "").strip().lower()
+        return segment in _NON_MUSIC_SEGMENTS
+    return False
+
+
 def _genre(event: dict[str, Any]) -> str | None:
     for cls in event.get("classifications") or []:
         if not isinstance(cls, dict):
@@ -115,6 +133,8 @@ def parse_events(
     shows: list[ScrapedShow] = []
     for event in events:
         if not isinstance(event, dict):
+            continue
+        if _is_non_music(event):
             continue
         dates = event.get("dates") or {}
         status = ((dates.get("status") or {}).get("code") or "").lower()
