@@ -679,6 +679,21 @@ SEED_VENUES: list[Venue] = [
         genre="world",
     ),
     Venue(
+        slug="stanford_live",
+        name="Stanford Live (Stanford University)",
+        neighborhood="Stanford",
+        region="Peninsula",
+        address="327 Lasuen St, Stanford, CA",
+        tz="America/Los_Angeles",
+        website_url="https://live.stanford.edu",
+        # A presenting org across Bing Concert Hall, Memorial Auditorium,
+        # Frost Amphitheater and the Studio — a presenter row like Cal
+        # Performances, not one room. Spektrix public API; its instances carry
+        # no venue, so shows can't be routed per hall. See scrapers/stanford_live.
+        calendar_url="https://live.stanford.edu/events/",
+        genre="eclectic",
+    ),
+    Venue(
         slug="club_fox",
         name="Club Fox",
         neighborhood="Redwood City",
