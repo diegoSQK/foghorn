@@ -66,6 +66,71 @@ then.
 
 ---
 
+## Ticketmaster venue batch — 4 rooms, 132 shows (August 2026)
+
+A coverage audit (August 2026) asked what was still missing after the Freight
+and SFJAZZ. The answer turned on platform, not on venues: of the confirmed-
+operating candidates, **five looked Ticketmaster-ticketed, and four actually
+were**, which made them ~30-line adapters over the existing `_ticketmaster`
+helper rather than four bespoke scrapers.
+
+| venue | region | TM events |
+|---|---|---|
+| Brick & Mortar Music Hall | SF (Mission) | 64 |
+| The Masonic | SF (Nob Hill) | 26 |
+| Mountain Winery | South Bay (Saratoga) | 33 |
+| The Midway | SF (Dogpatch) | 9 |
+
+Mountain Winery matters out of proportion to its size: the South Bay had four
+venues and 40 upcoming shows before this, the thinnest region in the set.
+
+### Two traps the batch had to walk around
+
+**A venue record is not inventory.** Blue Note Napa was the audit's top jazz
+recommendation and is *not* in this batch. Discovery has four matching records
+and the one with events — 21 of them — is "Blue Note Napa **Summer Sessions**"
+at the Meritage Resort, a seasonal outdoor series at a different address. The
+club itself (1030 Main Street) has **zero**. Seeding the series as the club
+would have quietly substituted a summer programme for a year-round jazz room.
+Same shape as the Freight, whose three TM records all returned zero. Every id
+in this batch was confirmed by querying for events, never by matching a name.
+
+**Comedy was arriving as music.** `_ticketmaster` mapped Discovery
+classifications to a genre string but never filtered on them, so stand-up came
+through as shows — 11 of the Masonic's 37 listings were Chelsea Handler, John
+Mulaney, Daniel Sloss and friends. The helper now drops the `Arts & Theatre`
+segment. Deliberately narrow: `Undefined` and `Miscellaneous` are kept, because
+TM leaves plenty of real gigs unclassified (a sixth of the Regency's), and
+dropping those would trade lost shows for a tidier taxonomy. The visible cost
+is that a lecture at the Masonic still lands; that's the right side of the
+trade.
+
+This was pre-existing and affected the Fillmore and the Regency too — neither
+had any `Arts & Theatre` listings, so nothing already ingested changed.
+
+### What the audit found that isn't in this batch
+
+- **Blue Note Napa** needs its own scraper (self-ticketed, WordPress).
+- **Ashkenaz** (Berkeley) — Squarespace + **VenuePilot**, which has an API.
+- **El Rio** (SF) — Squarespace; the existing `_squarespace_events` helper may
+  cover it.
+- **Montalvo Arts Center** — Tessitura TNEW, the same platform as the Freight,
+  so a shared helper extracted from `freight_and_salvage` would cover both.
+- **Stanford Live / Bing** — Spektrix.
+- **Audium** (SF) — bespoke WordPress, and already arriving via the Bay
+  Improviser aggregator; promoting it out of quarantine is cheaper than a
+  scraper.
+- **Napa Music Hall** — six TM events, surfaced incidentally while checking
+  Blue Note. Not audited; worth a look.
+
+And two closures the audit confirmed, worth recording so nobody re-adds them:
+**Starline Social Club** (Oakland, closed Dec 2022), **Thee Parkside** (SF,
+closed July 2026) and **Cafe Stritch** (San Jose). All three still serve live
+websites, which is exactly why a reachability check is worthless for this
+question — ticketing-platform inventory is the real signal.
+
+---
+
 ## SFJAZZ — the last dormant Phase 2 venue, finally scraped (August 2026)
 
 `sfjazz` has been seeded since Phase 2 with `calendar_url = "TBD"` and zero

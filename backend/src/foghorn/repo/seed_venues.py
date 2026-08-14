@@ -559,6 +559,55 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://themellowsf.com/calendar/",
         genre="jazz",
     ),
+    # --- Ticketmaster-ticketed batch (August 2026). Each venue id was
+    # confirmed to carry real Discovery *inventory*, not just a venue record;
+    # see scrapers/_ticketmaster and the batch's SHIPPED entry.
+    Venue(
+        slug="brick_and_mortar",
+        name="Brick & Mortar Music Hall",
+        neighborhood="Mission",
+        region="SF",
+        address="1710 Mission St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.brickandmortarmusic.com",
+        calendar_url="https://www.brickandmortarmusic.com/event-details/",
+        genre="rock",
+    ),
+    Venue(
+        slug="the_masonic",
+        name="The Masonic",
+        neighborhood="Nob Hill",
+        region="SF",
+        address="1111 California St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.sfmasonic.com",
+        calendar_url="https://www.sfmasonic.com/events/",
+        genre="eclectic",
+    ),
+    Venue(
+        slug="the_midway",
+        name="The Midway",
+        neighborhood="Dogpatch",
+        region="SF",
+        address="900 Marin St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://themidwaysf.com",
+        calendar_url="https://themidwaysf.com/events/",
+        # 40,000 sq ft warehouse complex; the ticketed music is mostly
+        # electronic, with live bookings alongside.
+        genre="electronic",
+    ),
+    Venue(
+        slug="mountain_winery",
+        name="Mountain Winery",
+        neighborhood="Saratoga",
+        region="South Bay",
+        address="14831 Pierce Rd, Saratoga, CA",
+        tz="America/Los_Angeles",
+        website_url="https://mountainwinery.com",
+        calendar_url="https://mountainwinery.com/events/",
+        genre="eclectic",
+    ),
     Venue(
         slug="club_fox",
         name="Club Fox",

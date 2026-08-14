@@ -23,6 +23,7 @@ from foghorn.scrapers import (
     black_cat,
     boom_boom_room,
     bottom_of_the_hill,
+    brick_and_mortar,
     cafe_du_nord,
     cal_performances,
     california_jazz_conservatory,
@@ -54,6 +55,7 @@ from foghorn.scrapers import (
     meyhouse_jazz,
     mills_littlefield,
     moes_alley,
+    mountain_winery,
     mr_tipples,
     mystic_theatre,
     natural_grocery_annex,
@@ -82,7 +84,9 @@ from foghorn.scrapers import (
     the_knockout,
     the_lab,
     the_lost_church,
+    the_masonic,
     the_mellow,
+    the_midway,
     the_ritz,
     the_sound_room,
     the_warfield,
@@ -167,6 +171,11 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     the_lost_church.VENUE_SLUG: the_lost_church.scrape,
     stanford_jazz_workshop.VENUE_SLUG: stanford_jazz_workshop.scrape,
     noontime_concerts.VENUE_SLUG: noontime_concerts.scrape,
+    # Ticketmaster-ticketed batch — thin adapters over _ticketmaster.
+    brick_and_mortar.VENUE_SLUG: brick_and_mortar.scrape,
+    the_masonic.VENUE_SLUG: the_masonic.scrape,
+    the_midway.VENUE_SLUG: the_midway.scrape,
+    mountain_winery.VENUE_SLUG: mountain_winery.scrape,
     freight_and_salvage.VENUE_SLUG: freight_and_salvage.scrape,
     # Only the Center's own rooms — registering SFJAZZ under the venues it
     # books off-site would let its prune reap those venues' own listings.
