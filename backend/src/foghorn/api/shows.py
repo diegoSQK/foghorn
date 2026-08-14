@@ -53,7 +53,7 @@ def _csv(value: str | None) -> list[str]:
 
 
 _ORIGINS: tuple[Origin, ...] = ("local", "touring")
-_EVENT_TYPES: tuple[EventType, ...] = ("show", "jam")
+_EVENT_TYPES: tuple[EventType, ...] = ("show", "jam", "comedy")
 
 
 class VenueView(BaseModel):
@@ -257,7 +257,7 @@ def list_shows(
     ),
     type: str | None = Query(
         default=None,
-        description="comma-separated types: show,jam (default: both)"
+        description="comma-separated types: show,jam,comedy (default: all)"
     ),
     watchlist: str | None = Query(
         default=None, description="'true' to filter to watchlist matches"

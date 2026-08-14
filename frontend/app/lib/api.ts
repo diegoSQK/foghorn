@@ -36,7 +36,7 @@ export type PerformerView = {
 export type ShowView = {
   id: number;
   source: "scrape" | "manual";
-  event_type: "show" | "jam";
+  event_type: "show" | "jam" | "comedy";
   // Resolved genre: per-show override if the source published one, else the
   // venue's default lean.
   genre: string | null;

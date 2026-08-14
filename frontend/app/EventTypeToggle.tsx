@@ -18,7 +18,7 @@ export default function EventTypeToggle({
   interactive = true,
 }: {
   showId: number;
-  initialType: "show" | "jam";
+  initialType: "show" | "jam" | "comedy";
   // Corrections are admin-only since multi-user (August 2026); everyone else
   // gets a static jam badge (and no "jam?" affordance on regular shows).
   interactive?: boolean;
@@ -26,6 +26,17 @@ export default function EventTypeToggle({
   const router = useRouter();
   const [type, setType] = useState(initialType);
   const [busy, setBusy] = useState(false);
+
+  // Comedy is a source classification, not a judgement call, so it renders as
+  // a plain badge with no correction affordance — and crucially no "jam?"
+  // prompt, which would be nonsense on a stand-up booking.
+  if (type === "comedy") {
+    return (
+      <span className="ml-1 rounded-full border border-violet-300 px-1.5 py-px align-middle text-[10px] font-medium uppercase tracking-wide text-violet-700 dark:border-violet-800 dark:text-violet-400">
+        comedy
+      </span>
+    );
+  }
 
   if (!interactive) {
     return type === "jam" ? (

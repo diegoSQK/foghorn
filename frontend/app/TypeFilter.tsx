@@ -1,7 +1,8 @@
 "use client";
 
 // Event-type filter chips: shows vs jam sessions (?type=). Same URL-as-state
-// pattern as the region/genre/origin chips. Default (no chip active) is both.
+// pattern as the region/genre/origin chips. Default (no chip active) is every
+// type, comedy included.
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -11,6 +12,10 @@ import { chipClass } from "./lib/ui";
 const OPTIONS = [
   { value: "show", label: "Shows" },
   { value: "jam", label: "Jam sessions" },
+  // Non-music bookings a music venue takes between gigs — stand-up, mostly.
+  // Ingested rather than dropped so a busy Friday at the Masonic is visible,
+  // and filterable so it needn't be.
+  { value: "comedy", label: "Comedy" },
 ] as const;
 
 export default function TypeFilter() {
