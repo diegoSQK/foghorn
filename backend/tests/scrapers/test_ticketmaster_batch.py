@@ -77,12 +77,16 @@ def _event(name: str, segment: str | None, genre: str | None = None) -> dict[str
     }
 
 
-def test_comedy_is_dropped_but_unclassified_gigs_are_kept() -> None:
+def test_comedy_is_categorised_not_dropped() -> None:
     """The Masonic's calendar is a third stand-up.
 
-    Only the "Arts & Theatre" segment is dropped. "Undefined" is kept on
-    purpose — TM leaves a sixth of the Regency's real gigs unclassified, so a
-    stricter filter would trade lost shows for a tidier taxonomy.
+    It used to be discarded. It's now ``event_type="comedy"`` — a busy Friday
+    is worth knowing even when the reason isn't a band, and a category can be
+    filtered out while a dropped row can't be recovered. Depth lives in
+    tests/test_comedy_event_type.py; this pins the batch's own behaviour.
+
+    "Undefined" stays music on purpose: TM leaves a sixth of the Regency's real
+    gigs unclassified, so re-labelling those would be worse than the gap.
     """
     payload = {
         "_embedded": {
@@ -95,8 +99,14 @@ def test_comedy_is_dropped_but_unclassified_gigs_are_kept() -> None:
             ]
         }
     }
-    kept = {s.headliner_raw for s in parse_events(payload, "x", dt.date(2026, 7, 1))}
-    assert kept == {"Some Band", "Unclassified Gig", "No Classification At All"}
+    shows = parse_events(payload, "x", dt.date(2026, 7, 1))
+    by_name = {s.headliner_raw: s.event_type for s in shows}
+    assert len(by_name) == 5, "nothing is dropped any more"
+    assert by_name["CHELSEA HANDLER: THE HIGH AND MIGHTY TOUR"] == "comedy"
+    assert by_name["John Mulaney"] == "comedy"
+    assert by_name["Some Band"] is None
+    assert by_name["Unclassified Gig"] is None
+    assert by_name["No Classification At All"] is None
 
 
 @pytest.mark.parametrize("module", BATCH, ids=lambda m: m.VENUE_SLUG)

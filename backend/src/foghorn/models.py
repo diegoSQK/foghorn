@@ -29,7 +29,13 @@ OriginSource = Literal["heuristic", "manual"]
 # Event type: a jam session is a different thing to plan around than a show
 # (you might bring your horn). Scrapers/manual entry can set it explicitly;
 # ingest infers it from unambiguous title patterns otherwise.
-EventType = Literal["show", "jam"]
+#
+# "comedy" is the non-music case. Music venues book stand-up between gigs, and
+# the alternative to a category was dropping those listings on the floor — a
+# room being dark on a Friday is worth knowing even when the reason isn't a
+# band. Labelled, filterable, and never inferred: only a source that *says* so
+# sets it (Ticketmaster's "Arts & Theatre" segment today).
+EventType = Literal["show", "jam", "comedy"]
 
 
 class Venue(BaseModel):

@@ -16,6 +16,7 @@ from typing import Literal
 from zoneinfo import ZoneInfo
 
 from foghorn.models import (
+    EventType,
     IngestResult,
     Performer,
     ScrapedShow,
@@ -58,8 +59,13 @@ _JAM_TITLE_RE = re.compile(
 )
 
 
-def infer_event_type(scraped: ScrapedShow) -> Literal["show", "jam"]:
-    """The scraper's explicit tag if set, else a conservative title check."""
+def infer_event_type(scraped: ScrapedShow) -> EventType:
+    """The scraper's explicit tag if set, else a conservative title check.
+
+    Only ever *infers* "jam" vs "show" — "comedy" is never guessed from a
+    title, because a band called Comedy Band Camp is likelier than a reliable
+    heuristic. It arrives only from a source that classifies it.
+    """
     if scraped.event_type is not None:
         return scraped.event_type
     return "jam" if _JAM_TITLE_RE.search(scraped.headliner_raw) else "show"

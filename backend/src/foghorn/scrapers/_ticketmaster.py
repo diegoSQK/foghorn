@@ -23,7 +23,7 @@ from typing import Any
 import httpx
 
 from foghorn.localenv import load_local_env
-from foghorn.models import ScrapedShow
+from foghorn.models import EventType, ScrapedShow
 
 EVENTS_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 USER_AGENT = "foghorn-scraper/0.1 (contact via diegoSQK/foghorn issues)"
@@ -83,22 +83,35 @@ def _price_text(event: dict[str, Any]) -> str | None:
     return f"${low:.2f}–${high:.2f}"
 
 
-# Discovery's top-level segment. Only "Arts & Theatre" is dropped, and at these
-# venues it is entirely stand-up comedy — Chelsea Handler, John Mulaney, Daniel
-# Sloss and the like, which a music calendar shouldn't carry. Deliberately
-# narrow: "Undefined" and "Miscellaneous" are kept, because TM leaves plenty of
-# real gigs unclassified (a sixth of the Regency's listings), and dropping
-# those would lose shows to win a tidier taxonomy.
-_NON_MUSIC_SEGMENTS = frozenset({"arts & theatre"})
+# Discovery's top-level segment. "Arts & Theatre" isn't music, but it isn't
+# noise either: at these venues it's entirely stand-up (Chelsea Handler, John
+# Mulaney, Daniel Sloss), and a room being busy on a Friday is worth knowing
+# even when the reason isn't a band. So it's ingested as event_type="comedy"
+# rather than dropped — labelled and filterable instead of invisible.
+#
+# Every "Arts & Theatre" listing observed across the six TM venues was comedy
+# (11 tagged Comedy, 2 unclassified but both comedians). A theatre production
+# would also land here and be mislabelled; that's the accepted trade, since the
+# alternative loses it entirely. Revisit if these venues start booking plays.
+#
+# Only "Arts & Theatre" is treated this way. "Undefined" and "Miscellaneous"
+# stay music, because TM leaves plenty of real gigs unclassified (a sixth of
+# the Regency's listings) and re-labelling those would be worse than the gap.
+_COMEDY_SEGMENTS = frozenset({"arts & theatre"})
 
 
-def _is_non_music(event: dict[str, Any]) -> bool:
+def _segment_event_type(event: dict[str, Any]) -> EventType | None:
+    """``"comedy"`` when Discovery classifies the event as Arts & Theatre.
+
+    ``None`` means "no opinion" — the show keeps the pipeline's own inference,
+    which is what decides show-vs-jam.
+    """
     for cls in event.get("classifications") or []:
         if not isinstance(cls, dict):
             continue
         segment = ((cls.get("segment") or {}).get("name") or "").strip().lower()
-        return segment in _NON_MUSIC_SEGMENTS
-    return False
+        return "comedy" if segment in _COMEDY_SEGMENTS else None
+    return None
 
 
 def _genre(event: dict[str, Any]) -> str | None:
@@ -134,8 +147,6 @@ def parse_events(
     for event in events:
         if not isinstance(event, dict):
             continue
-        if _is_non_music(event):
-            continue
         dates = event.get("dates") or {}
         status = ((dates.get("status") or {}).get("code") or "").lower()
         if status in _DROP_STATUS:
@@ -150,6 +161,8 @@ def parse_events(
             continue
         if not (today <= start_local.date() <= window_end):
             continue
+
+        event_type = _segment_event_type(event)
 
         attractions = (event.get("_embedded") or {}).get("attractions") or []
         names = [
@@ -173,6 +186,7 @@ def parse_events(
                 price_text=_price_text(event),
                 source_url=url or EVENTS_URL,
                 genre=_genre(event),
+                event_type=event_type,
             )
         )
     shows.sort(key=lambda show: show.start_local)

@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS shows (
     source_url           TEXT NOT NULL,
     scraped_at           TEXT NOT NULL,
     source               TEXT NOT NULL DEFAULT 'scrape',  -- 'scrape' | 'manual'
-    event_type           TEXT NOT NULL DEFAULT 'show',    -- 'show' | 'jam'
+    event_type           TEXT NOT NULL DEFAULT 'show',    -- 'show'|'jam'|'comedy'
     genre_override       TEXT,  -- per-show genre; NULL = venue default applies
     room                 TEXT,  -- room within a multi-room venue; NULL = unspecified
     UNIQUE (venue_id, start_local_date, start_local_time, headliner_canonical)
@@ -85,7 +85,7 @@ CREATE INDEX IF NOT EXISTS idx_show_performers_performer ON show_performers(perf
 CREATE TABLE IF NOT EXISTS event_type_overrides (
     venue_id             INTEGER NOT NULL REFERENCES venues(id),
     headliner_canonical  TEXT NOT NULL,
-    event_type           TEXT NOT NULL,  -- 'show' | 'jam'
+    event_type           TEXT NOT NULL,  -- 'show' | 'jam' | 'comedy'
     created_at           TEXT NOT NULL,
     PRIMARY KEY (venue_id, headliner_canonical)
 );
