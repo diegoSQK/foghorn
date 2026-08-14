@@ -608,6 +608,30 @@ SEED_VENUES: list[Venue] = [
         calendar_url="https://mountainwinery.com/events/",
         genre="eclectic",
     ),
+    # Promoted out of the aggregator quarantine (August 2026 coverage audit).
+    # Audium is a purpose-built theatre of spatially-sculpted sound — 176
+    # speakers, a fixed weekend programme, running since 1967 — not the
+    # one-off gallery slot the long-tail bucket is meant for. Bay Improviser
+    # was already delivering its dates; it just had no region, so no filter
+    # could reach it and the long-tail toggle hid it by default.
+    #
+    # There is no scraper: `venues.upsert` keys on slug, so this row updates
+    # the aggregator-created one in place (id and its shows are kept) and
+    # flips `source` to "seed". Same shape as the group-feed halls — Davies,
+    # Herbst, the Wilsey Atrium — which are seeded and scraperless too.
+    Venue(
+        slug="audium",
+        name="Audium",
+        neighborhood="Polk Gulch",
+        region="SF",
+        address="1616 Bush St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.audium.org",
+        calendar_url="https://www.audium.org",
+        # Electronic is the nearest bucket foghorn has for composed spatial
+        # sound; it isn't a dance room.
+        genre="electronic",
+    ),
     Venue(
         slug="club_fox",
         name="Club Fox",
