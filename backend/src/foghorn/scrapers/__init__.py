@@ -17,6 +17,7 @@ from collections.abc import Callable
 
 from foghorn.models import ScrapedShow
 from foghorn.scrapers import (
+    ashkenaz,
     august_hall,
     bimbos_365,
     bird_and_beckett,
@@ -179,6 +180,7 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     the_midway.VENUE_SLUG: the_midway.scrape,
     mountain_winery.VENUE_SLUG: mountain_winery.scrape,
     napa_music_hall.VENUE_SLUG: napa_music_hall.scrape,
+    ashkenaz.VENUE_SLUG: ashkenaz.scrape,
     blue_note_napa_summer_sessions.VENUE_SLUG: blue_note_napa_summer_sessions.scrape,
     freight_and_salvage.VENUE_SLUG: freight_and_salvage.scrape,
     # Only the Center's own rooms — registering SFJAZZ under the venues it
