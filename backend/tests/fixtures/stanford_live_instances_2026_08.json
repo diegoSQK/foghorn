@@ -1,0 +1,173 @@
+[
+ {
+  "id": "14802ADBVQNBCDVGDPTVQLHVRRCVDJBVH",
+  "start": "2026-08-15T18:30:00",
+  "startUtc": "2026-08-16T01:30:00",
+  "cancelled": false,
+  "event": {
+   "id": "11801AKPSMNLHVNHMDJQKSBJCLCVQPNQJ"
+  }
+ },
+ {
+  "id": "25801AGPSVCGGNRPVHRSNSQGLMPJPTNDB",
+  "start": "2026-09-19T18:00:00",
+  "startUtc": "2026-09-20T01:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "21601ATQCRBPJGGKQCSQSNJJDGKGBDPBP"
+  }
+ },
+ {
+  "id": "29001ALLPBTHVNSHLVJMKCMRSHGJJGQBT",
+  "start": "2026-09-28T19:30:00",
+  "startUtc": "2026-09-29T02:30:00",
+  "cancelled": false,
+  "event": {
+   "id": "23401AHHMQSVVPPKJGSDQCLPJRGKVPLMQ"
+  }
+ },
+ {
+  "id": "29201ACCPRBMSLVHDLHKGSRKDGGQQMTJM",
+  "start": "2026-10-01T19:30:00",
+  "startUtc": "2026-10-02T02:30:00",
+  "cancelled": false,
+  "event": {
+   "id": "23601ABQMTDMTTDQVVNJCNJPSQCSVMLHB"
+  }
+ },
+ {
+  "id": "29401ADJVTMPMVSKRPCKNPVMCRPLRQJRR",
+  "start": "2026-10-04T14:30:00",
+  "startUtc": "2026-10-04T21:30:00",
+  "cancelled": false,
+  "event": {
+   "id": "23801AJTHHRQPTBGSQKNGJHMKGQMHTHHM"
+  }
+ },
+ {
+  "id": "41201ATDVHVNDPRBLKPLQHLVPNSCNQLLP",
+  "start": "2026-10-09T16:00:00",
+  "startUtc": "2026-10-09T23:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "33601ABMMCLRHCDGJGLSCVTKRJSMDCMSS"
+  }
+ },
+ {
+  "id": "38401ANGTJSBMBHBQLHQPNRBLQSPPBRDN",
+  "start": "2026-10-10T19:00:00",
+  "startUtc": "2026-10-11T02:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "32001ABCGNLKMHMQDQQTTRQRNTSNGPVMC"
+  }
+ },
+ {
+  "id": "29601AVVVGLGMQTHTLNRNLGJBCQJTVHSN",
+  "start": "2026-10-11T14:30:00",
+  "startUtc": "2026-10-11T21:30:00",
+  "cancelled": false,
+  "event": {
+   "id": "24001ABMNLGCGVMRMGTMJKPBQCNHQQLMH"
+  }
+ },
+ {
+  "id": "29801AKHGBCBQNDCCBHCDGNPLGJBDMJSD",
+  "start": "2026-10-17T19:00:00",
+  "startUtc": "2026-10-18T02:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "24201AQBJSCTMKBQRHSLCPQSBDTRMBNBT"
+  }
+ },
+ {
+  "id": "41001AMGNGHKLQLCLRMPJKPQBNDVJPHRD",
+  "start": "2026-10-18T19:00:00",
+  "startUtc": "2026-10-19T02:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "33401ASQTDQSSBKHDTGJNVLMTDQJCSHNC"
+  }
+ },
+ {
+  "id": "30001ACDNMRPKSDRKSKCJNMSBQHCSMMMG",
+  "start": "2026-10-21T19:30:00",
+  "startUtc": "2026-10-22T02:30:00",
+  "cancelled": false,
+  "event": {
+   "id": "24401ANRSMNVVNPTCKDHLSQSTGQBDDKHJ"
+  }
+ },
+ {
+  "id": "30201AHVTMBBQKSVNPBBRMTKPDQPRMHJC",
+  "start": "2026-10-23T19:00:00",
+  "startUtc": "2026-10-24T02:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "24601AQBNLBQCHKVGDVHQJVMMGKLGNBDJ"
+  }
+ },
+ {
+  "id": "30401AVTJMSJLDVLNKKKDPCPPRDDJCLRT",
+  "start": "2026-10-23T21:00:00",
+  "startUtc": "2026-10-24T04:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "24601AQBNLBQCHKVGDVHQJVMMGKLGNBDJ"
+  }
+ },
+ {
+  "id": "30601ASVMNTVBQGPSKCLTTHTBBRPCLTLM",
+  "start": "2026-10-24T19:00:00",
+  "startUtc": "2026-10-25T02:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "24801AHGPCJBMGMVRBNKLDDDHKTKTNBQS"
+  }
+ },
+ {
+  "id": "3801ASGTBTNRHGNPMLKSSVHJGBQVLLHNM",
+  "start": "2025-09-25T16:00:00",
+  "startUtc": "2025-09-25T23:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "2601AQNNVGDSDNTBVTJRRMQNTDRTBBNTQ"
+  }
+ },
+ {
+  "id": "2219ABLBTKLLMGJLTTJSJLVSLCCHJSVRJ",
+  "start": "2025-10-03T19:00:00",
+  "startUtc": "2025-10-04T02:00:00",
+  "cancelled": false,
+  "event": {
+   "id": "1618AQNKPSMJVSHMNMMDVRLGPJMPSLGQL"
+  }
+ },
+ {
+  "id": "CANCELLED1",
+  "start": "2026-09-09T20:00:00",
+  "startUtc": "2026-08-16T01:30:00",
+  "cancelled": true,
+  "event": {
+   "id": "11801AKPSMNLHVNHMDJQKSBJCLCVQPNQJ"
+  }
+ },
+ {
+  "id": "ORPHAN1",
+  "start": "2026-09-10T20:00:00",
+  "startUtc": "2026-08-16T01:30:00",
+  "cancelled": false,
+  "event": {
+   "id": "NOPE"
+  }
+ },
+ {
+  "id": "COMEDY1",
+  "start": "2026-09-12T20:00:00",
+  "startUtc": "2026-09-13T03:00:00Z",
+  "cancelled": false,
+  "event": {
+   "id": "10801ADHCBQTDNRNBLLTSCPBVDKMJGHCJ"
+  }
+ }
+]

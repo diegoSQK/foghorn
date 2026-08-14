@@ -76,6 +76,7 @@ from foghorn.scrapers import (
     sjz_break_room,
     smileys_saloon,
     stanford_jazz_workshop,
+    stanford_live,
     sweetwater_music_hall,
     the_back_room,
     the_catalyst,
@@ -181,6 +182,7 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     mountain_winery.VENUE_SLUG: mountain_winery.scrape,
     napa_music_hall.VENUE_SLUG: napa_music_hall.scrape,
     ashkenaz.VENUE_SLUG: ashkenaz.scrape,
+    stanford_live.VENUE_SLUG: stanford_live.scrape,
     blue_note_napa_summer_sessions.VENUE_SLUG: blue_note_napa_summer_sessions.scrape,
     freight_and_salvage.VENUE_SLUG: freight_and_salvage.scrape,
     # Only the Center's own rooms — registering SFJAZZ under the venues it
