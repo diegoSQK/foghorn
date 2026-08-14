@@ -66,6 +66,85 @@ then.
 
 ---
 
+## Coverage audit — the August 2026 venue sweep, and what it closed (August 2026)
+
+An audit prompted by the Freight and SFJAZZ asked what else was missing. It ran
+from the registry and the DB first (per the audit rule), then verified every
+candidate, and produced six shipped venues, one promotion, one correction, and
+two documented dead ends.
+
+### Shipped from the audit
+
+| venue | region | route | shows |
+|---|---|---|---|
+| Brick & Mortar Music Hall | SF | Ticketmaster | 64 |
+| The Masonic | SF | Ticketmaster | 26 |
+| Mountain Winery | South Bay | Ticketmaster | 33 |
+| The Midway | SF | Ticketmaster | 9 |
+| Napa Music Hall | North Bay | Ticketmaster (2 rooms) | 29 |
+| Blue Note Napa Summer Sessions | North Bay | Ticketmaster | 20 |
+| Ashkenaz | East Bay | VenuePilot GraphQL | 28 |
+| Stanford Live | Peninsula | Spektrix | 53 |
+| Audium | SF | promoted from the aggregator quarantine | 12 |
+
+South Bay went from 4 venues / 40 upcoming shows to 5 / 73; North Bay from
+4 / 131 to 6 / 180.
+
+### The method that mattered
+
+**Reachability is worthless for "is this venue open".** Three venues answered
+HTTP 200 from live, well-formed websites while being permanently closed:
+Starline Social Club (Oakland, closed Dec 2022), Thee Parkside (SF, closed July
+2026) and Cafe Stritch (San Jose). Zombie domains outlive venues. What actually
+settles the question is **ticketing-platform inventory** and dated future
+events — Cafe Stritch's page was 20kb of "CafeStritchSignOff", and Starline's
+site still sells the venue it no longer is.
+
+**A venue record is not inventory.** Both Freight & Salvage and Blue Note Napa
+have multiple Ticketmaster venue records where only one — or none — carries
+events. Matching by name would have shipped a summer series in place of a jazz
+club. Confirm ids by querying for events.
+
+**Chasing the top recommendation produced a correction.** Blue Note Napa, the
+audit's highest-value jazz gap, turned out to have closed its club on 31
+December; 1030 Main Street is now Napa Music Hall. The evidence was already in
+hand (zero TM events for the club, a shows page listing only Summer Sessions)
+and had been read as "operating but uncovered".
+
+**Platform recon before building.** Reconning all candidates first collapsed
+four bespoke scrapers into one batch of ~30-line Ticketmaster adapters, and
+told us which of the rest needed real work.
+
+### Dead ends, recorded so nobody re-runs them
+
+**El Rio (SF) — blocked, no first-party calendar.** The site is Squarespace and
+its sitemap has 15 URLs: pages and merch products, and *not one event*.
+``?format=json`` 404s on every plausible collection slug because no events
+collection exists. Its listings live only on third-party aggregators (ToS-barred
+per the aggregator spike) and Instagram. Asking the venue for a feed is the
+realistic path; there is nothing to scrape today.
+
+**Montalvo Arts Center — access solved, data not viable.** It *is* Tessitura;
+the earlier fingerprint failed only because the host is ``my.montalvoarts.org``,
+not the ``secure.``/``tickets.`` guesses. **The Freight's endpoint works
+verbatim there** (``POST /api/products/productionseasons``), which is worth
+knowing: the Tessitura pattern generalises, and the subdomain is discoverable
+from JSON-LD ``url`` fields on the venue's own pages.
+
+The blocker is the content. Across a six-month window: 38 performances, of
+which roughly five are music (Kings Return, NoorAva, Alphabet Rockers, Día de
+los Muertos). The rest is a ceramics course, a theatre series, Halloween family
+events, and *fundraiser ticket tiers* listed as separate performances ("VIP
+Ticket", "Classic Ticket"). Unlike the Freight, ``productTypeId`` does not
+segregate — id 12 alone mixes theatre, a stand-up competition and Persian
+classical — and ``performanceTitle`` is an HTML blob with the description
+mashed in, so a title denylist would be fragile. Montalvo is a visual-arts and
+education centre whose concert programming is largely a summer series; the
+music yield doesn't justify a scraper that would mostly emit noise. Revisit if
+the Carriage House series is in season, or if the type ids get cleaner.
+
+---
+
 ## Ticketmaster venue batch — 4 rooms, 132 shows (August 2026)
 
 A coverage audit (August 2026) asked what was still missing after the Freight
