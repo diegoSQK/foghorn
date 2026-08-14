@@ -21,6 +21,7 @@ from foghorn.scrapers import (
     bimbos_365,
     bird_and_beckett,
     black_cat,
+    blue_note_napa_summer_sessions,
     boom_boom_room,
     bottom_of_the_hill,
     brick_and_mortar,
@@ -58,6 +59,7 @@ from foghorn.scrapers import (
     mountain_winery,
     mr_tipples,
     mystic_theatre,
+    napa_music_hall,
     natural_grocery_annex,
     neck_of_the_woods,
     noontime_concerts,
@@ -176,6 +178,8 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     the_masonic.VENUE_SLUG: the_masonic.scrape,
     the_midway.VENUE_SLUG: the_midway.scrape,
     mountain_winery.VENUE_SLUG: mountain_winery.scrape,
+    napa_music_hall.VENUE_SLUG: napa_music_hall.scrape,
+    blue_note_napa_summer_sessions.VENUE_SLUG: blue_note_napa_summer_sessions.scrape,
     freight_and_salvage.VENUE_SLUG: freight_and_salvage.scrape,
     # Only the Center's own rooms — registering SFJAZZ under the venues it
     # books off-site would let its prune reap those venues' own listings.

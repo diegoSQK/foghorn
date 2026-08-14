@@ -632,6 +632,37 @@ SEED_VENUES: list[Venue] = [
         # sound; it isn't a dance room.
         genre="electronic",
     ),
+    # Napa, August 2026. Blue Note Napa's club at 1030 Main St closed on 31
+    # December after ten years; the building — the historic Napa Valley Opera
+    # House — is now Napa Music Hall, and the Blue Note name survives as a
+    # summer series at the Meritage. Two addresses, so two rows: a coverage
+    # audit looking for "Blue Note Napa" needs to land somewhere true.
+    Venue(
+        slug="napa_music_hall",
+        name="Napa Music Hall",
+        neighborhood="Downtown Napa",
+        region="North Bay",
+        address="1030 Main St, Napa, CA",
+        tz="America/Los_Angeles",
+        website_url="https://napamusichall.com",
+        calendar_url="https://napamusichall.com",
+        # Two Ticketmaster rooms behind one row (main hall + The Club), told
+        # apart by `room` — see scrapers/napa_music_hall.
+        genre="eclectic",
+    ),
+    Venue(
+        slug="blue_note_napa_summer_sessions",
+        name="Blue Note Napa Summer Sessions",
+        neighborhood="Napa",
+        region="North Bay",
+        address="Meritage Resort, 850 Bordeaux Way, Napa, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.bluenotejazz.com/napa/",
+        calendar_url="https://www.bluenotejazz.com/napa/shows/",
+        # Seasonal outdoor series; books far wider than the old jazz club did
+        # (Gipsy Kings, Raphael Saadiq, Morris Day, and stand-up).
+        genre="eclectic",
+    ),
     Venue(
         slug="club_fox",
         name="Club Fox",
