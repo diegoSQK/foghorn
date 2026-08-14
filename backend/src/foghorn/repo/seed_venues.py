@@ -664,6 +664,21 @@ SEED_VENUES: list[Venue] = [
         genre="eclectic",
     ),
     Venue(
+        slug="ashkenaz",
+        name="Ashkenaz Music & Dance Community Center",
+        neighborhood="West Berkeley",
+        region="East Bay",
+        address="1317 San Pablo Ave, Berkeley, CA",
+        tz="America/Los_Angeles",
+        website_url="https://www.ashkenaz.com",
+        # Squarespace site, VenuePilot calendar — the shows come from
+        # VenuePilot's public GraphQL API. See scrapers/ashkenaz.
+        calendar_url="https://www.ashkenaz.com/events/",
+        # Running since 1973: zydeco, bachata, Balkan, salsa, square dance,
+        # almost all with live bands.
+        genre="world",
+    ),
+    Venue(
         slug="club_fox",
         name="Club Fox",
         neighborhood="Redwood City",
