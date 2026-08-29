@@ -45,7 +45,18 @@ Identity lives in the claim *comment* because when all agents authenticate as th
 
 ### Domain agent(s)
 
-None at present. foghorn's surface is the website itself — users browse the show calendar directly rather than talking to an agent. If a "show concierge" role ever makes sense (e.g. "what's happening Friday night in the Mission that one of my watchlist names is playing?"), it'll get its own section here with system-prompt + tool surface in `docs/<role_name>/`.
+**Show concierge.** Operates foghorn on the user's behalf through the MCP server (`backend/src/foghorn/mcp/server.py`): answers "what's worth catching this week," maintains the performer and venue watchlists, and hand-enters shows the scrapers miss. System prompt and tool surface: `docs/show_concierge/SYSTEM_PROMPT.md`.
+
+The website remains foghorn's primary surface. The concierge is a conversational surface over the same data, so its job is selection rather than enumeration — the reason to ask it instead of browsing is that it narrows.
+
+**Write tiers.** The distinction is load-bearing and the role doc enforces it:
+
+- **Personal** — `add_watchlist_performer`, `remove_watchlist_performer`, `watch_venue`, `unwatch_venue`. User-scoped, idempotent on the canonical form, trivially reversed. Applied on clear intent with an echo-back, no confirmation round-trip.
+- **Global** — `add_event`, `remove_event`, `set_event_type`, `clear_event_type`. Admin-scoped and visible to every user. These require explicit user confirmation, with the exact values stated, before being applied.
+
+The server exposes no dry-run and no undo, so that confirmation discipline is the only safeguard on global writes. If undo lands later, revisit this.
+
+**Known gap.** `scraped_at` is persisted per the lineage convention below, but is not projected into the MCP row shape — so the concierge cannot assess listing freshness the way the website can. The role doc instructs it to cite `source_url` and never assert currency. Worth closing if "why does foghorn say this" should hold on the conversational surface too.
 
 ## Where things live
 
