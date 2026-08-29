@@ -29,11 +29,22 @@ dependencies = [
     "pyobjc-framework-Quartz==12.2.1; sys_platform == 'darwin'",
 ]
 
+[project.scripts]
+# The MCP server (foghorn.mcp.server) — stdio, wraps the running API.
+foghorn-mcp = "foghorn.mcp.server:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest==9.0.3",
     "ruff==0.15.14",
     "mypy==2.1.0",
+    # `mcp` is a runtime dependency of foghorn-mcp, but it lives here rather
+    # than in [project.dependencies] so the scrape/API deployment doesn't
+    # carry it. `make install` runs `pip install -e ".[dev]"` and CI runs
+    # `make install`, so this is also what makes tests/mcp importable in CI —
+    # a bare [mcp] extra would leave CI without it and fail every MCP test at
+    # import.
+    "mcp==1.29.1",
 ]
 # Cross-platform OCR engine (FOGHORN_OCR_ENGINE=rapidocr; the default off
 # macOS) — for hosting the scraper somewhere Apple Vision doesn't exist.

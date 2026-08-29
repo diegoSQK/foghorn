@@ -141,6 +141,9 @@ user. Global mutations (inbox, manual events, performer origin/genre and
 event-type corrections, user management) are admin-only. See
 [`/api/auth/*`](#auth-apiauth) below.
 
+An [MCP server](#mcp-server) wraps this same HTTP surface for conversational
+clients — it inherits the posture above rather than defining its own.
+
 ### Auth (`/api/auth/*`)
 
 Invite-link-as-credential (no passwords, no email dependency): an admin
@@ -193,26 +196,41 @@ CLI equivalents (run against `FOGHORN_DB_PATH`): `make auth-bootstrap`
 Upcoming shows, ordered by `start_utc`. Query params (all optional):
 
 - `from` — ISO date, inclusive (default: today).
-- `to` — ISO date, inclusive (default: today + 30 days).
+- `to` — ISO date, inclusive (default: today + 30 days), or the literal `all` to lift the upper bound entirely.
 - `venues` — comma-separated venue slugs (e.g. `bird_and_beckett,keys_jazz_bistro`); omitted = all venues. Unknown slugs simply don't match.
 - `venue` — legacy single slug; prefer `venues=`.
 - `time_of_day` — `early` (`start_local_time` < 21:00) or `late` (>= 21:00); exact complements, no gap. Anything else ignored.
 - `performer_query` — free-text performer name; canonicalized server-side, then **token-bag matched** (Phase 4.1, via `repo/performer_match.py`) against any performer (headliner or support): every query token must be a whole token of the performer's canonical name, so "redman joshua" matches "joshua redman quartet". Empty after canonicalization = no filter.
-- `region` — `SF` / `East Bay` / `North Bay` / `Peninsula` / `South Bay` / `Santa Cruz`; matches the venue's `region`. Unknown values ignored (not a 400).
-- `neighborhood` — matches the venue's `neighborhood`, case-insensitive exact (e.g. `North Beach`).
-- `watchlist` — `true` filters to shows where any performer token-matches any watchlist entry. Empty watchlist → `[]` (not all shows).
+- `region` — comma-separated: `SF` / `East Bay` / `North Bay` / `Peninsula` / `South Bay` / `Santa Cruz`; matches the venue's `region`. Unknown values ignored (not a 400).
+- `neighborhood` — comma-separated venue `neighborhood`s, case-insensitive exact (e.g. `North Beach`).
+- `genre` — comma-separated genres, case-insensitive exact. Matches the show's resolved genre (its own, else the venue's default lean).
+- `origin` — comma-separated: `local` / `touring`. Matches if *any* performer on the bill carries that origin.
+- `type` — comma-separated: `show` / `jam` / `comedy`. Default: all.
+- `watchlist` — `true` filters to shows where any performer token-matches any watchlist entry. Empty watchlist → `[]` (not all shows). Requires a session (401 otherwise).
+- `venue_watchlist` — `true` filters to shows at venues on the user's venue watchlist (Phase 9). Requires a session.
+- `long_tail` — `true` also includes shows at aggregator-discovered venues, which are quarantined out of the default response.
+- `limit` — cap the row count (a chronological prefix). Default: no cap.
 
-All filters stack as ANDs. Date filters compare against `start_local_date`. Response is a JSON array of:
+The multi-value facets (`venues`, `region`, `neighborhood`, `genre`, `origin`,
+`type`) are **OR within a facet and AND across facets**. All filters stack as
+ANDs. Date filters compare against `start_local_date`. Response is a JSON array
+of:
 
 ```json
 {
+  "id": 1234,
+  "source": "scrape",
+  "event_type": "show",
+  "genre": "jazz",
   "venue": {"slug": "bird_and_beckett", "name": "Bird & Beckett Books and Records",
-            "neighborhood": "Glen Park", "region": "SF"},
+            "neighborhood": "Glen Park", "region": "SF", "genre": "jazz"},
   "start_local_date": "2026-06-05",
   "start_local_time": "19:30",
+  "end_local_time": null,
   "doors_local_time": null,
-  "headliner": {"display": "David Parker Sextet", "canonical": "david parker sextet"},
-  "support": [{"display": "...", "canonical": "..."}],
+  "headliner": {"display": "David Parker Sextet", "canonical": "david parker sextet",
+                "origin": "local"},
+  "support": [{"display": "...", "canonical": "...", "origin": null}],
   "ticket_url": null,
   "price_text": null,
   "source_url": "https://birdbeckett.com/events/",
@@ -292,6 +310,74 @@ request away:
 Returns **503** `{"error": "no_scrape_runs_yet"}` until the first run is
 recorded — distinct from "ran but a venue failed" (200 with that venue's
 `errors` populated).
+
+## MCP Server
+
+`foghorn.mcp.server` exposes the calendar to an MCP client over stdio — a
+second front-end over the same API, good at the queries a filter bar is bad at
+("anything with Dillon Vado in the next six weeks?", "what jazz is on in the
+Mission this weekend that isn't a jam?").
+
+It is a **thin httpx wrapper over the running FastAPI**, not a second path into
+the repo layer: one authorization story (the API's), and no way for MCP to
+drift from REST semantics. Start the backend first.
+
+```bash
+pip install -e ".[dev]"   # `mcp` ships in the dev extra; see pyproject.toml
+foghorn-mcp               # stdio server, console script from [project.scripts]
+```
+
+Register it with an MCP client by absolute path:
+
+```json
+{"mcpServers": {"foghorn": {"command": "/path/to/foghorn/backend/.venv/bin/foghorn-mcp"}}}
+```
+
+**Environment:**
+
+- `FOGHORN_API_URL` — base URL of the backend. Default `http://127.0.0.1:8100`
+  (fleet's always-on `foghorn-api`; deliberately not `:8000`, which is
+  ficycle-api's fleet port, nor `:9100`, foghorn's own dev-run port).
+- `FOGHORN_MCP_SESSION` — a `foghorn_session` token, sent as a cookie on every
+  request. Only needed against a multi-user backend: fleet runs
+  `FOGHORN_SINGLE_USER=1`, where cookie-less requests resolve to the bootstrap
+  admin and both the personal endpoints and the admin-only writes work with no
+  configuration at all.
+
+With neither single-user mode nor a token, browsing still works (`/api/shows`
+and `/api/venues` are public) and the personal/admin tools return
+`{"error": "sign-in required: set FOGHORN_MCP_SESSION …", "status": 401}`
+rather than a stack trace. Handled 4xx responses come back structurally as
+`{"error": detail, "status": n}` so a caller can branch without parsing
+exception text; 5xx still raises.
+
+**Tools** (13), by posture:
+
+| Posture | Tools |
+| --- | --- |
+| Public | `list_shows`, `list_venues` |
+| Per-user | `get_watchlist`, `list_watched_venues`, `get_watchlist_digest`, `add_watchlist_performer`, `remove_watchlist_performer`, `watch_venue`, `unwatch_venue` |
+| Admin | `add_event`, `remove_event`, `set_event_type`, `clear_event_type` |
+
+`list_shows` covers the full `GET /api/shows` facet surface documented above;
+multi-value facets accept a single value or a list. Its `from_` parameter is
+the `from` query param (`from` is a Python keyword — same spelling
+`api/shows.py` uses for its own alias). `limit` defaults to **50** in the tool
+signature, unlike the endpoint's uncapped default.
+
+Every write tool's description tells the client to confirm with the user first,
+and `set_event_type` / `clear_event_type` spell out that they write a
+**venue+billing override rule** — broader than the single show named, and
+inherited by every instance of a recurring billing.
+
+**Vocabulary drift.** The tool signatures take their `region` / `origin` /
+`type` Literals from `foghorn.models` by import rather than by hand-copy, and
+`tests/mcp/test_literal_drift.py` pins the *published tool schemas* to those
+canonical sources. That guard exists because an MCP client validates arguments
+against the schema, so a stale vocabulary silently blocks calls for the missing
+values while the HTTP API keeps accepting them (ficycle lost five cash-flow
+categories exactly this way). Adding a fourth event type fails the gate here
+instead of quietly becoming unreachable.
 
 ## Scheduled jobs
 
