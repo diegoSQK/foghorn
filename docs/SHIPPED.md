@@ -8,6 +8,145 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Phase 10 — MCP surface: the calendar, conversationally (August 2026)
+
+foghorn was the last of the three fleet apps without an MCP surface. ficycle
+and cadence both have one and the pattern has earned its keep: a conversational
+client becomes a second front-end over the same API, good at exactly the
+queries a filter bar is bad at. foghorn's own facet surface had grown rich
+enough — regions, neighborhoods, genres, origin, event types, two watchlists,
+the long-tail toggle, all multi-select since #108 — that composing a query by
+hand across facets had become real work.
+
+The prerequisite that had been missing was auth. #100's single-user mode closed
+it: on fleet the API resolves cookie-less requests to the bootstrap admin, so
+the MCP server's auth story is nearly free, admin-only writes included.
+
+### A wrapper, not a second path
+
+`backend/src/foghorn/mcp/server.py` is a **thin httpx wrapper over the running
+FastAPI**, mirroring ficycle's `portfolio_api/mcp/server.py`. Nothing reaches
+into the repo layer. That keeps one authorization story — the API's — and means
+the MCP surface cannot drift from REST semantics: if a filter changes shape,
+MCP changes with it or fails visibly.
+
+`[project.scripts]` didn't exist in `backend/pyproject.toml` and now does:
+`foghorn-mcp = "foghorn.mcp.server:main"`, stdio.
+
+The base URL defaults to `http://127.0.0.1:8100` — fleet's always-on
+`foghorn-api`. Deliberately not `:8000` (ficycle-api's fleet port) and not
+`:9100` (foghorn's own dev-run port, #99); pointing the MCP server at either
+would silently talk to the wrong app or to nothing.
+
+### Auth, and the failure mode
+
+No credential by default, which is exactly right under `FOGHORN_SINGLE_USER=1`.
+`FOGHORN_MCP_SESSION` is the escape hatch: set it to a `foghorn_session` token
+and every request carries that cookie — enough for a multi-user backend, or for
+pointing the server at the VPS later.
+
+The interesting case is neither: a multi-user backend with no token. Browse
+keeps working (`/api/shows` and `/api/venues` are public) and every personal or
+admin tool would 401. Left alone that surfaces as a stack trace, so it's caught
+and answered with something actionable instead:
+
+```json
+{"error": "sign-in required: set FOGHORN_MCP_SESSION to a foghorn_session token, or run the backend with FOGHORN_SINGLE_USER=1", "status": 401}
+```
+
+403 gets its own message naming the admin gate, since "the token works but
+isn't an admin's" is a different fix. Handled 4xx generally comes back as
+`{"error": detail, "status": n}` so a caller branches without parsing exception
+text; 5xx still raises, because a server bug isn't something the caller can act
+on. An unreachable backend — the likeliest failure in practice, since the MCP
+server is a separate process from the API — is reported the same structured
+way, naming the URL it tried.
+
+### 13 tools
+
+Public: `list_shows`, `list_venues`. Per-user: `get_watchlist`,
+`list_watched_venues`, `get_watchlist_digest`, `add_watchlist_performer`,
+`remove_watchlist_performer`, `watch_venue`, `unwatch_venue`. Admin:
+`add_event`, `remove_event`, `set_event_type`, `clear_event_type`.
+
+`list_shows` exposes the full current param surface — wider than the README
+documented, which is fixed in the same PR (see below). Multi-value facets
+accept a single value *or* a list (`region="SF"` and
+`region=["SF", "East Bay"]` both work), OR within a facet and AND across.
+`limit` defaults to 50 in the tool signature rather than reimplementing capping
+— the endpoint already has the param, it just defaults to uncapped, which is
+the wrong default for a conversational client. Rows come back in the API's
+shape verbatim, `room` (#106) included.
+
+Two naming notes. `from` is a Python keyword, so the parameter is `from_` — the
+same spelling `api/shows.py` already uses for its own alias. `to` needs no such
+dodge, so `to="all"` reads exactly as the API does.
+
+Every write tool's description tells the client to confirm with the user first.
+`set_event_type` / `clear_event_type` additionally spell out that they write a
+**venue+billing override rule**, not a single-row edit: it survives re-ingest
+and applies to every instance of a recurring session. A caller naming one show
+should know the blast radius is wider than the show it named.
+
+`get_watchlist_digest` looks thin next to `list_shows(watchlist=True)`, and
+isn't: it carries `watchlist_matches` per row — *which* followed name hit —
+which the filter doesn't.
+
+### The literal-drift guard
+
+The tool signatures need vocabularies that live elsewhere: `type`
+(`show`/`jam`/`comedy` — `comedy` only arrived in #113), `origin`,
+`time_of_day`, and the region list. ficycle has scar tissue here — a copied
+category Literal drifted five values behind and silently blocked MCP writes for
+those values, accepted by the HTTP API and rejected client-side by MCP, which
+is why `tests/test_mcp_literal_drift.py` exists there.
+
+foghorn's version takes the fix one step further: the Literals are *imported*
+from `foghorn.models` rather than copied, so the drift can't start. What an
+import alone doesn't protect is the **published schema**, which is what an MCP
+client actually validates against — retyping a parameter as a bare `str` would
+drop the enum without breaking anything the type checker looks at. So
+`tests/mcp/test_literal_drift.py` pins the enum values in the emitted tool
+schemas to `get_args(EventType)` / `Origin` / `Region`, and additionally
+asserts that every region present in `SEED_VENUES` is expressible over MCP.
+
+One model *is* re-declared: `NewVenueArg`, the `add_event` body's new-venue
+object. Importing `api.events.NewVenue` would execute `foghorn/api/__init__.py`
+and build the entire FastAPI app — routers, CORS, scheduler import — inside
+what is meant to be a thin stdio client. The drift test pins its field set to
+the real request model instead.
+
+### Dependencies
+
+`mcp==1.29.1` goes in the existing `[dev]` extra. This is the part that's easy
+to get wrong: `make install` runs `pip install -e ".[dev]"` and `gate.yml` runs
+`make install`, so a bare `[mcp]` extra would leave CI without the package and
+fail every MCP test at import. The dev extra keeps `make install` a single line
+and keeps the dependency off the scrape/API deployment.
+
+### Also in this PR
+
+`backend/README.md`'s `GET /api/shows` section was materially out of date — it
+documented `region`/`neighborhood` as single-valued and omitted `genre`,
+`origin`, `type`, `venue_watchlist`, `long_tail`, and `limit` entirely, all of
+which the endpoint accepts today. Refreshed against the code, along with the
+sample response (which was missing `id`, `source`, `event_type`, `genre`,
+`end_local_time`, and performer `origin`), plus the new **MCP Server** section.
+
+### Verification
+
+41 new tests drive the tool layer with the HTTP calls mocked, covering param
+passthrough, the `limit` default, the auth header, and every structured-error
+branch. A manual smoke run against the live fleet backend on :8100 confirmed
+each acceptance criterion: 13 tools listed; `list_shows()` → 50 rows;
+`region=SF, type=jam, genre=jazz` → 14 rows, all three facets holding;
+multi-value facets OR-ing within and AND-ing across; `to="all"` → 2,875 rows
+out to April 2027 against the ~30-day default window; a throwaway event added,
+found by date and venue, flipped to `jam` and back via the override rule, then
+removed.
+
+---
+
 ## Per-show `room` — multi-room venues stop looking double-booked (August 2026)
 
 Shipping SFJAZZ exposed a modelling gap. Its `sfjazz` row covers two rooms in
