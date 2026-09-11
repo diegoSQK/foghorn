@@ -8,6 +8,93 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Bird & Beckett details links — `.ics` for billing, Tribe for metadata (September 2026)
+
+Every Bird & Beckett row carried the same `source_url`, so the "details" link
+on all ~50 shows landed on the generic `/events/` page instead of the show you
+clicked. The scraper stamped a module constant on every event, because the
+`.ics` feed it reads has no per-event link and there was nothing better at the
+time.
+
+There is now: B&B runs The Events Calendar, and `/wp-json/tribe/events/v1/events`
+answers a plain HTTP client with each event's own `url` and `cost`.
+
+### The interesting part: why we joined instead of switching
+
+foghorn already has seven scrapers on this exact Tribe endpoint, and
+`kuumbwa_jazz_center.parse_events` has the three lines this needed. The obvious
+move was to swap B&B onto Tribe like the rest. **That would have been a
+regression**, because the two feeds disagree about what a "billing" is:
+
+| Date | `.ics` (kept) | Tribe |
+| --- | --- | --- |
+| Sep 13 | `Vocalist Marina Crouse, with Danny Caron, guitar; and Ruth Davies, bass` | `Marina Crouse Trio` |
+| Sep 15 | `Alon Nechustan Quintet` | `Alon Nechustan's Venture Bound Quintet` |
+
+The `.ics` names the whole band; Tribe names only the act. Switching would drop
+the sidemen from `headliner_raw`, so Danny Caron and Ruth Davies would stop
+token-matching the watchlist — a regression in the feature the product exists
+for. It would also change `headliner_canonical`, part of the dedupe natural key
+`(venue_id, start_local_date, start_local_time, headliner_canonical)`,
+re-ingesting every B&B row and orphaning the six venue+billing jam rules in
+`event_type_overrides`.
+
+So the split: **the `.ics` stays authoritative for what exists and how it's
+billed; Tribe is a metadata lookup only**, joined on `(date, start time)`.
+Explicitly *not* joined on title — the table above is exactly why that would
+misfire. This is the reusable lesson, since foghorn has other venues publishing
+both a Google Calendar and a Tribe feed: a second feed doesn't have to be an
+either/or, and the richer *structure* isn't automatically the richer *content*.
+
+### Verifying the join before building on it
+
+The whole design rests on the two feeds agreeing on start times, so that got
+measured across the full window before any code was written rather than
+sampled: **45 of 48 `.ics` events (93.8%) found a Tribe match, with zero
+`(date, time)` collisions.** The three misses are all non-shows or genuinely
+absent from Tribe — "Glen Park Night Market" (a street fair), "closed for
+Thanksgiving" (a closure notice that the `_NON_MUSIC_SIGNALS` heuristic doesn't
+catch — filed separately), and one November show Tribe hasn't published. All
+three fall back cleanly.
+
+That gate was worth running. A join that silently no-ops for a third of the
+calendar would have been invisible in the UI, which is precisely how the
+original bug survived this long.
+
+### Shape
+
+`parse_ics` stays pure and fixture-testable — it gained an optional
+`details: Mapping[tuple[date, time], EventDetails]` argument rather than a
+fetch, and `scrape()` does both fetches and wires them together. On a join hit
+the show takes Tribe's `url` and `cost`; on a miss it keeps the previous
+behavior exactly (`/events/`, null price).
+
+Two deliberate refusals to guess:
+
+- **Fail open.** Any Tribe error logs and yields an empty index, so every show
+  still ingests with the fallback link. A Tribe outage must never reduce a
+  load-bearing venue's show count — the `.ics` is what says a show exists.
+- **Collisions fall back.** More than one Tribe event on a `(date, time)` key
+  drops that key rather than picking arbitrarily, and logs it. Linking half a
+  calendar to the wrong page is worse than linking it to the index.
+
+Unlike kuumbwa, birdbeckett.com has no caching proxy in front of its REST API —
+it honors `per_page` / `start_date` / `page` correctly (`total: 90,
+total_pages: 45` at `per_page=2`), so this scraper deliberately does *not*
+cargo-cult kuumbwa's browser-UA-and-id-seen-guard workaround.
+
+### Verification
+
+Live run: 48 shows, 45 with per-event URLs, 44 with prices, 3 clean fallbacks.
+Tonight's show resolves to `/event/eric-the-in-crowd_2026-09-11/`; Sep 12 and
+Sep 13 resolve to the truncated (`rob-zuckerman`) and happy-hour
+(`marina-crouse`) slug shapes, confirming the slug really isn't derivable.
+Diffed against the pre-change scraper on the same live feed: **48 → 48 shows,
+natural keys and billing strings byte-identical**, so no row churns and the jam
+overrides stay attached.
+
+---
+
 ## Phase 10 — MCP surface: the calendar, conversationally (August 2026)
 
 foghorn was the last of the three fleet apps without an MCP surface. ficycle
