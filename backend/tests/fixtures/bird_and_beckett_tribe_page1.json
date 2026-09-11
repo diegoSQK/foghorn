@@ -1,0 +1,41 @@
+{
+  "events": [
+    {
+      "id": 38988,
+      "title": "Eric &#038; the In Crowd",
+      "slug": "eric-the-in-crowd_2026-06-05",
+      "status": "publish",
+      "url": "https://birdbeckett.com/event/david-parker_2026-06-05/",
+      "cost": "$20 (Students $10)",
+      "start_date": "2026-06-05 19:30:00",
+      "end_date": "2026-06-05 21:30:00",
+      "website": ""
+    },
+    {
+      "id": 38991,
+      "title": "Klaxon Mutant All-Stars",
+      "slug": "klaxon_2026-06-06",
+      "status": "publish",
+      "url": "https://birdbeckett.com/event/klaxon-mutant_2026-06-06/",
+      "cost": "",
+      "start_date": "2026-06-06 20:00:00",
+      "end_date": "2026-06-06 22:00:00",
+      "website": ""
+    },
+    {
+      "id": 38994,
+      "title": "Sunday Happy Hour",
+      "slug": "2026-06-07_sunday-happy-hour",
+      "status": "publish",
+      "url": "https://birdbeckett.com/event/2026-06-07_sunday-happy-hour/",
+      "cost": "Happy Hour Sliding Scale",
+      "start_date": "2026-06-07 17:00:00",
+      "end_date": "2026-06-07 19:00:00",
+      "website": ""
+    }
+  ],
+  "rest_url": "https://birdbeckett.com/wp-json/tribe/events/v1/events/?per_page=3&start_date=2026-06-01+00%3A00%3A00&end_date=2026-08-30+23%3A59%3A59&status=publish&page=1",
+  "next_rest_url": "https://birdbeckett.com/wp-json/tribe/events/v1/events/?per_page=3&start_date=2026-06-01+00%3A00%3A00&end_date=2026-08-30+23%3A59%3A59&status=publish&page=2",
+  "total": 6,
+  "total_pages": 2
+}

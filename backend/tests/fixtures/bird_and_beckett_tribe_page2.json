@@ -1,0 +1,40 @@
+{
+  "events": [
+    {
+      "id": 39001,
+      "title": "Caf&#233; Tacvba",
+      "slug": "cafe-tacvba_2026-06-10",
+      "status": "publish",
+      "url": "https://birdbeckett.com/event/cafe-tacvba_2026-06-10/",
+      "cost": "$25",
+      "start_date": "2026-06-10 20:00:00",
+      "end_date": "2026-06-10 22:00:00",
+      "website": ""
+    },
+    {
+      "id": 39002,
+      "title": "Back Room Session (double-booked slot)",
+      "slug": "back-room_2026-06-10",
+      "status": "publish",
+      "url": "https://birdbeckett.com/event/back-room_2026-06-10/",
+      "cost": "$15",
+      "start_date": "2026-06-10 20:00:00",
+      "end_date": "2026-06-10 22:00:00",
+      "website": ""
+    },
+    {
+      "id": 39007,
+      "title": "Event With No Permalink",
+      "slug": "no-permalink_2026-06-14",
+      "status": "publish",
+      "url": "",
+      "cost": "$10",
+      "start_date": "2026-06-14 17:00:00",
+      "end_date": "2026-06-14 19:00:00",
+      "website": ""
+    }
+  ],
+  "rest_url": "https://birdbeckett.com/wp-json/tribe/events/v1/events/?per_page=3&start_date=2026-06-01+00%3A00%3A00&end_date=2026-08-30+23%3A59%3A59&status=publish&page=2",
+  "total": 6,
+  "total_pages": 2
+}
