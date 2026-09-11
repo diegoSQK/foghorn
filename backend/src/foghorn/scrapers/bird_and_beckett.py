@@ -1,10 +1,43 @@
 """Bird & Beckett Books and Records scraper.
 
-Source: the venue's public Google Calendar, exposed as an iCalendar feed. Bird &
-Beckett (a Glen Park bookshop with a dense live-jazz calendar) publishes its
-schedule to a public Google Calendar embedded on its ``/events`` page; the
-calendar's ``.ics`` export is a far cleaner and more stable source than the
-WordPress event posts, whose dates live in free-text titles.
+**Two sources, deliberately split by role.**
+
+*Billing and existence* come from the venue's public Google Calendar, exposed
+as an iCalendar feed. Bird & Beckett (a Glen Park bookshop with a dense
+live-jazz calendar) publishes its schedule to a public Google Calendar embedded
+on its ``/events`` page. The ``.ics`` export beats the WordPress event *posts*,
+whose dates live in free-text titles.
+
+*Per-event metadata* comes from The Events Calendar's REST API
+(``/wp-json/tribe/events/v1/events``), which is a perfectly clean structured
+source — it just isn't the better source for the billing. The ``.ics`` names
+the whole band where Tribe names only the act:
+
+===========  ==================================================  ====================
+Date         ``.ics`` (what we keep)                             Tribe
+===========  ==================================================  ====================
+Sep 13       Vocalist Marina Crouse, with Danny Caron,           Marina Crouse Trio
+             guitar; and Ruth Davies, bass
+Sep 15       Alon Nechustan Quintet                              Alon Nechustan's
+                                                                 Venture Bound Quintet
+===========  ==================================================  ====================
+
+Switching wholesale would drop the sidemen from ``headliner_raw``, so Danny
+Caron and Ruth Davies would stop token-matching the watchlist — a regression in
+the feature the product exists for. It would also change
+``headliner_canonical``, part of the dedupe natural key, re-ingesting every row
+and orphaning this venue's ``event_type_overrides`` jam rules.
+
+So Tribe is a **metadata lookup only**, joined on ``(date, start time)`` — not
+on title, which the table above shows would misfire. It supplies ``source_url``
+(the per-event page, so "details" links land on the show you clicked instead of
+the generic ``/events/``) and ``price_text``. The join is **fail-open**: any
+Tribe error yields an empty index and every show still ingests with the
+``/events/`` fallback. A Tribe outage must never reduce the show count.
+
+Unlike ``kuumbwa_jazz_center``, birdbeckett.com has no caching proxy in front
+of its REST API — it honors ``per_page`` / ``start_date`` / ``page`` correctly,
+so this scraper needs none of kuumbwa's browser-UA-and-id-guard workaround.
 
 **Re-pilot note.** Phase 2.1 originally targeted SFJAZZ, but SFJAZZ sits behind
 a Cloudflare managed challenge that 403s every simple HTTP client (polite UA and
@@ -18,7 +51,11 @@ scraped shows as JSON and exits. No DB writes here — that's the ingest pipelin
 from __future__ import annotations
 
 import datetime as dt
+import html
 import json
+import logging
+from collections.abc import Mapping
+from dataclasses import dataclass
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -26,6 +63,8 @@ import icalendar
 import recurring_ical_events
 
 from foghorn.models import ScrapedShow
+
+logger = logging.getLogger(__name__)
 
 VENUE_SLUG = "bird_and_beckett"
 VENUE_TZ = ZoneInfo("America/Los_Angeles")
@@ -36,11 +75,19 @@ ICS_URL = (
     "https://calendar.google.com/calendar/ical/"
     "r5o3loovr013c5rftpv75lji18%40group.calendar.google.com/public/basic.ics"
 )
-# Human-viewable provenance for each show (the .ics itself isn't browseable).
+# Human-viewable provenance, and the fallback when a show has no Tribe match
+# (the .ics itself isn't browseable).
 SOURCE_URL = "https://birdbeckett.com/events/"
+# The Events Calendar REST API — per-event page URLs and prices. Metadata only;
+# see the module docstring for why the .ics stays authoritative for billing.
+EVENTS_API = "https://birdbeckett.com/wp-json/tribe/events/v1/events"
 USER_AGENT = "foghorn-scraper/0.1 (contact via diegoSQK/foghorn issues)"
 SCRAPE_WINDOW_DAYS = 90
 REQUEST_TIMEOUT = 30.0
+PER_PAGE = 50
+# Bounds the pagination walk. The window holds ~60 events, so this is slack,
+# not a tuning knob.
+MAX_PAGES = 20
 
 # Bird & Beckett's calendar mixes its jazz programming with literary events
 # (poetry readings, author talks, small-press launches). Per the ticket we err
@@ -72,6 +119,113 @@ def fetch_ics(url: str = ICS_URL) -> str:
     return response.text
 
 
+@dataclass(frozen=True)
+class EventDetails:
+    """The per-event metadata the Tribe feed contributes to an ``.ics`` show."""
+
+    source_url: str
+    price_text: str | None
+
+
+# What ``parse_ics`` accepts: (venue-local date, start time) -> details.
+DetailIndex = Mapping[tuple[dt.date, dt.time], EventDetails]
+
+
+def _text(value: object) -> str:
+    """Unescape HTML entities Tribe leaves in text fields and trim."""
+    return html.unescape(str(value)).strip() if value else ""
+
+
+def fetch_event_details(
+    today: dt.date,
+    window_days: int = SCRAPE_WINDOW_DAYS,
+    client: httpx.Client | None = None,
+) -> list[dict[str, object]]:
+    """Page through the Tribe REST API for events in
+    ``[today, today + window_days]``, following ``next_rest_url``.
+
+    birdbeckett.com honors the query params (verified against
+    ``total``/``total_pages``), so this is a plain walk — no cache-trap guard.
+    ``client`` is injectable so tests drive pagination with a mock transport.
+    """
+    own_client = client is None
+    if client is None:
+        client = httpx.Client(
+            headers={"User-Agent": USER_AGENT},
+            timeout=REQUEST_TIMEOUT,
+            follow_redirects=True,
+        )
+    try:
+        events: list[dict[str, object]] = []
+        params = {
+            "per_page": str(PER_PAGE),
+            "start_date": today.isoformat(),
+            "end_date": (today + dt.timedelta(days=window_days)).isoformat(),
+        }
+        response = client.get(EVENTS_API, params=params)
+        response.raise_for_status()
+        payload = response.json()
+        for _ in range(MAX_PAGES):
+            events.extend(payload.get("events", []))
+            next_url = payload.get("next_rest_url")
+            if not next_url:
+                break
+            response = client.get(next_url)
+            # Tribe can 404 past the final page rather than returning empty.
+            if response.status_code == httpx.codes.NOT_FOUND:
+                break
+            response.raise_for_status()
+            payload = response.json()
+        return events
+    finally:
+        if own_client:
+            client.close()
+
+
+def build_detail_index(events: list[dict[str, object]]) -> dict[
+    tuple[dt.date, dt.time], EventDetails
+]:
+    """Index Tribe events by ``(date, start time)`` in venue-local terms.
+
+    B&B is a single room, so date+time is effectively unique. A key claimed by
+    more than one event is **dropped entirely** rather than resolved
+    arbitrarily — the caller then falls back, which is the honest outcome when
+    we can't tell which page the show belongs to. Logged so a real collision
+    is visible rather than silently degrading the links.
+    """
+    grouped: dict[tuple[dt.date, dt.time], list[dict[str, object]]] = {}
+    for event in events:
+        raw = _text(event.get("start_date"))  # "2026-09-11 19:30:00", venue-local
+        if not raw:
+            continue
+        try:
+            stamp = dt.datetime.strptime(raw, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            logger.warning("bird_and_beckett: unparseable Tribe start_date %r", raw)
+            continue
+        grouped.setdefault((stamp.date(), stamp.time()), []).append(event)
+
+    index: dict[tuple[dt.date, dt.time], EventDetails] = {}
+    for key, matches in grouped.items():
+        if len(matches) > 1:
+            logger.warning(
+                "bird_and_beckett: %d Tribe events share %s %s (%r) — "
+                "skipping the join for that slot",
+                len(matches),
+                key[0].isoformat(),
+                key[1].strftime("%H:%M"),
+                [_text(m.get("title")) for m in matches],
+            )
+            continue
+        url = _text(matches[0].get("url"))
+        if not url:
+            continue
+        index[key] = EventDetails(
+            source_url=url, price_text=_text(matches[0].get("cost")) or None
+        )
+    return index
+
+
 def _is_non_music(summary: str) -> bool:
     lowered = summary.lower()
     return any(signal in lowered for signal in _NON_MUSIC_SIGNALS)
@@ -84,13 +238,19 @@ def _clean(text: str) -> str:
 
 
 def parse_ics(
-    ics_text: str, today: dt.date, window_days: int = SCRAPE_WINDOW_DAYS
+    ics_text: str,
+    today: dt.date,
+    window_days: int = SCRAPE_WINDOW_DAYS,
+    details: DetailIndex | None = None,
 ) -> list[ScrapedShow]:
     """Return one ``ScrapedShow`` per timed musical event in
     ``[today, today + window_days]``, with recurring series expanded.
 
-    ``today`` is injected (not read from the clock) so the parser is
-    deterministic and fixture-testable.
+    ``today`` is injected (not read from the clock) and ``details`` is passed
+    in rather than fetched, so the parser stays pure, network-free, and
+    fixture-testable. ``details`` maps ``(date, start time)`` to the Tribe
+    metadata for that slot; a show with no entry keeps the ``/events/``
+    fallback and a null price, exactly as before this feed existed.
     """
     calendar = icalendar.Calendar.from_ical(ics_text)
     window_end = today + dt.timedelta(days=window_days)
@@ -124,6 +284,8 @@ def parse_ics(
                 if end_value.tzinfo is not None
                 else end_value
             )
+        # Tribe metadata for this slot, if the two feeds agree on the time.
+        matched = (details or {}).get((local.date(), local.time()))
         shows.append(
             ScrapedShow(
                 venue_slug=VENUE_SLUG,
@@ -133,8 +295,8 @@ def parse_ics(
                 end_local=end_local,
                 doors_local=None,
                 ticket_url=None,
-                price_text=None,
-                source_url=SOURCE_URL,
+                price_text=matched.price_text if matched else None,
+                source_url=matched.source_url if matched else SOURCE_URL,
             )
         )
     shows.sort(key=lambda show: show.start_local)
@@ -142,8 +304,24 @@ def parse_ics(
 
 
 def scrape() -> list[ScrapedShow]:
-    """Fetch and parse the live feed for the next ~90 days."""
-    return parse_ics(fetch_ics(), dt.date.today())
+    """Fetch both feeds for the next ~90 days and join them.
+
+    The ``.ics`` is authoritative for what exists; Tribe only decorates it.
+    A Tribe failure is therefore logged and swallowed — the show set must come
+    back whole with ``/events/`` links rather than shrink.
+    """
+    today = dt.date.today()
+    try:
+        details = build_detail_index(fetch_event_details(today))
+    except Exception:
+        logger.warning(
+            "bird_and_beckett: Tribe metadata fetch failed — falling back to %s "
+            "for every show",
+            SOURCE_URL,
+            exc_info=True,
+        )
+        details = {}
+    return parse_ics(fetch_ics(), today, details=details)
 
 
 def main() -> None:
