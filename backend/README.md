@@ -97,7 +97,9 @@ the Python models live in `foghorn/models.py`.
   `COALESCE(override, shows.event_type)`.
 - **`show_performers`** — join table: `show_id` → `shows`, `performer_id` →
   `performers`, `role` (`headliner` / `support`), `position` (display order on
-  the bill; headliner is 0). PK `(show_id, performer_id)`.
+  the bill; headliner is 0), `source` (how the link came to exist — see
+  [Billing parse and surname resolution](#billing-parse-and-surname-resolution)).
+  PK `(show_id, performer_id)`.
 
 **Natural key / dedup.** A show is uniquely identified by
 `(venue_id, start_local_date, start_local_time, headliner_canonical)` — this is
@@ -119,6 +121,38 @@ normalizes each `ScrapedShow`'s performer names via `canonicalize()`, applies
 the venue tz to the naive local time to compute `start_utc`, upserts performers
 and the show, and returns an `IngestResult` (`created` / `updated` / `errors`).
 A failure on one show is captured in `errors` without aborting the batch.
+
+### Billing parse and surname resolution
+
+Collectives are often billed by surname — `Ochs/Johnston/Mezzacappa/Davis`.
+Stored as one performer, that matches no full-name watchlist follow, because
+token-bag matching needs every token of `lisa mezzacappa` to appear in the
+performer name. Two pieces fix it, and neither is enough alone:
+
+- **`ingest/billing.py`** splits a multi-artist billing into the musicians it
+  names (slash lists, comma lists with role/instrument annotations,
+  parenthesised personnel). Members become *additional* `show_performers` rows
+  — **the display string is never rewritten and `headliner_canonical` never
+  changes**, so the natural key and any `event_type_overrides` rule are
+  untouched. The parser is deliberately biased to under-split: a wrong split
+  invents a performer that pollutes the surname index below.
+- **`ingest/surnames.py`** resolves a bare surname to a known person **only
+  when exactly one** person-shaped performer bears it. Two bearers (the `Davis`
+  case) or none → the token stays bare and matches nothing. Matching itself is
+  unchanged; loosening it so a *subset* matched would make a followed "Miles
+  Davis" hit every bill with a Davis on it.
+
+`show_performers.source` records which happened: `billed` (the source said so),
+`parsed` (split out of a billing), `inferred` (a surname foghorn resolved).
+`inferred` is a claim foghorn made rather than read, and is auditable and
+reversible on that basis.
+
+Ingest does both for every show it touches. `make relink-performers`
+(`cli/relink_performers.py`) re-walks shows already stored, for the two cases
+ingest can't reach: past shows, which no scraper returns any more but which are
+what make a surname *known*, and surnames that only became unique after a later
+show introduced the person. It runs to a fixpoint, is idempotent, and never
+changes a show's identity. `--dry-run` previews.
 
 **Seed.** `repo/seed_venues.py` upserts the four Phase 2 jazz venues (SFJAZZ,
 Keys Jazz Bistro, Bird & Beckett, Mr. Tipple's). Idempotent via upsert-on-slug;
