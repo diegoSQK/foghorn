@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS show_performers (
     performer_id  INTEGER NOT NULL REFERENCES performers(id),
     role          TEXT NOT NULL,
     position      INTEGER NOT NULL,
+    -- 'billed' | 'parsed' | 'inferred' — see init_schema's migration note.
+    source        TEXT NOT NULL DEFAULT 'billed',
     PRIMARY KEY (show_id, performer_id)
 );
 
@@ -204,6 +206,14 @@ def init_schema(conn: sqlite3.Connection) -> None:
     _add_column_if_missing(conn, "shows", "room", "TEXT")
     _add_column_if_missing(conn, "performers", "genre", "TEXT")
     _add_column_if_missing(conn, "performers", "genre_source", "TEXT")
+    # How a performer got onto a bill: 'billed' (the source said so), 'parsed'
+    # (split out of a multi-artist billing), 'inferred' (a bare surname
+    # resolved to a known person). Provenance in the spirit of
+    # origin_source/genre_source — an inferred link is a claim foghorn made,
+    # and an admin should be able to see that.
+    _add_column_if_missing(
+        conn, "show_performers", "source", "TEXT NOT NULL DEFAULT 'billed'"
+    )
     conn.commit()
 
 

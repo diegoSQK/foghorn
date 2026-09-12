@@ -15,10 +15,13 @@ from datetime import UTC, datetime
 from typing import Literal
 from zoneinfo import ZoneInfo
 
+from foghorn.ingest.billing import parse_members
+from foghorn.ingest.surnames import SurnameIndex, build_index
 from foghorn.models import (
     EventType,
     IngestResult,
     Performer,
+    PerformerLinkSource,
     ScrapedShow,
     Show,
     ShowPerformer,
@@ -264,10 +267,21 @@ def _to_show(
 
 
 def _build_bill(
-    conn: sqlite3.Connection, scraped: ScrapedShow
+    conn: sqlite3.Connection,
+    scraped: ScrapedShow,
+    surnames: SurnameIndex | None = None,
 ) -> list[ShowPerformer]:
     """Upsert the headliner (position 0) and support acts, returning the bill
-    with persisted ``performer_id``s in display order."""
+    with persisted ``performer_id``s in display order.
+
+    Beyond what the source billed, this adds the musicians named *inside* a
+    multi-artist billing (``Ochs/Johnston/Mezzacappa/Davis``) as extra support
+    links, and resolves bare surnames among them to known people when the
+    catalogue can do so unambiguously. Both are strictly additive: the
+    headliner keeps the venue's whole billing string, so
+    ``headliner_canonical`` — and with it the dedupe natural key and any
+    ``event_type_overrides`` rule — is untouched.
+    """
     bill: list[ShowPerformer] = []
     headliner = performers_repo.upsert(
         conn,
@@ -283,6 +297,7 @@ def _build_bill(
             canonical_name=headliner.canonical_name,
             role="headliner",
             position=0,
+            source="billed",
         )
     )
     # Venues sometimes bill the same act twice (the headliner repeated in the
@@ -291,27 +306,45 @@ def _build_bill(
     # occurrence of each performer — earliest billing position wins.
     seen_ids = {headliner.id}
     position = 1
-    for support_raw in scraped.support_raw:
-        support = performers_repo.upsert(
-            conn,
-            Performer(
-                display_name=support_raw,
-                canonical_name=canonicalize(support_raw),
-            ),
+
+    def _add(raw: str, source: PerformerLinkSource) -> None:
+        nonlocal position
+        canonical = canonicalize(raw)
+        if not canonical:
+            return
+        performer = performers_repo.upsert(
+            conn, Performer(display_name=raw, canonical_name=canonical)
         )
-        if support.id in seen_ids:
-            continue
-        seen_ids.add(support.id)
+        if performer.id in seen_ids:
+            return
+        seen_ids.add(performer.id)
         bill.append(
             ShowPerformer(
-                performer_id=support.id,
-                display_name=support.display_name,
-                canonical_name=support.canonical_name,
+                performer_id=performer.id,
+                display_name=performer.display_name,
+                canonical_name=performer.canonical_name,
                 role="support",
                 position=position,
+                source=source,
             )
         )
         position += 1
+
+    for support_raw in scraped.support_raw:
+        _add(support_raw, "billed")
+
+    # Musicians named inside the billing itself. Parsed from both the
+    # headliner and each support string, since either can be a collective.
+    for billing in [scraped.headliner_raw, *scraped.support_raw]:
+        for member in parse_members(billing):
+            _add(member, "parsed")
+            # A bare surname matches no full-name follow on its own. When
+            # exactly one known person bears it, link the show to them too —
+            # see ingest.surnames for why uniqueness is the gate.
+            if surnames is not None and len(canonicalize(member).split()) == 1:
+                resolved = surnames.resolve(canonicalize(member))
+                if resolved is not None:
+                    _add(resolved.display_name, "inferred")
     return bill
 
 
@@ -342,6 +375,12 @@ def ingest_scraped_shows(
     """
     result = IngestResult(venue_slug=venue.slug)
     scraped_at = datetime.now(UTC).isoformat()
+    # Built once per batch: resolution asks "how many known people bear this
+    # surname", which is a whole-catalogue question, and re-asking it per show
+    # would be thousands of identical scans. Rebuilt on the next run, so a
+    # surname that becomes ambiguous (or newly unique) is picked up then —
+    # this is the "idempotent across nightly re-ingests" property.
+    surnames = build_index(conn)
     for record in scraped:
         try:
             show = _to_show(venue, record, scraped_at, source)
@@ -352,7 +391,7 @@ def ingest_scraped_shows(
                 show.start_local_time,
                 show.headliner_canonical,
             )
-            bill = _build_bill(conn, record)
+            bill = _build_bill(conn, record, surnames)
             shows_repo.upsert(conn, show, bill)
             if existing is None:
                 result.created += 1
