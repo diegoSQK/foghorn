@@ -31,7 +31,26 @@ export type PerformerView = {
   canonical: string;
   // Local/touring tag (heuristic or hand-set); null = unknown.
   origin: "local" | "touring" | null;
+  // How the performer got onto the bill. "billed" is what the venue printed;
+  // "parsed" and "inferred" are links foghorn derived so that following a
+  // musician named inside a collective billing works. Optional because older
+  // cached payloads predate the field.
+  source?: "billed" | "parsed" | "inferred";
 };
+
+/**
+ * The support acts to *show* — only what the venue actually billed.
+ *
+ * The bill for "Ochs/Johnston/Mezzacappa/Davis" also carries the musicians
+ * foghorn parsed out of it and the full names it resolved them to. Those make
+ * the watchlist work, but rendering them turns one line into "with Ochs, Larry
+ * Ochs, Johnston, Darren Johnston, Mezzacappa, Lisa Mezzacappa, Davis".
+ * A performer with no `source` is treated as billed, so nothing regresses if
+ * the field is missing.
+ */
+export function billedSupport(support: PerformerView[]): PerformerView[] {
+  return support.filter((p) => (p.source ?? "billed") === "billed");
+}
 
 export type ShowView = {
   id: number;
