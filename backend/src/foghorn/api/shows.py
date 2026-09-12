@@ -68,6 +68,14 @@ class PerformerView(BaseModel):
     display: str
     canonical: str
     origin: str | None = None  # 'local' | 'touring' | None (unknown)
+    # How this performer got onto the bill (#125): 'billed' is what the venue
+    # actually printed; 'parsed' and 'inferred' are links foghorn derived so
+    # that following a musician named inside a collective billing works. Only
+    # 'billed' belongs in a bill line — the derived ones would render the same
+    # people two or three times ("with Ochs, Larry Ochs, Mezzacappa, Lisa
+    # Mezzacappa, ..."). They stay in the payload because the watchlist digest
+    # reads them to report *which* followed name matched.
+    source: str = "billed"
 
 
 class ShowView(BaseModel):
@@ -95,7 +103,10 @@ class ShowView(BaseModel):
 def _to_view(show: Show, venue: Venue) -> ShowView:
     support = [
         PerformerView(
-            display=p.display_name, canonical=p.canonical_name, origin=p.origin
+            display=p.display_name,
+            canonical=p.canonical_name,
+            origin=p.origin,
+            source=p.source,
         )
         for p in show.performers
         if p.role == "support"

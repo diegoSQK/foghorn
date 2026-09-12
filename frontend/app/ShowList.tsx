@@ -8,7 +8,7 @@ import AddToWatchlistButton from "./AddToWatchlistButton";
 import EventTypeToggle from "./EventTypeToggle";
 import PinVenueButton from "./PinVenueButton";
 import RemoveEventButton from "./RemoveEventButton";
-import type { ShowView } from "./lib/api";
+import { billedSupport, type ShowView } from "./lib/api";
 import { sortFollowedFirst } from "./lib/precedence";
 import { genreBadgeClass } from "./lib/ui";
 
@@ -128,10 +128,10 @@ export default function ShowList({
                     {formatTime(show.start_local_time)}
                   </span>
                 </div>
-                {show.support.length > 0 && (
+                {billedSupport(show.support).length > 0 && (
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     with{" "}
-                    {show.support.map((performer, j) => (
+                    {billedSupport(show.support).map((performer, j) => (
                       <span key={performer.canonical}>
                         {j > 0 ? ", " : ""}
                         {performer.display}

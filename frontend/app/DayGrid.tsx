@@ -6,7 +6,7 @@
 
 import Link from "next/link";
 
-import type { ShowView } from "./lib/api";
+import { billedSupport, type ShowView } from "./lib/api";
 import { genreAccentClass } from "./lib/ui";
 
 const HOUR_PX = 64;
@@ -186,7 +186,7 @@ export default function DayGrid({
               const laneCount = siblings.length;
               const bill = [
                 show.headliner.display,
-                ...show.support.map((p) => p.display),
+                ...billedSupport(show.support).map((p) => p.display),
               ].join(" · ");
               const href =
                 show.ticket_url ??
@@ -202,9 +202,12 @@ export default function DayGrid({
                   <p className="truncate text-xs font-medium leading-tight text-zinc-800 dark:text-zinc-200">
                     {show.headliner.display}
                   </p>
-                  {show.support.length > 0 && (
+                  {billedSupport(show.support).length > 0 && (
                     <p className="truncate text-[10px] leading-tight text-zinc-500 dark:text-zinc-400">
-                      with {show.support.map((p) => p.display).join(", ")}
+                      with{" "}
+                      {billedSupport(show.support)
+                        .map((p) => p.display)
+                        .join(", ")}
                     </p>
                   )}
                 </>
