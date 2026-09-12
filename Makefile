@@ -1,4 +1,4 @@
-.PHONY: gate backend-gate frontend-gate frontend-test install scrape mail-poll tag-origins tag-genres backend-run frontend-run auth-bootstrap invite users
+.PHONY: gate backend-gate frontend-gate frontend-test install scrape mail-poll tag-origins tag-genres relink-performers backend-run frontend-run auth-bootstrap invite users
 
 # Where the live foghorn database lives. fleet's PM2 manifest points the API
 # at this same path; the targets below are the other writers, and they must
@@ -64,6 +64,15 @@ tag-origins:
 # run after scrapes. Manual tags are kept.
 tag-genres:
 	cd backend && FOGHORN_DB_PATH="$(FOGHORN_DB_PATH)" python -m foghorn.cli.tag_genres
+
+# Re-run billing-parse + surname-resolution over shows already in the DB
+# (#125). Ingest does this for every show it touches, so this is for the two
+# cases it can't reach: past shows, which no scraper returns any more, and
+# surnames that only became unique after a later show introduced the person.
+# Idempotent and additive — never edits a billing, never churns a show id.
+# Add --dry-run (`make relink-performers ARGS=--dry-run`) to preview.
+relink-performers:
+	cd backend && FOGHORN_DB_PATH="$(FOGHORN_DB_PATH)" python -m foghorn.cli.relink_performers $(ARGS)
 
 # Run the backend API (http://localhost:9100) with autoreload. Points at the
 # live DB, as it did before the path moved — this is the dev counterpart of

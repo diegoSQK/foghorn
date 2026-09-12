@@ -61,7 +61,7 @@ def _load_performers(
     rows = conn.execute(
         """
         SELECT sp.performer_id, p.display_name, p.canonical_name, p.origin,
-               p.genre, sp.role, sp.position
+               p.genre, sp.role, sp.position, sp.source
         FROM show_performers sp
         JOIN performers p ON p.id = sp.performer_id
         WHERE sp.show_id = ?
@@ -78,6 +78,7 @@ def _load_performers(
             genre=row["genre"],
             role=row["role"],
             position=row["position"],
+            source=row["source"],
         )
         for row in rows
     ]
@@ -172,9 +173,10 @@ def upsert(
     conn.execute("DELETE FROM show_performers WHERE show_id = ?", (stored.id,))
     for sp in performers:
         conn.execute(
-            "INSERT INTO show_performers (show_id, performer_id, role, position) "
-            "VALUES (?, ?, ?, ?)",
-            (stored.id, sp.performer_id, sp.role, sp.position),
+            "INSERT INTO show_performers "
+            "(show_id, performer_id, role, position, source) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (stored.id, sp.performer_id, sp.role, sp.position, sp.source),
         )
     conn.commit()
     stored.performers = _load_performers(conn, stored.id)

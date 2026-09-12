@@ -8,6 +8,126 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Uniqueness-gated surname resolution — following a name that's billed by surname (September 2026)
+
+A Lisa Mezzacappa show didn't reach the watchlist. It was in foghorn and
+correctly ingested — `Ochs/Johnston/Mezzacappa/Davis` at Medicine for
+Nightmares — but the follow is `lisa mezzacappa`, and token-bag matching needs
+*every* token of the follow to appear in the performer name. `lisa` isn't in
+that billing, so no match, silently.
+
+The matcher wasn't broken in general. Every Mezzacappa show billed with her
+full name matched fine. It failed on exactly one pattern: **collectives billed
+by surname only**, which is the house style of the creative-music scene this
+product exists to cover. A user-visible inconsistency made it worse —
+`performer_query=mezzacappa` *did* find the show, because a one-token query is
+a subset of the billing. Searching for her worked while following her didn't,
+and the failing direction was the one with the alerting job.
+
+### Why the obvious fix is wrong
+
+Relax matching so a performer name that is a *subset* of the follow also
+counts, and `mezzacappa` matches `lisa mezzacappa`. It also makes a followed
+"Miles Davis" match the bare `Davis` on this very bill, and on every other bill
+with a Davis on it. **A silent false positive in a digest is worse than a
+miss**, because it costs trust in every other row — so the match rule was left
+exactly as it was.
+
+### What shipped instead
+
+Two gaps, both required, neither sufficient alone:
+
+**1. The billing is now parsed.** `ingest/billing.py` splits multi-artist
+billings into the musicians they name — slash-separated surnames, comma lists
+with role and instrument annotations, parenthesised personnel. The members
+become *additional* `show_performers` rows: the display string is never
+rewritten (per `AGENTS.md` → Conventions) and `headliner_canonical` keeps the
+whole billing, so the dedupe natural key is untouched and no
+`event_type_overrides` rule is orphaned.
+
+**2. Bare surnames resolve against the catalogue, gated on uniqueness.**
+`ingest/surnames.py` asks how many known people bear a surname: exactly one →
+link the show to that person; two or more → leave it bare; none → leave it
+bare and never invent anyone. Ambiguity stops being a judgement call and
+becomes a fact measurable from the `performers` table, and the property
+improves as the catalogue grows — a surname that gains a second bearer
+silently stops resolving, which is the safe direction to fail.
+
+**The reusable lesson is the gate**, and the same question will come back for
+initials and nicknames: *don't loosen the matcher, resolve the identity, and
+refuse when the data can't tell you.*
+
+### The load-bearing detail nobody would guess
+
+Who counts as "known" decides everything, and the naive answer is wrong. The
+`performers` table is full of rows that merely *end* in a surname — "The Rob
+Reich Swings Left Legacy Band Featuring Darren Johnston" is not a person called
+Johnston. Counting those made `johnston` look ambiguous (blocking a correct
+resolution) and would let a band become the unique bearer of a surname nobody
+on the bill has. The index is therefore built only from *person-shaped* names:
+two or three tokens, no collective markers, no digits.
+
+### Parsing is biased to under-split, deliberately
+
+A missed personnel list costs one watchlist match. A wrong split invents a
+performer that pollutes the surname index, where a bogus name can *block* a
+correct resolution or become the unique answer. So the parser refuses whenever
+it isn't confident.
+
+That bias was set empirically, by dry-running the parser over all 6,194 live
+billings before wiring it to anything. The first draft split **179** of them —
+including `Earth, Wind & Fire`, `Sincerely, Yours`, `Michael Wolff, solo` and
+`TOMMY EMMANUEL, CGP` — while *failing* the Marina Crouse case the ticket
+required. Every one of those would have minted a phantom performer. Tightening
+(comma lists need three members or annotation evidence; `w/` is "with", not a
+delimiter; mixed separators and bracket structure are vetoes; `Jazz/Latin` and
+`AC/DC` are explicit refusals) brought it to **54 splits, 0.9%**, with all four
+required shapes parsing. The adversarial cases in
+`tests/test_billing_parse.py` are all real catalogue strings that a looser
+parser got wrong.
+
+### Convergence, and why one pass isn't enough
+
+Parsing a billing is what *creates* the person a later bare surname resolves
+to. `Larry Ochs` did not exist as a performer before this shipped — he was
+buried inside `Larry Ochs, Ben Davis, Darren Johnston, Lisa Mezzacappa -
+Subconscious Life` — so `ochs` had **zero** known bearers. Resolution therefore
+lags parsing by one pass.
+
+Inline resolution at ingest handles the ordinary case, since each ingest call
+rebuilds the index. Past shows never re-scrape though, and they are exactly
+what makes a surname known, so `cli/relink_performers.py` re-walks the stored
+catalogue and runs to a fixpoint. On live data it converges on pass 3 and is a
+no-op thereafter.
+
+### Verification
+
+Rehearsed against a copy of the live DB before anything touched the real one.
+Show ids, show count, headliner canonicals, per-venue counts and
+`event_type_overrides` all byte-identical across the backfill; 135 parsed links
+and 10 inferred links added across 5,574 shows.
+
+The reported show now reads:
+
+```
+[billed  ] Ochs/Johnston/Mezzacappa/Davis     <- display string unchanged
+[inferred] Larry Ochs
+[parsed  ] Ochs
+[inferred] Darren Johnston
+[parsed  ] Johnston
+[parsed  ] Mezzacappa
+[inferred] Lisa Mezzacappa                    <- the follow now matches
+[parsed  ] Davis                              <- stays bare, correctly
+```
+
+And the acceptance question the ticket asked to be answered explicitly:
+`ochs` → **Larry Ochs**, `johnston` → **Darren Johnston**, `mezzacappa` →
+**Lisa Mezzacappa**, `davis` → **ambiguous, stays bare** (five known bearers:
+Ben, Brittany, Evelyn, Jamie, Max). Partial resolution on one bill is the
+correct outcome, not a failure.
+
+---
+
 ## Bird & Beckett details links — `.ics` for billing, Tribe for metadata (September 2026)
 
 Every Bird & Beckett row carried the same `source_url`, so the "details" link

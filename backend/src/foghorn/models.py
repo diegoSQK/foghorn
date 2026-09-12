@@ -36,6 +36,11 @@ OriginSource = Literal["heuristic", "manual"]
 # band. Labelled, filterable, and never inferred: only a source that *says* so
 # sets it (Ticketmaster's "Arts & Theatre" segment today).
 EventType = Literal["show", "jam", "comedy"]
+# Provenance of a show_performers link (#125). 'billed' — the source named
+# this act in the headliner/support slot. 'parsed' — ingest.billing split it
+# out of a multi-artist billing. 'inferred' — ingest.surnames resolved a bare
+# surname to the one known person who bears it.
+PerformerLinkSource = Literal["billed", "parsed", "inferred"]
 
 
 class Venue(BaseModel):
@@ -91,6 +96,10 @@ class ShowPerformer(BaseModel):
     position: int  # display order on the bill; headliner is 0
     origin: Origin | None = None  # denormalized from performers for read-back
     genre: str | None = None  # denormalized performer genre (Phase 7.4)
+    # How this link came to exist: the source billed it, the billing parser
+    # split it out of a multi-artist string, or a bare surname resolved to a
+    # known person. 'inferred' is a claim foghorn made rather than read.
+    source: PerformerLinkSource = "billed"
 
 
 class Show(BaseModel):
