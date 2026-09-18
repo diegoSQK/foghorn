@@ -183,6 +183,8 @@ CREATE TABLE IF NOT EXISTS scrape_run_venues (
     created        INTEGER NOT NULL,
     updated        INTEGER NOT NULL,
     errors_json    TEXT NOT NULL,
+    -- Deliberate-drop observations (scrapers/diagnostics); JSON list.
+    notes_json     TEXT,
     PRIMARY KEY (scrape_run_id, venue_slug)
 );
 """
@@ -214,6 +216,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
     _add_column_if_missing(
         conn, "show_performers", "source", "TEXT NOT NULL DEFAULT 'billed'"
     )
+    _add_column_if_missing(conn, "scrape_run_venues", "notes_json", "TEXT")
     conn.commit()
 
 

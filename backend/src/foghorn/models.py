@@ -246,6 +246,10 @@ class ScrapeRunVenue(BaseModel):
     created: int = 0
     updated: int = 0
     errors: list[str] = Field(default_factory=list)
+    # Observations about a run that *succeeded* and still dropped something on
+    # purpose — see scrapers/diagnostics. Not failures; they sit beside errors
+    # on the health surface so a deliberate drop can't be silent.
+    notes: list[str] = Field(default_factory=list)
 
 
 class ScrapeRun(BaseModel):

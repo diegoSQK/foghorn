@@ -31,8 +31,8 @@ def record_run(
             """
             INSERT INTO scrape_run_venues
                 (scrape_run_id, venue_slug, started_at, finished_at,
-                 created, updated, errors_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                 created, updated, errors_json, notes_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
@@ -42,6 +42,7 @@ def record_run(
                 venue.created,
                 venue.updated,
                 json.dumps(venue.errors),
+                json.dumps(venue.notes),
             ),
         )
     conn.commit()
@@ -81,7 +82,8 @@ def latest(conn: sqlite3.Connection) -> ScrapeRun | None:
         return None
     venue_rows = conn.execute(
         """
-        SELECT venue_slug, started_at, finished_at, created, updated, errors_json
+        SELECT venue_slug, started_at, finished_at, created, updated, errors_json,
+               notes_json
         FROM scrape_run_venues WHERE scrape_run_id = ?
         ORDER BY venue_slug
         """,
@@ -95,6 +97,7 @@ def latest(conn: sqlite3.Connection) -> ScrapeRun | None:
             created=v["created"],
             updated=v["updated"],
             errors=json.loads(v["errors_json"]),
+            notes=json.loads(v["notes_json"]) if v["notes_json"] else [],
         )
         for v in venue_rows
     ]

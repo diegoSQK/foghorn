@@ -39,7 +39,7 @@ from foghorn.repo import db
 from foghorn.repo import scrape_runs as scrape_runs_repo
 from foghorn.repo import venues as venues_repo
 from foghorn.repo.seed_venues import seed
-from foghorn.scrapers import MONTHLY_SCRAPERS, REGISTERED_SCRAPERS
+from foghorn.scrapers import MONTHLY_SCRAPERS, REGISTERED_SCRAPERS, diagnostics
 
 logger = logging.getLogger("foghorn.scheduler")
 
@@ -79,6 +79,9 @@ def run_scrape(
         venue_started = _now()
         created = updated = reaped = 0
         errors: list[str] = []
+        # A successful run can still drop a show on purpose; scrapers report
+        # that here rather than it vanishing (see scrapers/diagnostics).
+        diagnostics.reset()
         venue = venues_repo.get_by_slug(conn, slug)
         if venue is None:
             errors.append(f"no seeded venue for slug {slug!r}")
@@ -113,6 +116,7 @@ def run_scrape(
                 created=created,
                 updated=updated,
                 errors=errors,
+                notes=diagnostics.drain(),
             )
         )
     # Aggregator sources run after the venue scrapers so the duplicate guard
