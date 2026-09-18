@@ -19,6 +19,10 @@ class VenueView(BaseModel):
     neighborhood: str | None
     region: str | None
     genre: str | None
+    # Capacity tier (#133): listening_room | club | theatre | large.
+    # Metadata only — there is deliberately no size filter yet. None on
+    # aggregator-discovered rows.
+    size_tier: str | None = None
     # 'seed' | 'manual' | 'aggregator' — the frontend quarantines aggregator
     # venues (hidden from pickers/chips unless the long-tail toggle or a pin
     # surfaces them).
@@ -46,6 +50,7 @@ def list_venues() -> list[VenueView]:
             neighborhood=v.neighborhood,
             region=v.region,
             genre=v.genre,
+            size_tier=v.size_tier,
             source=v.source,
         )
         for v in venues
