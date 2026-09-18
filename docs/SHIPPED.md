@@ -8,6 +8,101 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## War Memorial licensee calendar — the halls stop being one company's season (September 2026)
+
+A Julian Lage Quartet date at Davies on 2026-10-19 was missing, with Lage on
+the watchlist and Davies a seeded venue. It fell through a structural gap:
+SFJAZZ presented it off-site, and `sfjazz.scrape_center()` drops off-site
+dates by design (registering SFJAZZ under a host venue would let the nightly
+`prune=True` reap every *other* show at that host). Its stated mitigation is
+that off-site dates "arrive through the host venue's own scraper" — which
+holds for the Paramount and the UC Theatre, and silently fails for any host
+whose only source is a presenter feed.
+
+Davies, Herbst and the Wilsey Atrium were **modelled as venues but sourced
+from presenters**. A hall was therefore only ever as complete as one resident
+company's season, and every rental — jazz presenters, touring recitals,
+film-with-orchestra one-offs — was invisible.
+
+### The source
+
+`sfwarmemorial.org/calendar/` is the building operator's own record. The War
+Memorial is the City department that rents these halls, which is exactly the
+authority wanted: it covers **licensees**, not one company.
+
+The ticket's recon said the events were JS-rendered and pointed at JetEngine
+Custom Content Types as the likely path. Both turned out to be wrong in a
+useful way. There is no events post type, `tribe/events/v1` 404s, and there is
+no CCT — but the events aren't fetched at all. They're server-rendered into
+the page as a `var eventsData = [...]` array by the building's booking system,
+with Momentus/Ungerboeck field names (`arrangement_customer_entity_full_name`,
+`activity_detail`) showing through. **A plain HTTP GET is the whole data
+path**; Phase 1's no-headless bar is cleared with room to spare. 445 bookings,
+2026-06-01 → 2027-05-29, carrying hall, presenter, genre and a ticket URL.
+
+### The prune hazard dissolves rather than being solved
+
+The ticket spent its longest section on the reaper: registering a Davies
+scraper with `prune=True` would reap the Symphony aggregator's Davies rows —
+`sfjazz`'s hazard pointed the other way. It offered two options, declare this
+source authoritative, or scope prune per contributing source.
+
+Neither was needed. **The aggregator tier already has the right shape**: it
+ingests per event, never prunes, and resolves each event's hall from a
+free-text venue name — which is precisely what a multi-hall building feed
+produces. Landing it there means the hazard never arises. A test pins the
+registration so a later move into `REGISTERED_SCRAPERS` fails loudly.
+
+So this ticket does *not* add a third data point for per-source prune
+scoping. Two of the three cases the tickets cite have architectural answers;
+the remaining one is #129's.
+
+### Two things measurement changed
+
+**Symphony dates are dropped at the source.** The building sees the Symphony's
+season too, so ingesting naively would have double-listed it. Measured against
+live data first: of 171 Symphony dates, 86 canonicalize identically to the
+existing rows (harmless), but **19 carry a different billing at the same
+date and time** and would have landed as visible duplicates — the booking
+record says "DOCTOR ATOMIC AND MENDELSSOHN VIOLIN CONCERTO" where the
+Symphony's own feed says "Elim Chan conducts Adams and Mendelssohn". The
+presenter's copy is better, and the ticket's own acceptance asks for
+*non-Symphony* licensee events, so the feed defers.
+
+**A second deferral rule came out of the rehearsal.** Ingesting onto a copy of
+the live DB still produced 2 duplicates at Herbst, because
+`ingest._is_duplicate` deliberately ignores rows whose source is `aggregator`
+— two presenter feeds listing one hall on one night are usually two real
+events, and suppressing one would lose a show. That reasoning doesn't hold for
+a *building* feed, where an existing row for the same slot is almost certainly
+the same booking, better described. `DEFER_TO_ALL_SOURCES` is the opt-in;
+everything else keeps the old behaviour, and a test pins that too.
+
+### Also
+
+The War Memorial Opera House **was not a seeded venue at all** — the ticket
+assumed it was. SF Opera's entire season and every Opera House rental had
+nowhere to land; it's seeded here. And `sfwmpac.org`, still seeded as Herbst's
+website and calendar URL, no longer resolves (DNS failure, confirmed
+2026-09-18); both now point at `sfwarmemorial.org`.
+
+Genre filtering rides the calendar's own facet, which is reliable for
+everything but Film — that covers both plain screenings and live-orchestra
+performances, so Film is admitted only on an explicit in-concert /
+with-orchestra signal in the billing. Dance (the Ballet's season), ceremonies,
+talks and receptions are dropped, as are the two back-of-house rooms.
+
+### Verification
+
+Rehearsed on a copy of the live DB: **123 new shows across the four halls, 0
+pre-existing rows lost, 0 duplicate slots introduced** (the 3 remaining
+same-slot collisions at Davies pre-date this change — the Symphony feed
+duplicating itself, worth its own look). Davies gains 10 rentals, Herbst 65,
+the Opera House 44, the Wilsey 4. The Julian Lage date is present at
+2026-10-19 20:00 and matches the `julian lage` follow.
+
+---
+
 ## Uniqueness-gated surname resolution — following a name that's billed by surname (September 2026)
 
 A Lisa Mezzacappa show didn't reach the watchlist. It was in foghorn and
