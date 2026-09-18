@@ -25,7 +25,7 @@ import logging
 import os
 import sqlite3
 from collections.abc import Callable
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -37,6 +37,7 @@ from foghorn.ingest.pipeline import ingest_scraped_shows
 from foghorn.models import ScrapedShow, ScrapeRun, ScrapeRunVenue
 from foghorn.repo import db
 from foghorn.repo import scrape_runs as scrape_runs_repo
+from foghorn.repo import shows as shows_repo
 from foghorn.repo import venues as venues_repo
 from foghorn.repo.seed_venues import seed
 from foghorn.scrapers import MONTHLY_SCRAPERS, REGISTERED_SCRAPERS, diagnostics
@@ -82,21 +83,38 @@ def run_scrape(
         # A successful run can still drop a show on purpose; scrapers report
         # that here rather than it vanishing (see scrapers/diagnostics).
         diagnostics.reset()
-        venue = venues_repo.get_by_slug(conn, slug)
-        if venue is None:
-            errors.append(f"no seeded venue for slug {slug!r}")
-        else:
-            try:
-                # prune=True: a venue scraper returns that venue's whole
-                # current window, so rows it no longer lists are stale
-                # (retitled / rescheduled / cancelled) and get reaped.
-                result = ingest_scraped_shows(conn, venue, scrape(), prune=True)
-                created, updated = result.created, result.updated
-                reaped = result.reaped
-                errors = list(result.errors)
-            except Exception as exc:
-                # Isolate a venue-level failure (scraper raised, network, etc.).
-                errors.append(f"{type(exc).__name__}: {exc}")
+        try:
+            # A scraper may contribute to several venues — SFJAZZ books rooms
+            # it doesn't own — so its output is grouped by the venue each show
+            # actually names rather than assumed to be the registry key's.
+            # Each group ingests with prune scoped to (venue, this scraper),
+            # which is what makes sharing a venue safe (#130).
+            by_venue: dict[str, list[ScrapedShow]] = {}
+            for show in scrape():
+                by_venue.setdefault(show.venue_slug, []).append(show)
+            if not by_venue:
+                # Nothing returned: still check the registry's own venue
+                # exists, which is the misconfiguration this used to catch.
+                if venues_repo.get_by_slug(conn, slug) is None:
+                    errors.append(f"no seeded venue for slug {slug!r}")
+            for venue_slug, shows in sorted(by_venue.items()):
+                venue = venues_repo.get_by_slug(conn, venue_slug)
+                if venue is None:
+                    errors.append(f"no seeded venue for slug {venue_slug!r}")
+                    continue
+                # prune=True: a scraper returns its whole current window for
+                # the venues it covers, so rows *it* contributed and no longer
+                # lists are stale (retitled / rescheduled / cancelled).
+                result = ingest_scraped_shows(
+                    conn, venue, shows, prune=True, source_scraper=slug
+                )
+                created += result.created
+                updated += result.updated
+                reaped += result.reaped
+                errors.extend(result.errors)
+        except Exception as exc:
+            # Isolate a venue-level failure (scraper raised, network, etc.).
+            errors.append(f"{type(exc).__name__}: {exc}")
         venue_finished = _now()
         logger.info(
             "scrape.venue",
@@ -119,6 +137,19 @@ def run_scrape(
                 notes=diagnostics.drain(),
             )
         )
+    # Rows whose contributing scraper is no longer registered would otherwise
+    # linger forever, since a scraper now only reaps its own (#130). Runs after
+    # the scrapers so one that succeeded this pass has already refreshed its
+    # rows' scraped_at and can never be caught by the threshold.
+    orphan_cutoff = (
+        datetime.now(UTC) - timedelta(days=shows_repo.ORPHAN_SWEEP_DAYS)
+    ).isoformat()
+    swept = shows_repo.reap_orphaned(
+        conn, scrapers.keys(), scraped_before=orphan_cutoff
+    )
+    if swept:
+        logger.info("scrape.orphans_swept", extra={"rows": swept})
+
     # Aggregator sources run after the venue scrapers so the duplicate guard
     # defers to fresh authoritative rows. Each records one pseudo-venue slice
     # (slug "aggregator:<source>") in the run, same isolation contract.

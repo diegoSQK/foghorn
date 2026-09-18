@@ -103,6 +103,11 @@ _LOCATION_SLUGS = {
     # booking, and revisit if SFJAZZ starts programming there regularly.
     "grace cathedral": "grace_cathedral",
 }
+
+# Every venue this scraper may contribute to. Derived from the location map so
+# the two can't drift. The registry uses it to attribute pre-#130 rows and to
+# document that this scraper is not confined to its own building.
+COVERED_VENUES: frozenset[str] = frozenset(_LOCATION_SLUGS.values())
 # Streamed programming — real events, but not local shows anyone can attend.
 # `location == "SFJAZZ At Home"` and `isStreamingEvent` agree exactly (16/16
 # over a year), so either alone would do; both are checked.
@@ -334,31 +339,25 @@ def scrape(today: dt.date | None = None) -> list[ScrapedShow]:
 
 
 def scrape_center() -> list[ScrapedShow]:
-    """The SFJAZZ Center's own rooms — and the *only* thing registered.
+    """Deprecated shim — kept only so an out-of-tree caller doesn't break.
 
-    This filter is a safety property, not tidiness. The nightly runner ingests a
-    registered scraper's whole output against that one venue with ``prune=True``,
-    which reaps rows the run didn't return across the span it covered. SFJAZZ's
-    feed is authoritative for its own building, but for the Paramount it lists
-    only the two nights SFJAZZ presents there — so registering this scraper
-    under ``paramount_theatre_oakland`` would reap every *other* Paramount show
-    in that span, wiping out the Paramount's own scraper's work.
+    **This filter used to be a safety property and no longer is.** The nightly
+    runner scoped its reaper to ``(venue, span)``, which encoded "exactly one
+    scraper is authoritative at this venue". Registering SFJAZZ under the
+    Paramount would therefore have reaped every *other* Paramount show in the
+    span. Dropping the off-site dates was the only way to stay safe, and it
+    cost real shows: a Julian Lage Quartet date at Davies on 2026-10-19 was
+    dropped here and appeared nowhere, despite Lage being on the watchlist.
 
-    Off-site SFJAZZ dates therefore arrive through the host venue's own scraper,
-    where they already do: Snarky Puppy's Paramount date is in foghorn today via
-    ``scrapers/paramount_theatre_oakland``, with a natural key
-    ``(venue, date, time, headliner)`` identical to what this feed reports.
-
-    **That assumption is now checked rather than trusted.** It held for the
-    Paramount and the UC Theatre and quietly failed for Davies, whose only
-    source published one company's season — so an SFJAZZ date there was
-    dropped here and appeared nowhere. Every drop is reported on the
-    scrape-health surface via ``scrapers.diagnostics``, with hosts that have no
-    scraper of their own called out separately: those are the genuinely lost
-    ones.
+    #130 rescoped the reaper to ``(venue, contributing scraper, span)``, so a
+    scraper can only ever delete rows it previously contributed. SFJAZZ is now
+    registered wholesale via ``scrape()`` and its off-site dates land at their
+    host venues, where nothing else will reap them.
     """
     shows = scrape()
     kept = [show for show in shows if show.venue_slug == VENUE_SLUG]
+    # Still reports, so the shim stays honest for anyone calling it — but
+    # nothing registered does, so in practice there is nothing to report.
     _report_offsite(offsite_drops(shows))
     return kept
 

@@ -53,6 +53,13 @@ from foghorn.models import ScrapedShow
 
 VENUE_SLUG_HAIGHT = "the_mellow_haight"
 VENUE_SLUG_BOATHOUSE = "blue_heron_boathouse"
+# Both rooms come off one fetch. Before #130 they were registered separately,
+# each filtering the shared output, purely so the nightly prune stayed scoped
+# to the venue a given entry had authoritative listings for — the reaper is
+# scoped per contributing scraper now, so one entry covers both.
+COVERED_VENUES: frozenset[str] = frozenset(
+    {VENUE_SLUG_HAIGHT, VENUE_SLUG_BOATHOUSE}
+)
 VENUE_TZ = ZoneInfo("America/Los_Angeles")
 
 BASE_URL = "https://themellowsf.com"

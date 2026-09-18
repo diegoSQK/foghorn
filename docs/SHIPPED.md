@@ -8,6 +8,80 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## The reaper stops being scoped to a venue (September 2026)
+
+`reap_stale` was scoped to `(venue_id, source='scrape', span)`. That encoded an
+assumption — **exactly one scraper is authoritative per venue** — which was
+true only because the registry enforced it structurally, being a
+`dict[venue_slug, callable]`.
+
+It is false the moment a presenter books a room it doesn't own. SFJAZZ's feed
+lists the two nights it presents at the Paramount; register it under
+`paramount_theatre_oakland` and its run returns only those two, so the reaper
+concludes every *other* Paramount show in the span is dead.
+
+The granularity had been worked around twice, and the workarounds cost shows:
+
+1. **`sfjazz.scrape_center()`** existed only for this, dropping every off-site
+   SFJAZZ date. That is how a Julian Lage Quartet date at Davies went missing
+   despite Lage being on the watchlist.
+2. **`the_mellow`** registered one scraper twice — `scrape_haight` and
+   `scrape_boathouse`, each filtering the same fetch — explicitly "so the
+   nightly run's prune stays scoped to the venue it actually has authoritative
+   listings for."
+
+### What changed
+
+`shows.source_scraper` records which scraper produced a row, and the reaper
+matches on it: **a scraper can only ever delete rows it previously
+contributed.** Sharing a venue becomes safe, so both workarounds are gone —
+SFJAZZ registers wholesale and its off-site dates land at their host venues,
+and The Mellow is one entry covering both rooms.
+
+The registry needed its second dimension, and it turned out to need less than
+expected: every `ScrapedShow` already carries its own `venue_slug`, so the
+runner **groups a scraper's output by the venue each show names** rather than
+assuming the registry key. The key becomes a scraper identity that happens to
+equal the venue slug in the 1:1 case, so none of the ~85 existing entries
+changed.
+
+### What the rehearsal caught
+
+Attributing pre-existing rows looked trivial — registration was 1:1, so stamp
+each venue's rows with its own slug. Run against a copy of the live DB, that
+stranded **76 Blue Heron Boathouse rows**: collapsing The Mellow's dual
+registration means the boathouse's contributor is `the_mellow_haight`, not its
+own slug, so nothing would ever have matched them — and a NULL
+`source_scraper` is deliberately never swept either. They'd have lingered
+forever as duplicates, which is precisely the failure the reaper exists to
+prevent.
+
+The fix is the coverage declaration the ticket asked for: `SCRAPER_VENUES`,
+populated only for the two multi-venue scrapers and derived from their own
+routing tables so it can't drift. Attribution then goes by venue coverage
+rather than by registry id. Second run: **5,491 of 5,491 scraped rows
+attributed, zero unattributed, zero rows lost.**
+
+### The cost, and the backstop
+
+Per-contributor scoping means a scraper that stops running never reaps its
+rows again — deleted, renamed, or dropped from the registry, its shows linger.
+Stale rows beat missing ones, but it is still a failure, so `reap_orphaned`
+sweeps rows whose contributor is no longer registered, after a deliberately
+generous 30 days: a scraper that is merely broken for a fortnight must not
+have its venue's calendar deleted. Rows with a NULL contributor are left
+alone — deleting what you can't attribute is the wrong instinct.
+
+### A correction
+
+Shipping #128 and #129 I argued this ticket's evidence was thinner than it
+claimed — that #128 dissolved into the aggregator tier rather than needing
+prune changes, leaving "really one case". **That was wrong**: I had missed
+The Mellow's dual registration, which is a second, independent structural
+workaround that has nothing to do with #128. The count in the ticket was
+right.
+
+
 ## Bill Graham Civic — the Civic Center gap was civic-scale rooms, not geography (September 2026)
 
 Bill Graham Civic Auditorium was absent from foghorn entirely — not seeded, not

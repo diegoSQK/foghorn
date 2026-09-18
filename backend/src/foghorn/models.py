@@ -126,6 +126,12 @@ class Show(BaseModel):
     # "manual" = user-entered via POST /api/events (deletable through the
     # API); "aggregator" = ingested from an aggregator source.
     source: Literal["scrape", "manual", "aggregator"] = "scrape"
+    # Which registered scraper produced this row (#130). The reaper is scoped
+    # by it, so a scraper can only ever delete rows it previously contributed
+    # — which is what lets one scraper cover several venues without reaping a
+    # co-tenant's work. None for manual and aggregator rows, which have their
+    # own provenance and are never reaped.
+    source_scraper: str | None = None
     event_type: EventType = "show"
     # Per-show genre (Phase 7.2), normalized at ingest from sources that
     # publish per-event genre. Genre resolution is layered: this override

@@ -189,12 +189,14 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     freight_and_salvage.VENUE_SLUG: freight_and_salvage.scrape,
     # Only the Center's own rooms — registering SFJAZZ under the venues it
     # books off-site would let its prune reap those venues' own listings.
-    sfjazz.VENUE_SLUG: sfjazz.scrape_center,
+    sfjazz.VENUE_SLUG: sfjazz.scrape,
     # One scraper, two rooms. Registered once per venue (each entry filters the
     # shared fetch to its own room) so the nightly run's prune stays scoped to
     # the venue it actually has authoritative listings for.
-    the_mellow.VENUE_SLUG_HAIGHT: the_mellow.scrape_haight,
-    the_mellow.VENUE_SLUG_BOATHOUSE: the_mellow.scrape_boathouse,
+    # One entry covering both rooms: the runner groups a scraper's output by
+    # the venue each show names, and the reaper is scoped per contributing
+    # scraper, so the split registration #130 retired is no longer needed.
+    the_mellow.VENUE_SLUG_HAIGHT: the_mellow.scrape,
 }
 
 # Scrapers that run monthly instead of nightly (see scheduler/runner.py).
@@ -206,4 +208,40 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
 # through February. Monthly keeps the noise proportional to what we can act on,
 # while still probing for recovery: if the block lifts, the next run picks the
 # calendar back up. Drop the slug from here the moment it does.
+# Scrapers that contribute to venues beyond the one their registry id names
+# (#130). Anything absent covers exactly its own id, which is the 1:1 shape
+# almost every entry above has. The runner doesn't consult this — it groups a
+# scraper's output by the venue each show names — but the migration does, to
+# attribute pre-#130 rows at venues whose contributor isn't their own slug.
+SCRAPER_VENUES: dict[str, frozenset[str]] = {
+    sfjazz.VENUE_SLUG: sfjazz.COVERED_VENUES,
+    the_mellow.VENUE_SLUG_HAIGHT: the_mellow.COVERED_VENUES,
+}
+
+
+def venues_for(scraper_id: str) -> frozenset[str]:
+    """The venues a registered scraper may contribute to."""
+    return SCRAPER_VENUES.get(scraper_id, frozenset({scraper_id}))
+
+
+def contributor_for_venue(venue_slug: str) -> str | None:
+    """The registered scraper that covers this venue, if exactly one does.
+
+    A venue covered by its own scraper *and* by a presenter's feed (the
+    Paramount, which SFJAZZ also books) resolves to its own — the rows that
+    predate #130 there were made by the venue's scraper, since the presenter
+    feed was filtered out precisely to avoid the reaper.
+    """
+    claimants = [
+        scraper_id
+        for scraper_id in REGISTERED_SCRAPERS
+        if venue_slug in venues_for(scraper_id)
+    ]
+    if not claimants:
+        return None
+    if venue_slug in claimants:
+        return venue_slug
+    return claimants[0] if len(claimants) == 1 else None
+
+
 MONTHLY_SCRAPERS: frozenset[str] = frozenset({sfjazz.VENUE_SLUG})
