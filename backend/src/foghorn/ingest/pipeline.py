@@ -215,6 +215,7 @@ def _to_show(
     scraped: ScrapedShow,
     scraped_at: str,
     source: Literal["scrape", "manual", "aggregator"] = "scrape",
+    source_scraper: str | None = None,
 ) -> Show:
     """Build a persistable ``Show`` from a ``ScrapedShow``, applying the venue
     tz to the naive local times to derive ``start_utc``."""
@@ -235,6 +236,7 @@ def _to_show(
         genre_override = infer_genre_from_title(scraped.headliner_raw)
     return Show(
         source=source,
+        source_scraper=source_scraper,
         event_type=infer_event_type(scraped),
         genre_override=genre_override,
         # Verbatim from the source; whitespace-normalized so "Joe Henderson Lab"
@@ -355,6 +357,7 @@ def ingest_scraped_shows(
     source: Literal["scrape", "manual", "aggregator"] = "scrape",
     *,
     prune: bool = False,
+    source_scraper: str | None = None,
 ) -> IngestResult:
     """Normalize, dedupe, and persist a venue's scraped shows.
 
@@ -363,6 +366,10 @@ def ingest_scraped_shows(
     continues. ``source="manual"`` marks user-entered events (POST
     /api/events), which reuse this exact path — same normalization, same
     natural-key dedup — but stay deletable through the API.
+
+    ``source_scraper`` names the registered scraper behind a ``scrape`` run;
+    it stamps each row and scopes the reaper, so a scraper can only ever
+    delete rows it previously contributed (#130). Required when ``prune=True``.
 
     ``prune=True`` (the nightly per-venue scrape) additionally reaps scraped
     rows the venue no longer lists: because the natural key includes the
@@ -383,7 +390,7 @@ def ingest_scraped_shows(
     surnames = build_index(conn)
     for record in scraped:
         try:
-            show = _to_show(venue, record, scraped_at, source)
+            show = _to_show(venue, record, scraped_at, source, source_scraper)
             existing = shows_repo.get_by_natural_key(
                 conn,
                 show.venue_id,
@@ -407,9 +414,11 @@ def ingest_scraped_shows(
     if prune and not result.errors and scraped:
         assert venue.id is not None
         dates = sorted(record.start_local.date().isoformat() for record in scraped)
+        assert source_scraper is not None, "prune=True requires a source_scraper"
         result.reaped = shows_repo.reap_stale(
             conn,
             venue.id,
+            source_scraper=source_scraper,
             scraped_before=scraped_at,
             from_date=dates[0],
             to_date=dates[-1],

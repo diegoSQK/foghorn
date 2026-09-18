@@ -217,6 +217,8 @@ def init_schema(conn: sqlite3.Connection) -> None:
         conn, "show_performers", "source", "TEXT NOT NULL DEFAULT 'billed'"
     )
     _add_column_if_missing(conn, "scrape_run_venues", "notes_json", "TEXT")
+    _add_column_if_missing(conn, "shows", "source_scraper", "TEXT")
+    _backfill_source_scraper(conn)
     conn.commit()
 
 
@@ -283,3 +285,43 @@ def _ensure_bootstrap_admin(conn: sqlite3.Connection) -> int:
     )
     assert cursor.lastrowid is not None
     return cursor.lastrowid
+
+
+def _backfill_source_scraper(conn: sqlite3.Connection) -> None:
+    """Attribute pre-#130 scraped rows to the scraper that produced them.
+
+    Registration was 1:1 per venue before #130, so every existing
+    ``source='scrape'`` row can be mechanically attributed to its venue's
+    registered scraper. Without this the first post-migration run matches
+    nothing and stale rows linger forever — reintroducing exactly the
+    duplicate-listing problem the reaper was built to solve.
+
+    Idempotent: only fills rows where the column is still NULL, so it is a
+    no-op on every run after the first.
+    """
+    pending = conn.execute(
+        "SELECT COUNT(*) FROM shows WHERE source = 'scrape' AND source_scraper IS NULL"
+    ).fetchone()[0]
+    if not pending:
+        return
+    # Imported here rather than at module scope: scrapers/__init__ imports
+    # every scraper module, and schema is imported from repo.db at connect().
+    from foghorn.scrapers import contributor_for_venue
+
+    # Attribute by *venue*, not by registry id — they stop being the same
+    # thing the moment a scraper covers more than one room. Attributing by id
+    # alone stranded 76 Blue Heron Boathouse rows in rehearsal: the venue's
+    # contributor is `the_mellow_haight`, so nothing would ever have matched
+    # them, and a NULL row is deliberately never swept either.
+    updates = [
+        (contributor, slug)
+        for slug, in conn.execute("SELECT slug FROM venues")
+        if (contributor := contributor_for_venue(slug)) is not None
+    ]
+    conn.executemany(
+        "UPDATE shows SET source_scraper = ? WHERE source_scraper IS NULL "
+        "AND source = 'scrape' AND venue_id = "
+        "(SELECT id FROM venues WHERE slug = ?)",
+        updates,
+    )
+    conn.commit()

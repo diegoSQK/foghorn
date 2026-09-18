@@ -60,8 +60,37 @@ def test_run_persists_and_is_readable_as_latest(conn: sqlite3.Connection) -> Non
     assert len(shows) == 1
 
 
+def _unseeded_venue_scraper() -> list[ScrapedShow]:
+    return [
+        ScrapedShow(
+            venue_slug="nope_not_a_venue",
+            headliner_raw="Some Act",
+            support_raw=[],
+            start_local=datetime(2026, 6, 1, 20, 0),
+            source_url="https://example.com/show",
+        )
+    ]
+
+
 def test_run_records_error_for_unseeded_venue(conn: sqlite3.Connection) -> None:
-    run = run_scrape(conn, {"nope_not_a_venue": _ok_scraper}, aggregators={})
+    """Since #130 a scraper's output is grouped by the venue each show names,
+    so the misconfiguration worth catching is a *show* naming a venue that
+    isn't seeded — not a registry key that isn't a venue slug, which is now
+    legitimate for a scraper covering several rooms."""
+    run = run_scrape(conn, {"some_scraper": _unseeded_venue_scraper}, aggregators={})
     venue = run.venues[0]
     assert venue.created == 0
     assert any("no seeded venue" in e for e in venue.errors)
+
+
+def test_a_scraper_may_be_registered_under_a_non_venue_id(
+    conn: sqlite3.Connection,
+) -> None:
+    """The registry key is a scraper identity now, not necessarily a venue —
+    that decoupling is what lets one scraper cover rooms it doesn't own."""
+    run = run_scrape(conn, {"a_presenter_feed": _ok_scraper}, aggregators={})
+    assert run.venues[0].errors == []
+    assert run.venues[0].created == 1
+    shows = shows_repo.list(conn, ShowFilters(venue_slugs=["bird_and_beckett"]))
+    assert len(shows) == 1
+    assert shows[0].source_scraper == "a_presenter_feed"

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import builtins
 import sqlite3
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 
 from foghorn.models import Show, ShowFilters, ShowPerformer
 from foghorn.repo.performer_match import token_match_sql
@@ -30,7 +30,7 @@ _SHOW_COLUMNS = (
     "end_local_time, doors_local_time, headliner_canonical, ticket_url, price_text, "
     "source_url, scraped_at, source, "
     + _EVENT_TYPE_RESOLVED.format(alias="shows")
-    + " AS event_type, genre_override, room"
+    + " AS event_type, genre_override, room, source_scraper"
 )
 
 
@@ -52,6 +52,7 @@ def _row_to_show(row: sqlite3.Row) -> Show:
         event_type=row["event_type"],
         genre_override=row["genre_override"],
         room=row["room"],
+        source_scraper=row["source_scraper"],
     )
 
 
@@ -125,8 +126,8 @@ def upsert(
         INSERT INTO shows (venue_id, start_utc, start_local_date, start_local_time,
                            end_local_time, doors_local_time, headliner_canonical,
                            ticket_url, price_text, source_url, scraped_at, source,
-                           event_type, genre_override, room)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           event_type, genre_override, room, source_scraper)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(venue_id, start_local_date, start_local_time, headliner_canonical)
         DO UPDATE SET
             start_utc        = excluded.start_utc,
@@ -139,7 +140,8 @@ def upsert(
             source           = excluded.source,
             event_type       = excluded.event_type,
             genre_override   = excluded.genre_override,
-            room             = excluded.room
+            room             = excluded.room,
+            source_scraper   = excluded.source_scraper
         """,
         (
             show.venue_id,
@@ -157,6 +159,7 @@ def upsert(
             show.event_type,
             show.genre_override,
             show.room,
+            show.source_scraper,
         ),
     )
     stored = get_by_natural_key(
@@ -336,7 +339,7 @@ def list(conn: sqlite3.Connection, filters: ShowFilters) -> builtins.list[Show]:
         "s.start_local_time, s.end_local_time, s.doors_local_time, "
         "s.headliner_canonical, "
         "s.ticket_url, s.price_text, s.source_url, s.scraped_at, s.source, "
-        f"{resolved} AS event_type, s.genre_override, s.room "
+        f"{resolved} AS event_type, s.genre_override, s.room, s.source_scraper "
         "FROM shows s JOIN venues v ON v.id = s.venue_id"
     )
     if clauses:
@@ -383,6 +386,7 @@ def reap_stale(
     conn: sqlite3.Connection,
     venue_id: int,
     *,
+    source_scraper: str,
     scraped_before: str,
     from_date: str,
     to_date: str,
@@ -401,6 +405,12 @@ def reap_stale(
 
     * ``source='scrape'`` only — never user-entered (``manual``) or
       aggregator-discovered rows, which have their own provenance.
+    * only rows **this scraper** contributed (``source_scraper``). Before
+      #130 the scope was the venue, which encoded "exactly one scraper is
+      authoritative here" — true only because the registry forbade anything
+      else. A presenter booking a room it doesn't own broke that assumption,
+      and the workarounds cost real shows (see ``sfjazz``). Scoping by
+      contributor lets several scrapers share a venue safely.
     * only ``[from_date, to_date]``, which callers set from the span the run
       actually returned — rows outside what the run covered are never touched.
     * only rows stamped before this run (``scraped_at < scraped_before``).
@@ -410,9 +420,9 @@ def reap_stale(
     """
     rows = conn.execute(
         "SELECT id FROM shows "
-        "WHERE venue_id = ? AND source = 'scrape' AND scraped_at < ? "
-        "AND start_local_date BETWEEN ? AND ?",
-        (venue_id, scraped_before, from_date, to_date),
+        "WHERE venue_id = ? AND source = 'scrape' AND source_scraper = ? "
+        "AND scraped_at < ? AND start_local_date BETWEEN ? AND ?",
+        (venue_id, source_scraper, scraped_before, from_date, to_date),
     ).fetchall()
     ids = [row["id"] for row in rows]
     if not ids:
@@ -463,3 +473,48 @@ def clear_event_type_override(
     )
     conn.commit()
     return cursor.rowcount > 0
+
+
+# A scraper that stops running never reaps its own rows again — deleted,
+# renamed, or dropped from the registry, its shows would linger indefinitely.
+# Stale rows beat missing ones, so this threshold is deliberately generous:
+# a venue whose scraper merely breaks for a fortnight must not have its
+# calendar swept, and a genuinely retired scraper can wait a month.
+ORPHAN_SWEEP_DAYS = 30
+
+
+def reap_orphaned(
+    conn: sqlite3.Connection,
+    known_scrapers: Collection[str],
+    *,
+    scraped_before: str,
+) -> int:
+    """Delete scraped rows whose contributing scraper is no longer registered.
+
+    The cost of scoping the reaper per contributor (#130): rows are only ever
+    reaped by the scraper that made them, so one that disappears strands its
+    rows. This is the backstop, and it is intentionally the *slow* path —
+    ``scraped_before`` should be well in the past (see ``ORPHAN_SWEEP_DAYS``),
+    because a scraper that is merely broken today will come back.
+
+    Rows with a NULL ``source_scraper`` are left alone: pre-migration rows are
+    backfilled at schema init, so a NULL here means a row this scoping doesn't
+    understand, and deleting what you can't attribute is the wrong instinct.
+    """
+    rows = conn.execute(
+        "SELECT id, source_scraper FROM shows "
+        "WHERE source = 'scrape' AND source_scraper IS NOT NULL "
+        "AND scraped_at < ?",
+        (scraped_before,),
+    ).fetchall()
+    known = set(known_scrapers)
+    ids = [row["id"] for row in rows if row["source_scraper"] not in known]
+    if not ids:
+        return 0
+    placeholders = ", ".join("?" for _ in ids)
+    conn.execute(
+        f"DELETE FROM show_performers WHERE show_id IN ({placeholders})", ids
+    )
+    conn.execute(f"DELETE FROM shows WHERE id IN ({placeholders})", ids)
+    conn.commit()
+    return len(ids)
