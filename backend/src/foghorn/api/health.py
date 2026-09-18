@@ -25,6 +25,11 @@ class ScrapeVenueHealth(BaseModel):
     created: int
     updated: int
     errors: list[str]
+    # Things a *successful* run dropped on purpose — e.g. SFJAZZ off-site
+    # dates the nightly reaper would otherwise make unsafe to ingest. Not
+    # failures; a deliberate drop with no telemetry is how a show goes
+    # missing quietly.
+    notes: list[str] = []
 
 
 class ScrapeHealth(BaseModel):
@@ -55,6 +60,7 @@ def scrape_health() -> JSONResponse:
                 created=v.created,
                 updated=v.updated,
                 errors=v.errors,
+                notes=v.notes,
             )
             for v in run.venues
         ],

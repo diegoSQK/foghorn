@@ -8,6 +8,61 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## A deliberate drop needs telemetry, or it's silent data loss (September 2026)
+
+`scrapers/sfjazz.scrape_center()` drops SFJAZZ's off-site dates on purpose and
+for a good reason — the nightly `prune=True` would otherwise reap the host
+venue's own programming. Its docstring justified that by saying those dates
+"arrive through the host venue's own scraper."
+
+**Nothing checked that, and when it was wrong the show vanished.** It held for
+the Paramount and the UC Theatre. It was false for Davies, whose only source
+was a presenter feed that can't see rentals, so a Julian Lage date SFJAZZ
+presented there was dropped and appeared nowhere. It surfaced because a friend
+sent Diego the link.
+
+The pointed detail: the scraper *already* warned about **unmapped** locations,
+precisely so new programming gets a human glance. Davies is mapped, so it
+stayed quiet. The mapped-and-deliberately-dropped path was the one with no
+telemetry, and it was the one that lost a show. An exception handler covers a
+run that broke; nothing covered a run that worked exactly as designed and still
+dropped something.
+
+### What shipped
+
+`scrapers/diagnostics.py` — a small channel for a scraper to report what a
+*successful* run still dropped. Notes ride the existing `scrape_runs` record
+and surface on `GET /api/health/scrape` beside the error list, deliberately
+*not* as errors: a considered drop shouldn't make a venue look broken.
+
+SFJAZZ now reports its off-site drops per host, and separates the hosts that
+have **no scraper of their own** — because a Paramount date is fine (its own
+scraper lists it) while a Grace Cathedral date is a show foghorn simply loses:
+
+```
+sfjazz: 4 off-site date(s) not ingested: davies_symphony_hall 2,
+  grace_cathedral 1, paramount_theatre_oakland 1; no scraper covers
+  grace_cathedral 1
+```
+
+The channel is generic rather than SFJAZZ-specific, because the shape isn't:
+any scraper that knowingly narrows its output has the same exposure. It's a
+`ContextVar`, since the nightly run is on an APScheduler background thread
+while `make scrape` is on the main one.
+
+**Observability only.** What gets ingested is byte-identical; a test pins that
+`scrape_center()` still returns exactly the in-house shows.
+
+### Note for the PM thread
+
+The ticket flagged this as the third case this quarter to hit per-venue prune
+granularity and suggested filing the reaper rescope. Having now done #128, I'd
+revise that count down: #128 dissolved into the aggregator tier rather than
+needing prune changes, so the live evidence is **this** case plus
+`scrape_center()`'s existence — which are really one case, the same scraper.
+Worth waiting for a third that doesn't dissolve.
+
+
 ## War Memorial licensee calendar — the halls stop being one company's season (September 2026)
 
 A Julian Lage Quartet date at Davies on 2026-10-19 was missing, with Lage on

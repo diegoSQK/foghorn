@@ -55,10 +55,12 @@ import logging
 import re
 import urllib.error
 import urllib.request
+from collections.abc import Iterable
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from foghorn.models import ScrapedShow
+from foghorn.scrapers import diagnostics
 
 logger = logging.getLogger("foghorn.scrapers.sfjazz")
 
@@ -346,8 +348,67 @@ def scrape_center() -> list[ScrapedShow]:
     where they already do: Snarky Puppy's Paramount date is in foghorn today via
     ``scrapers/paramount_theatre_oakland``, with a natural key
     ``(venue, date, time, headliner)`` identical to what this feed reports.
+
+    **That assumption is now checked rather than trusted.** It held for the
+    Paramount and the UC Theatre and quietly failed for Davies, whose only
+    source published one company's season — so an SFJAZZ date there was
+    dropped here and appeared nowhere. Every drop is reported on the
+    scrape-health surface via ``scrapers.diagnostics``, with hosts that have no
+    scraper of their own called out separately: those are the genuinely lost
+    ones.
     """
-    return [show for show in scrape() if show.venue_slug == VENUE_SLUG]
+    shows = scrape()
+    kept = [show for show in shows if show.venue_slug == VENUE_SLUG]
+    _report_offsite(offsite_drops(shows))
+    return kept
+
+
+def offsite_drops(shows: list[ScrapedShow]) -> dict[str, int]:
+    """Host venue slug → how many SFJAZZ dates there ``scrape_center`` drops.
+
+    Pure, so the tally can be asserted from a fixture without running a scrape.
+    """
+    drops: dict[str, int] = {}
+    for show in shows:
+        if show.venue_slug != VENUE_SLUG:
+            drops[show.venue_slug] = drops.get(show.venue_slug, 0) + 1
+    return dict(sorted(drops.items()))
+
+
+def hosts_without_a_scraper(host_slugs: Iterable[str]) -> list[str]:
+    """Which of these hosts have no registered scraper of their own.
+
+    An off-site date at the Paramount is fine — the Paramount's own scraper
+    lists it. One at a host with no scraper is a show foghorn simply loses,
+    which is the distinction worth surfacing.
+
+    Imported lazily: ``scrapers/__init__`` imports every scraper module, so a
+    module-level import here would be circular.
+    """
+    from foghorn.scrapers import REGISTERED_SCRAPERS
+
+    return sorted(slug for slug in host_slugs if slug not in REGISTERED_SCRAPERS)
+
+
+def _report_offsite(drops: dict[str, int]) -> None:
+    """Log the drops and put them on the run record."""
+    if not drops:
+        return
+    total = sum(drops.values())
+    uncovered = hosts_without_a_scraper(drops)
+    breakdown = ", ".join(f"{slug} {count}" for slug, count in drops.items())
+    message = f"{total} off-site date(s) not ingested: {breakdown}"
+    if uncovered:
+        # These are the ones nothing else will pick up.
+        missing = ", ".join(
+            f"{slug} {drops[slug]}" for slug in uncovered
+        )
+        message += f"; no scraper covers {missing}"
+    diagnostics.note(message)
+    logger.warning(
+        "sfjazz.offsite_dropped",
+        extra={"drops": drops, "hosts_without_scraper": uncovered},
+    )
 
 
 def main() -> None:
