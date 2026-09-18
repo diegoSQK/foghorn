@@ -1164,7 +1164,10 @@ SEED_VENUES: list[Venue] = [
         tz="America/Los_Angeles",
         website_url="https://www.sfsymphony.org",
         # Home of the SF Symphony (incl. SoundBox, the experimental room
-        # inside Davies — folded here until it earns its own row).
+        # inside Davies — folded here until it earns its own row). The
+        # Symphony's own season arrives via aggregators/sf_symphony; rentals
+        # (SFJAZZ Mondays, touring recitals) only via the War Memorial
+        # licensee calendar — see aggregators/sf_war_memorial.
         calendar_url="https://www.sfsymphony.org/Calendar",
         genre="classical",
     ),
@@ -1173,11 +1176,26 @@ SEED_VENUES: list[Venue] = [
         neighborhood="Civic Center", region="SF",
         address="401 Van Ness Ave, San Francisco, CA",
         tz="America/Los_Angeles",
-        website_url="https://www.sfwmpac.org/herbst-theatre",
+        # sfwmpac.org stopped resolving (DNS failure, confirmed 2026-09-18);
+        # the War Memorial's site is sfwarmemorial.org now.
+        website_url="https://sfwarmemorial.org/herbst-theatre/",
         # Veterans Building recital hall; hosts SF Philharmonic dates, SF
-        # Performances, and other classical-lean presenters. No first-party
-        # calendar feed — shows arrive via presenter group feeds.
-        calendar_url="https://www.sfwmpac.org/herbst-theatre",
+        # Performances, and other classical-lean presenters. Rentals arrive
+        # via the building operator's licensee calendar
+        # (aggregators/sf_war_memorial); resident companies via group feeds.
+        calendar_url="https://sfwarmemorial.org/calendar/",
+        genre="classical",
+    ),
+    # The building's largest hall. Seeded by #128 alongside the War Memorial
+    # licensee feed — it was previously absent entirely, so SF Opera's season
+    # and every Opera House rental had nowhere to land.
+    Venue(
+        slug="war_memorial_opera_house", name="War Memorial Opera House",
+        neighborhood="Civic Center", region="SF",
+        address="301 Van Ness Ave, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://sfwarmemorial.org/opera-house/",
+        calendar_url="https://sfwarmemorial.org/calendar/",
         genre="classical",
     ),
     Venue(
