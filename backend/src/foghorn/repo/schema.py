@@ -218,6 +218,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
     )
     _add_column_if_missing(conn, "scrape_run_venues", "notes_json", "TEXT")
     _add_column_if_missing(conn, "shows", "source_scraper", "TEXT")
+    _add_column_if_missing(conn, "venues", "size_tier", "TEXT")
     _backfill_source_scraper(conn)
     conn.commit()
 

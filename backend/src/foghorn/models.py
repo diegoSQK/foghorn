@@ -19,6 +19,11 @@ from pydantic import BaseModel, ConfigDict, Field
 # Closed enumerations stored as TEXT. Kept as Literals so seeds and ingest are
 # validated at construction time rather than silently writing typos to the DB.
 Region = Literal["SF", "East Bay", "North Bay", "Peninsula", "South Bay", "Santa Cruz"]
+# Editorial judgment about the *kind of room*, not a seat-count threshold
+# (#133). The capacities are orientation: listening_room <150, club ~150-600,
+# theatre ~600-3,500, large >3,500. Where a room sits between tiers it
+# resolves toward how it feels to programme — see repo/seed_venues.SIZE_TIERS.
+SizeTier = Literal["listening_room", "club", "theatre", "large"]
 Role = Literal["headliner", "support"]
 # Performer origin (v1 of local/touring tagging). No scraped source publishes
 # this — it's inferred (heuristic bootstrap) or hand-set; None = unknown.
@@ -65,6 +70,10 @@ class Venue(BaseModel):
     # aggregator ingest (quarantined from the main UI behind the long-tail
     # toggle; pinning promotes — see repo/shows quarantine clause).
     source: Literal["seed", "manual", "aggregator"] = "seed"
+    # Capacity tier (#133). Metadata only for now — deliberately no filter
+    # facet until the distribution says whether one earns a place. None on
+    # aggregator-discovered rows, like neighborhood/region/genre.
+    size_tier: SizeTier | None = None
 
 
 class Performer(BaseModel):

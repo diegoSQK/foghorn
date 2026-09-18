@@ -8,7 +8,7 @@ from foghorn.models import Venue
 
 _COLUMNS = (
     "id, slug, name, neighborhood, region, address, tz, website_url, calendar_url, "
-    "genre, source"
+    "genre, size_tier, source"
 )
 
 
@@ -24,6 +24,7 @@ def _row_to_venue(row: sqlite3.Row) -> Venue:
         website_url=row["website_url"],
         calendar_url=row["calendar_url"],
         genre=row["genre"],
+        size_tier=row["size_tier"],
         source=row["source"],
     )
 
@@ -55,8 +56,9 @@ def upsert(conn: sqlite3.Connection, venue: Venue) -> Venue:
     conn.execute(
         """
         INSERT INTO venues (slug, name, neighborhood, region, address, tz,
-                            website_url, calendar_url, genre, source)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            website_url, calendar_url, genre, size_tier,
+                            source)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(slug) DO UPDATE SET
             name         = excluded.name,
             neighborhood = excluded.neighborhood,
@@ -66,6 +68,7 @@ def upsert(conn: sqlite3.Connection, venue: Venue) -> Venue:
             website_url  = excluded.website_url,
             calendar_url = excluded.calendar_url,
             genre        = excluded.genre,
+            size_tier    = excluded.size_tier,
             source       = excluded.source
         """,
         (
@@ -78,6 +81,7 @@ def upsert(conn: sqlite3.Connection, venue: Venue) -> Venue:
             venue.website_url,
             venue.calendar_url,
             venue.genre,
+            venue.size_tier,
             venue.source,
         ),
     )

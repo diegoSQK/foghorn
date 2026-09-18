@@ -262,11 +262,20 @@ def build_server() -> FastMCP:
         name="list_venues",
         description=(
             "Every venue foghorn tracks: slug, name, neighborhood, region, "
-            "default genre lean, and source ('seed' = scraped, 'manual' = "
-            "hand-entered, 'aggregator' = long-tail, hidden from the main UI "
-            "unless long_tail is on). Slugs here are what list_shows(venues=) "
-            "and add_event(venue_slug=) expect — call this first rather than "
-            "guessing a slug. Public; no sign-in needed."
+            "default genre lean, size_tier, and source ('seed' = scraped, "
+            "'manual' = hand-entered, 'aggregator' = long-tail, hidden from "
+            "the main UI unless long_tail is on). Slugs here are what "
+            "list_shows(venues=) and add_event(venue_slug=) expect — call this "
+            "first rather than guessing a slug. "
+            "size_tier is an editorial judgment about the kind of room — "
+            "listening_room (someone's living room, <150), club (a bar or "
+            "restaurant that books music, ~150-600), theatre (a ticketed room "
+            "with a stage and a house, ~600-3,500), or large (civic-scale, the "
+            "building hosts non-music too). It is null on aggregator-discovered "
+            "venues. There is deliberately no size filter on list_shows, so "
+            "answering 'what's on in a small room tonight' means reading tiers "
+            "off this list and passing the slugs to list_shows(venues=). "
+            "Public; no sign-in needed."
         ),
     )
     def list_venues() -> str:

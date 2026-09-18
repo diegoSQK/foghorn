@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from foghorn.models import Venue
+from foghorn.models import SizeTier, Venue
 from foghorn.repo import db
 from foghorn.repo import venues as venues_repo
 
@@ -1223,6 +1223,128 @@ SEED_VENUES: list[Venue] = [
         genre="classical",
     ),
 ]
+
+
+# Capacity tier per venue (#133). Kept as one table rather than a field on each
+# Venue above, because the *distribution* is the point — the coverage question
+# "which tiers do we actually cover?" is answerable by reading this, and a gap
+# (SF had nothing above 3,500 until Bill Graham) is visible at a glance.
+#
+# These are judgments about the kind of room, not seat-count thresholds. The
+# capacities in models.SizeTier are orientation; where a room sits between
+# tiers it resolves toward how it feels to programme, and the awkward ones
+# carry a comment. Aggregator-discovered venues are deliberately absent —
+# inventing metadata for ~50 auto-discovered spaces would be guesswork, the
+# same reason they carry no neighborhood/region/genre.
+SIZE_TIERS: dict[str, SizeTier] = {
+    # --- listening rooms: someone's living room energy -------------------
+    "audium": "listening_room",  # 49 seats, in the round
+    "bird_and_beckett": "listening_room",  # bookshop back room
+    "blue_heron_boathouse": "listening_room",
+    "center_for_new_music": "listening_room",
+    "chez_hanny": "listening_room",  # a house concert, literally
+    "dresher_ensemble_studio": "listening_room",
+    "indexical": "listening_room",
+    "medicine_for_nightmares": "listening_room",  # bookstore
+    "meyhouse_jazz": "listening_room",  # house concert
+    "natural_grocery_annex": "listening_room",
+    "noontime_concerts": "listening_room",  # free lunchtime recitals
+    "piedmont_piano": "listening_room",  # piano showroom
+    "sjz_break_room": "listening_room",
+    "the_dawn_club": "listening_room",
+    "the_lab": "listening_room",
+    "the_lost_church": "listening_room",
+    "toms_place": "listening_room",
+    "wyldflowr_arts": "listening_room",
+    # --- clubs: a bar or restaurant that books music ----------------------
+    "ashkenaz": "club",
+    "black_cat": "club",
+    "boom_boom_room": "club",
+    "bottom_of_the_hill": "club",
+    "brick_and_mortar": "club",
+    "cafe_du_nord": "club",
+    "california_jazz_conservatory": "club",
+    "club_deluxe": "club",
+    "club_fox": "club",
+    "cornerstone_berkeley": "club",
+    "dna_lounge": "club",
+    "felton_music_hall": "club",
+    "gilman_924": "club",
+    "guild_theatre": "club",  # ~450; a restored theatre, but club-scale
+    "ivy_room": "club",
+    "keys_jazz_bistro": "club",
+    "kilowatt": "club",
+    "kuumbwa_jazz_center": "club",  # ~200 seated; a listening room in feel,
+    # but well past the listening_room band
+    "little_hill_lounge": "club",
+    "little_lous_bbq": "club",  # restaurant that books music
+    "madrone_art_bar": "club",
+    "make_out_room": "club",
+    "mills_college_littlefield_concert_hall": "club",  # ~350 recital hall —
+    # seated and music-only, so "club" is the least-wrong band rather than a
+    # description of the room
+    "moes_alley": "club",
+    "mr_tipples": "club",
+    "napa_music_hall": "club",
+    "neck_of_the_woods": "club",
+    "ocean_ale_house": "club",
+    "old_first_concerts": "club",  # ~300, church chamber series
+    "pier_23_cafe": "club",
+    "poor_house_bistro": "club",  # restaurant that books music
+    "rickshaw_stop": "club",
+    "smileys_saloon": "club",
+    "sweetwater_music_hall": "club",
+    "the_back_room": "club",
+    "the_crepe_place": "club",
+    "the_knockout": "club",
+    "the_mellow_haight": "club",
+    "the_ritz": "club",
+    "the_sound_room": "club",
+    "thee_stork_club": "club",
+    "wilsey_center_atrium": "club",  # 299-seat black box
+    # --- theatres: a ticketed room with a stage and a house ---------------
+    "august_hall": "theatre",
+    "bimbos_365": "theatre",
+    "blue_note_napa_summer_sessions": "theatre",  # resort amphitheatre
+    "cal_performances": "theatre",  # Zellerbach, ~2,000
+    "davies_symphony_hall": "theatre",  # 2,743
+    "fox_theater_oakland": "theatre",  # 2,800 — sits right on the large line
+    "freight_and_salvage": "theatre",
+    "gray_area_art_and_technology": "theatre",  # the Grand, ~700
+    "great_american_music_hall": "theatre",
+    "herbst_theatre": "theatre",  # 916
+    "mystic_theatre": "theatre",
+    "paramount_theatre_oakland": "theatre",  # 3,040 — the other borderline one
+    "regency_ballroom": "theatre",
+    "sfjazz": "theatre",  # Miner Auditorium (~700) dominates the calendar;
+    # the Joe Henderson Lab (~100) is a listening room under the same slug, and
+    # tiers are venue-level, so this row can't express both (#106 added
+    # per-show `room`, but not per-room tiers)
+    "stanford_jazz_workshop": "theatre",  # mostly Dinkelspiel, ~715
+    "stanford_live": "theatre",  # Bing, 842
+    "the_catalyst": "theatre",
+    "the_chapel": "theatre",
+    "the_fillmore": "theatre",  # 1,315
+    "the_independent": "theatre",
+    "the_midway": "theatre",
+    "the_warfield": "theatre",  # 2,300
+    "uc_theatre": "theatre",  # 1,400
+    "uptown_theatre_napa": "theatre",
+    "war_memorial_opera_house": "theatre",  # 3,128
+    "yoshis": "theatre",
+    # --- large: civic-scale, and the building hosts non-music too ---------
+    "bill_graham_civic": "large",  # ~7,000
+    "greek_theatre_berkeley": "large",  # ~8,500
+    "mountain_winery": "large",
+    "the_masonic": "large",
+}
+
+# Applied here rather than repeated on every Venue above. The seed test asserts
+# the table covers the list exactly, so a venue added without a tier — or a
+# tier left behind after a venue is removed — fails the gate rather than
+# silently landing untiered.
+for _venue in SEED_VENUES:
+    _venue.size_tier = SIZE_TIERS.get(_venue.slug)
 
 
 def seed(conn: sqlite3.Connection | None = None) -> None:
