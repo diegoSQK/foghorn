@@ -103,6 +103,23 @@ _NON_MUSIC_SIGNALS = (
     "book launch",
     "lecture",
     "talks",
+    # The shop's calendar also carries entries that aren't events at all
+    # (#124). Both phrases are deliberately narrow: bare "closed" and bare
+    # "market" would be plausible inside a band name, "closed for" and
+    # "night market" are not.
+    "closed for",
+    "night market",
+)
+
+# Tribe categories that mean this *is* a music performance. A jam is a show
+# foghorn wants — the event_type inference tags it separately.
+_MUSIC_CATEGORIES = frozenset({"live music", "jam session"})
+
+# Tribe categories that mean it isn't, when nothing marks it as music. The
+# venue's own tagging, so it catches what a title never could: "Amy O'Hair
+# presents 'History Walks in Sunnyside'" reads like a gig and is a talk.
+_NON_MUSIC_CATEGORIES = frozenset(
+    {"poetry reading", "talks / interviews", "book event"}
 )
 
 
@@ -125,6 +142,11 @@ class EventDetails:
 
     source_url: str
     price_text: str | None
+    # Tribe's own category names, casefolded. The venue tags its programming
+    # ("Live Music", "Poetry Reading", "Talks / Interviews", "Book Event"),
+    # which is a far better signal than reading the title — see
+    # ``_is_non_music``. Empty when Tribe has the event but tagged it nothing.
+    categories: frozenset[str] = frozenset()
 
 
 # What ``parse_ics`` accepts: (venue-local date, start time) -> details.
@@ -134,6 +156,24 @@ DetailIndex = Mapping[tuple[dt.date, dt.time], EventDetails]
 def _text(value: object) -> str:
     """Unescape HTML entities Tribe leaves in text fields and trim."""
     return html.unescape(str(value)).strip() if value else ""
+
+
+def _category_names(value: object) -> frozenset[str]:
+    """Casefolded category names off a Tribe event's ``categories`` list.
+
+    Defensive about the shape: the field is absent on some events and the
+    payload is untyped JSON, so anything unexpected reads as "no categories"
+    — which falls back to the title heuristic rather than dropping a show.
+    """
+    if not isinstance(value, list):
+        return frozenset()
+    names = set()
+    for category in value:
+        if isinstance(category, dict):
+            name = _text(category.get("name")).casefold()
+            if name:
+                names.add(name)
+    return frozenset(names)
 
 
 def fetch_event_details(
@@ -221,12 +261,34 @@ def build_detail_index(events: list[dict[str, object]]) -> dict[
         if not url:
             continue
         index[key] = EventDetails(
-            source_url=url, price_text=_text(matches[0].get("cost")) or None
+            source_url=url,
+            price_text=_text(matches[0].get("cost")) or None,
+            categories=_category_names(matches[0].get("categories")),
         )
     return index
 
 
-def _is_non_music(summary: str) -> bool:
+def _is_non_music(summary: str, details: EventDetails | None = None) -> bool:
+    """Whether this calendar entry is something other than a gig.
+
+    **Tribe's categories first, the title only as a fallback.** The venue tags
+    its own programming, which is a far better signal than reading the title —
+    "Amy O\'Hair presents \'History Walks in Sunnyside\'" reads like a gig and
+    is a talk. But categories can\'t be the whole answer: the two entries that
+    prompted #124 ("closed for Thanksgiving", "Glen Park Night Market") have no
+    Tribe event at all, so *absence* of a category must never be read as
+    "not a show" — that would silently drop the ~8% of the calendar Tribe
+    doesn\'t carry, including real gigs like the November Will Bernard date.
+
+    So: a category decides it when there is one, and the keyword heuristic —
+    knowingly imperfect, and now aware that the shop also posts closures and
+    street fairs — handles everything else.
+    """
+    categories = details.categories if details is not None else frozenset()
+    if categories & _MUSIC_CATEGORIES:
+        return False
+    if categories & _NON_MUSIC_CATEGORIES:
+        return True
     lowered = summary.lower()
     return any(signal in lowered for signal in _NON_MUSIC_SIGNALS)
 
@@ -266,7 +328,7 @@ def parse_ics(
         if not isinstance(start_value, dt.datetime):
             continue
         summary = _clean(str(event.get("SUMMARY", "")))
-        if not summary or _is_non_music(summary):
+        if not summary:
             continue
         # Normalize to naive local time in the venue tz; ingest re-applies the
         # tz to derive start_utc. Expanded instances come back tz-aware (PT or
@@ -275,6 +337,12 @@ def parse_ics(
             local = start_value.astimezone(VENUE_TZ).replace(tzinfo=None)
         else:
             local = start_value
+        # Tribe metadata for this slot, if the two feeds agree on the time.
+        # Resolved before the music filter, which prefers the venue's own
+        # categories over reading the title.
+        matched = (details or {}).get((local.date(), local.time()))
+        if _is_non_music(summary, matched):
+            continue
         end = event.get("DTEND")
         end_local = None
         if end is not None and isinstance(end.dt, dt.datetime):
@@ -284,8 +352,6 @@ def parse_ics(
                 if end_value.tzinfo is not None
                 else end_value
             )
-        # Tribe metadata for this slot, if the two feeds agree on the time.
-        matched = (details or {}).get((local.date(), local.time()))
         shows.append(
             ScrapedShow(
                 venue_slug=VENUE_SLUG,
