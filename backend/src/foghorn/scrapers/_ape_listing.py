@@ -11,6 +11,21 @@ the full start ("July 7, 2026 8:00 pm"), an ``event__doors-open`` span, and a
 Ticketmaster button marked ``itemprop="url"`` ("Buy Tickets" or "Sold Out!" —
 either way the event link we want). No prices appear anywhere on the template.
 
+**Two template generations.** Bill Graham Civic (#131) runs a newer variant of
+the same theme: the block is an ``article.event`` rather than a
+``div.mix.detail-information``, support acts sit in ``div.bottomline`` rather
+than ``div.support``, the per-event link is an ``a.more-info``, and the start
+is a ``p.event__start-date`` whose ``content`` is already an unambiguous
+``2026-09-19 19:00`` instead of the older free-text "July 7, 2026 8:00 pm".
+Everything else — the title, the topline banner, the doors span, the
+``itemprop="url"`` ticket button, the absence of prices — is identical.
+
+Both shapes are read here rather than forked into a third copy of the parsing
+logic, because the *rules* (cancelled shows stay listed, non-music bookings
+need dropping, support lines carry annotations) are the template's, not the
+venue's, and would otherwise drift apart. ``_SELECTORS`` is the only place the
+two differ.
+
 This module is the one place that markup is understood; per-venue scrapers stay
 thin wrappers supplying the URL and slug. Quirks handled here rather than per
 venue:
@@ -31,6 +46,7 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+from typing import NamedTuple
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup, Tag
@@ -55,9 +71,44 @@ DROP_PATTERNS: tuple[re.Pattern[str], ...] = (
 # Cancelled/postponed shows keep their listing block with a topline banner.
 _CANCELLED_RE = re.compile(r"\b(?:cancell?ed|postponed)\b", re.IGNORECASE)
 
-# The single-date-show microdata content: "July 7, 2026 8:00 pm" (rarely
-# without the space before am/pm, as in the sibling date-show element).
-_CONTENT_FORMATS = ("%B %d, %Y %I:%M %p", "%B %d, %Y %I %p")
+# The microdata start ``content``. The older template writes it as free text
+# ("July 7, 2026 8:00 pm", rarely without the space before am/pm); the newer
+# one writes a sortable "2026-09-19 19:00".
+_CONTENT_FORMATS = (
+    "%B %d, %Y %I:%M %p",
+    "%B %d, %Y %I %p",
+    "%Y-%m-%d %H:%M",
+    "%Y-%m-%d %H:%M:%S",
+)
+
+
+class _Selectors(NamedTuple):
+    """Where one template generation keeps each field."""
+
+    block: str
+    start: str
+    support: str
+    event_link: str
+
+
+# Tried in order against each block; the first whose `start` element carries a
+# usable `content` wins. Only these four selectors differ between generations.
+_SELECTORS: tuple[_Selectors, ...] = (
+    # Fox Oakland, Greek Berkeley.
+    _Selectors(
+        block="div.mix.detail-information",
+        start="div.single-date-show",
+        support="div.support",
+        event_link="div.entry a[href]",
+    ),
+    # Bill Graham Civic (#131).
+    _Selectors(
+        block="article.event",
+        start="p.event__start-date",
+        support="div.bottomline",
+        event_link="a.more-info[href]",
+    ),
+)
 
 # "7:00 pm | " in the doors span; tolerant of "7pm" / "7:00 p.m.".
 _TIME_RE = re.compile(r"(\d{1,2})(?::(\d{2}))?\s*([ap])\.?\s*m\.?", re.IGNORECASE)
@@ -148,6 +199,21 @@ def _support_acts(support: Tag) -> list[str]:
     return acts
 
 
+def _blocks(soup: BeautifulSoup) -> list[tuple[Tag, _Selectors]]:
+    """Every show block on the page, paired with the selector set that reads it.
+
+    A page is one generation or the other, so the first selector set that finds
+    blocks wins. Pairing rather than globally choosing keeps a future mixed
+    page (a theme mid-migration) parseable instead of silently half-empty.
+    """
+    found: list[tuple[Tag, _Selectors]] = []
+    for selectors in _SELECTORS:
+        blocks = soup.select(selectors.block)
+        if blocks:
+            found.extend((block, selectors) for block in blocks)
+    return found
+
+
 def parse_listing_html(
     html: str,
     *,
@@ -166,7 +232,7 @@ def parse_listing_html(
     window_end = today + dt.timedelta(days=window_days)
 
     shows: list[ScrapedShow] = []
-    for block in soup.select("div.mix.detail-information"):
+    for block, selectors in _blocks(soup):
         title_el = block.select_one("h2.show-title")
         if title_el is None:
             continue
@@ -182,7 +248,7 @@ def parse_listing_html(
         if any(pattern.search(label) for pattern in DROP_PATTERNS):
             continue
 
-        date_el = block.select_one("div.single-date-show")
+        date_el = block.select_one(selectors.start)
         content = _attr(date_el, "content") if date_el is not None else None
         start_local = _parse_content_datetime(content) if content else None
         if start_local is None:
@@ -195,10 +261,10 @@ def parse_listing_html(
             _parse_time(doors_el.get_text(" ", strip=True)) if doors_el is not None else None
         )
 
-        support_el = block.select_one("div.support")
+        support_el = block.select_one(selectors.support)
         support = _support_acts(support_el) if support_el is not None else []
 
-        entry_link = block.select_one("div.entry a[href]")
+        entry_link = block.select_one(selectors.event_link)
         event_href = _attr(entry_link, "href") if entry_link is not None else None
 
         ticket_link = block.select_one('a[itemprop="url"]')

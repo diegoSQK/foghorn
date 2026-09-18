@@ -1157,6 +1157,19 @@ SEED_VENUES: list[Venue] = [
     # (aggregators/sf_symphony, aggregators/sf_philharmonic) that route each
     # event to the hall it actually plays, with the ensemble on the bill as a
     # support performer so the watchlist follows the group across halls.
+    # Civic-scale room in Civic Center (~7,000 cap), booking national touring
+    # acts continuously. Absent from foghorn entirely until #131 — the
+    # corridor was well covered for clubs and had no large room at all.
+    Venue(
+        slug="bill_graham_civic", name="Bill Graham Civic Auditorium",
+        neighborhood="Civic Center", region="SF",
+        address="99 Grove St, San Francisco, CA",
+        tz="America/Los_Angeles",
+        website_url="https://billgrahamcivic.com",
+        calendar_url="https://billgrahamcivic.com/calendar/",
+        # Books EDM, pop, rock and blues — "rock" would undersell the range.
+        genre="eclectic",
+    ),
     Venue(
         slug="davies_symphony_hall", name="Davies Symphony Hall",
         neighborhood="Civic Center", region="SF",
