@@ -8,6 +8,58 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Bird & Beckett's non-shows: the venue's own tags, with the heuristic behind them (September 2026)
+
+The shop's calendar carries more than gigs, and two entries that aren't events
+at all were being ingested as shows: **"closed for Thanksgiving"** and
+**"Glen Park Night Market"**. The `_NON_MUSIC_SIGNALS` keyword list — which
+already caught poetry readings and author talks — had nothing to say about a
+closure notice or a street fair.
+
+#122 had just put Tribe's REST feed in place, and it carries the venue's own
+categories (`Live Music`, `Poetry Reading`, `Talks / Interviews`,
+`Book Event`, `Jam Session`). The obvious move was to replace the keyword
+heuristic with them.
+
+### Measuring first killed the obvious move
+
+Pulling the live feed: **the two offending entries have no Tribe event at
+all.** Categories alone can't fix the reported bug, because the rows that
+caused it are exactly the ones Tribe doesn't carry — 4 of 51 shows in the
+window have no match.
+
+That also settles the design's real hazard. Reading "no category" as "not a
+show" would drop those 4, including **Will Bernard + Beth Custer**, a real
+November date. The fail-open property #122 established — a Tribe gap must
+never reduce the show count — has to survive here too.
+
+But categories genuinely earn their place on the other side: they drop two
+events the keyword list misses and no title heuristic could ever catch, since
+both read like gigs —
+
+- *Amy O'Hair presents "History Walks in Sunnyside"* → `Talks / Interviews`
+- *All About San Francisco Stairways w/Mary Burk* → `Book Event`
+
+### What shipped
+
+A category decides when there is one; the keyword list handles everything
+else, and gained `"closed for"` and `"night market"`. Both are phrases rather
+than bare words on purpose: "closed" and "market" are each plausible inside a
+band name, and the whole point of this ticket was a filter that over-reached
+in the other direction.
+
+`Live Music` and `Jam Session` mark a show — a jam is programming foghorn
+wants, and the event-type inference tags it separately.
+
+### Verification
+
+Live: **51 → 47 shows**, dropping exactly the four intended — the two reported
+non-events by keyword, the two talks by category. `Will Bernard + Beth Custer`
+survives with no Tribe match, and with the index removed entirely (the outage
+path) the filter degrades to exactly the keyword heuristic, still dropping the
+two non-events.
+
+
 ## The reaper stops being scoped to a venue (September 2026)
 
 `reap_stale` was scoped to `(venue_id, source='scrape', span)`. That encoded an
