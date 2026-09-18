@@ -121,8 +121,26 @@ def _identifying(canonical: str) -> set[str]:
     return {token for token in canonical.split() if token not in _NON_IDENTIFYING}
 
 
+# Sources whose billings are *less* authoritative than anything already in the
+# DB, including other aggregators' rows. A building operator's booking record
+# names events with internal labels — "TCHAIKOVSKY RACHMANINOV" where the
+# presenter's own feed says "Tchaikovsky Symphony No. 4 / Rachmaninov Piano
+# Concerto No. 2" — so where the two overlap, the other source should win.
+#
+# The default is the opposite (aggregator rows are ignored by the duplicate
+# guard) because two *presenter* feeds listing the same night are usually two
+# genuinely different events sharing a hall, and suppressing one would lose a
+# show. Only a whole-building feed has the property that an existing row for
+# the same slot is almost certainly the same booking, better described.
+DEFER_TO_ALL_SOURCES = frozenset({"sf_war_memorial"})
+
+
 def _is_duplicate(
-    conn: sqlite3.Connection, venue: Venue, event: AggregatedEvent
+    conn: sqlite3.Connection,
+    venue: Venue,
+    event: AggregatedEvent,
+    *,
+    include_aggregator_rows: bool = False,
 ) -> bool:
     """True when a venue-scraped/manual show that day already covers this
     aggregator blob.
@@ -143,7 +161,7 @@ def _is_duplicate(
     blob = canonicalize(event.headliner_raw)
     blob_names = _identifying(blob)
     for row in rows:
-        if row["source"] == "aggregator":
+        if row["source"] == "aggregator" and not include_aggregator_rows:
             continue  # only defer to authoritative sources
         existing = row["headliner_canonical"]
         if matches_token_bag(existing, blob):
@@ -164,6 +182,7 @@ def ingest_aggregated_events(
     ``aggregator:<source_id>``); duplicate skips aren't errors and aren't
     counted."""
     result = IngestResult(venue_slug=f"aggregator:{source_id}")
+    defer_to_all = source_id in DEFER_TO_ALL_SOURCES
     for event in events:
         try:
             venue = resolve_venue(conn, event)
@@ -173,7 +192,9 @@ def ingest_aggregated_events(
                 # at a tracked venue the scraper is authoritative and the
                 # blob would land beside its rows as a garbage title.
                 continue
-            if venue.source != "aggregator" and _is_duplicate(conn, venue, event):
+            if venue.source != "aggregator" and _is_duplicate(
+                conn, venue, event, include_aggregator_rows=defer_to_all
+            ):
                 continue
             scraped = ScrapedShow(
                 venue_slug=venue.slug,

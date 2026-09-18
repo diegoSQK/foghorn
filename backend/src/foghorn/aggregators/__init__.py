@@ -35,10 +35,20 @@ def _sf_philharmonic() -> list[AggregatedEvent]:
     return sf_philharmonic.scrape()
 
 
+def _sf_war_memorial() -> list[AggregatedEvent]:
+    from foghorn.aggregators import sf_war_memorial
+
+    return sf_war_memorial.scrape()
+
+
 AGGREGATOR_SOURCES: dict[str, Callable[[], list[AggregatedEvent]]] = {
     "bay_improviser": _bay_improviser,
     # Group feeds: performing ensembles whose events name the hall they play
     # (groups are performers, not venues — see aggregators/sf_symphony).
     "sf_symphony": _sf_symphony,
     "sf_philharmonic": _sf_philharmonic,
+    # Building feed: the operator's own booking record for the three War
+    # Memorial halls, which is the only source that sees their *rentals*.
+    # Runs after the group feeds so their richer billings land first.
+    "sf_war_memorial": _sf_war_memorial,
 }
