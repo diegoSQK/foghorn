@@ -19,6 +19,7 @@ from foghorn.models import ScrapedShow
 from foghorn.scrapers import (
     ashkenaz,
     august_hall,
+    bill_graham_civic,
     bimbos_365,
     bird_and_beckett,
     black_cat,
@@ -126,6 +127,7 @@ REGISTERED_SCRAPERS: dict[str, Callable[[], list[ScrapedShow]]] = {
     center_for_new_music.VENUE_SLUG: center_for_new_music.scrape,
     cornerstone_berkeley.VENUE_SLUG: cornerstone_berkeley.scrape,
     dna_lounge.VENUE_SLUG: dna_lounge.scrape,
+    bill_graham_civic.VENUE_SLUG: bill_graham_civic.scrape,
     fox_theater_oakland.VENUE_SLUG: fox_theater_oakland.scrape,
     gilman_924.VENUE_SLUG: gilman_924.scrape,
     greek_theatre_berkeley.VENUE_SLUG: greek_theatre_berkeley.scrape,

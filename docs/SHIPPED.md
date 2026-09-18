@@ -8,6 +8,58 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Bill Graham Civic — the Civic Center gap was civic-scale rooms, not geography (September 2026)
+
+Bill Graham Civic Auditorium was absent from foghorn entirely — not seeded, not
+quarantined, `grep -ri "bill graham"` returned nothing. A ~7,000-capacity room
+in the middle of Civic Center booking national touring acts continuously.
+
+The diagnosis in the ticket was the useful part: the corridor was already well
+covered for *clubs* (SFJAZZ, Mr. Tipple's, Rickshaw Stop, Great American, the
+Warfield, the Regency, Audium, Old First) while the only large rooms were the
+three War Memorial halls, all seeded `classical` and all fed from presenter
+feeds. The gap was a **size of room**, not a neighbourhood.
+
+### One template, two generations
+
+The venue is Another Planet Entertainment, and foghorn already had
+`scrapers/_ape_listing.py` shared by Fox Oakland and the Greek. The ticket
+flagged honestly that its recon couldn't see class attributes and said to treat
+"the classes didn't appear" as *unobserved*, not absent — then gave the right
+instruction for either outcome.
+
+It's a variant. Bill Graham runs a newer generation of the same theme:
+`article.event` blocks instead of `div.mix.detail-information`, support in
+`div.bottomline` instead of `div.support`, an `a.more-info` event link, and —
+better than the old one — a `p.event__start-date` whose `content` is already a
+sortable `2026-09-19 19:00` rather than free text.
+
+Per the ticket, `_ape_listing` was extended rather than forked. The four
+differing selectors live in one `_SELECTORS` table and everything else is
+shared, because the *rules* (cancelled shows stay listed, non-music bookings
+need dropping, support lines carry italic annotations) belong to the template
+rather than the venue, and two copies would drift. Blocks are paired with the
+selector set that reads them rather than the page being classified up front,
+so a theme caught mid-migration parses rather than coming back half-empty.
+
+### Verification
+
+21 shows off the live calendar, chronological, with per-show `source_url` and
+Ticketmaster links. Every acceptance case checked: Bonnie Raitt 10/10 carries
+Jon Cleary & The Absolute Monster Gentlemen as *support* rather than
+concatenated into the headliner; Steve Aoki's three openers split correctly on
+`<br>`; the two Sara Bareilles nights are two rows; sold-out shows (Bareilles,
+Steve Lacy) still ingest; a rescheduled show is kept on its new date while a
+cancelled one is dropped.
+
+Fox Oakland and the Greek were re-verified unchanged after the helper was
+extended, as the ticket required.
+
+The **War Memorial Opera House** half of this ticket had already landed with
+the War Memorial licensee feed, which both seeds the row and fills it — 44
+Opera House shows rather than the empty row this ticket anticipated.
+
+
 ## A deliberate drop needs telemetry, or it's silent data loss (September 2026)
 
 `scrapers/sfjazz.scrape_center()` drops SFJAZZ's off-site dates on purpose and
