@@ -8,6 +8,70 @@ Ordering: newest at top. When adding a new entry, insert it at the top of the fi
 
 ---
 
+## Venue size tier — making the coverage question answerable (September 2026)
+
+foghorn's catalogue spans Bird & Beckett's back room to Bill Graham Civic, a
+~100x range in capacity, with nothing in the model distinguishing them. The
+cost showed up twice: the August 2026 venue sweep closed with a documented gap
+list that a 7,000-seat room in the middle of San Francisco never appeared in,
+and the calendar interleaves a bookshop jazz trio with an arena EDM bill with
+no way to tell them apart.
+
+`venues.size_tier` is four editorial tiers — `listening_room`, `club`,
+`theatre`, `large` — assigned across all 90 seeded venues, surfaced on
+`GET /api/venues` and named in the MCP `list_venues` description so the
+distribution is queryable conversationally.
+
+**Deliberately no filter facet.** The filter bar already carries region,
+neighborhood, genre, origin, type, time-of-day, two watchlists and the
+long-tail toggle, and three recent PRs were about managing that crowding.
+Whether size earns a place there is a decision to make after seeing the
+distribution, not before — a test pins that `/api/shows` gained no size
+parameter.
+
+### The tiers live in one table, not on 90 rows
+
+`SIZE_TIERS` is a dict keyed by slug rather than a field on each `Venue(...)`
+entry, because the *distribution* is the deliverable: the coverage question is
+answerable by reading the table, and a gap is visible at a glance. A test
+asserts the table covers the seed list exactly in both directions, so a venue
+added without a tier — or a tier left behind after a venue is removed — fails
+the gate rather than drifting.
+
+They are judgments about the kind of room, not seat counts, and the awkward
+ones carry their reasoning: Kuumbwa is a listening room in feel but well past
+the band; Mills' Littlefield is a 350-seat recital hall where `club` is the
+least-wrong bucket rather than a description; Fox Oakland and the Paramount
+sit right on the theatre/large line. SFJAZZ is tiered by Miner Auditorium and
+notes the compromise — the Joe Henderson Lab is a listening room under the
+same slug, and tiers are venue-level.
+
+### What the distribution says
+
+| region | listening_room | club | theatre | large | total |
+| --- | --- | --- | --- | --- | --- |
+| SF | 10 | 20 | 14 | 2 | 46 |
+| East Bay | 5 | 10 | 6 | 1 | 22 |
+| North Bay | 0 | 3 | 3 | 0 | 6 |
+| Santa Cruz | 1 | 4 | 1 | 0 | 6 |
+| Peninsula | 1 | 2 | 2 | 0 | 5 |
+| South Bay | 1 | 3 | 0 | 1 | 5 |
+| **all** | **18** | **42** | **26** | **4** | **90** |
+
+Two findings worth acting on, which is what the ticket asked the data to
+produce:
+
+- **South Bay has no theatre-tier venue at all** — one listening room, three
+  clubs, and Mountain Winery. San Jose has several rooms in that band, so this
+  is a real gap rather than an artefact of the region being small.
+- **The `large` tier is four venues across the entire Bay Area.** The ticket
+  already named the Cow Palace, Chase Center, the Palace of Fine Arts and Fort
+  Mason's halls as invisible; the table confirms civic-scale coverage is thin
+  everywhere outside SF and the East Bay.
+
+Filed as a follow-up rather than widened into this PR.
+
+
 ## Bird & Beckett's non-shows: the venue's own tags, with the heuristic behind them (September 2026)
 
 The shop's calendar carries more than gigs, and two entries that aren't events
